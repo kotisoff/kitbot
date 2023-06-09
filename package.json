@@ -1,0 +1,13 @@
+{
+  "name": "discord-kitbot",
+  "author": "kotisoff",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "discord.js": "^14.7.1",
+    "net": "^1.0.2",
+    "openai": "^3.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.31.0"
+  }
+}

@@ -1,0 +1,159 @@
+const { SlashCommandBuilder, ChannelType, PermissionFlagsBits } = require("discord.js");
+const net = require('net');
+const colors = require('colors')
+const fs = require('node:fs')
+if (!fs.existsSync('../configs/kot.followsrv')) { try { fs.mkdirSync('../configs') } catch { }; try { fs.mkdirSync('../configs/kot.followsrv') } catch { } }
+let profiles
+try {
+    profiles = require('../configs/kot.followsrv/config.json')
+} catch {
+    profiles = JSON.parse('{}')
+    fs.writeFileSync('../configs/kot.followsrv/config.json', '{}')
+}
+
+
+let checkat = [], playerdb = new Map(); firstloop = true
+function shareThread(bot) {
+    for (let guildid in profiles) {
+        for (let channelid in profiles[guildid]) {
+            bot.channels.cache.get(channelid).send(':gear:  Бот запущен.')
+        }
+    }
+    function afterfunc(out, channelid) {
+        let channel = bot.channels.cache.get(channelid)
+        channel.setTopic(`${out.description.text} | ${out.version.name} | ${out.players.online}/${out.players.max} Players | ${out.ping} ms`)
+        let onlineplayers = new Map()
+        for (let i in out.players.sample) { onlineplayers.set(out.players.sample[i].id, out.players.sample[i].name) }
+        for (let i in out.players.sample) {
+            let player = out.players.sample[i]
+            if (!playerdb.has(player.id)) {
+                playerdb.set(player.id, player.name)
+                if (!firstloop) {
+                    channel.send("`"+player.name+"` присоединился к игре.")
+                }
+            }
+        }
+        if(firstloop){ channel.send(out.playerlist) }
+        firstloop = false
+        for (let i of playerdb.keys()) {
+            if (!onlineplayers.has(i)) {
+                channel.send("`"+playerdb.get(i)+"` вышел.")
+                playerdb.delete(i)
+            }
+        }
+    }
+    setInterval(() => {
+        for (let guildid in profiles) {
+            for (let channelid in profiles[guildid]) {
+                let Channel = profiles[guildid][channelid]
+                if (checkat[channelid] >= Date.now() || !checkat[channelid]) {
+                    //console.log(checkat[channelid] + '||' + Date.now())
+                    let ip = Channel.ip.split(':')[0]
+                    let port = Channel.ip.split(':')[1] ?? 25565
+                    updateHost(ip, port).then(out => afterfunc(out, channelid))
+                        .catch(err => bot.channels.cache.get(channelid).setTopic(`Не удалось связаться с сервером. ${err}`))
+                }
+                checkat[channelid] = (Date.now() + parseInt(Channel.interval))
+            }
+        }
+    }, 15000)
+}
+
+function hex2tex(hexx) {
+    let hex = hexx.toString()
+    let str = ''
+    for (let i = 0; i < hex.length; i += 2) str += String.fromCharCode(parseInt(hex.substr(i, 2), 16))
+    return str
+}
+
+function toHex(arr) {
+    let result = "";
+    for (i = 0; i < arr.length; i++) {
+        let num = arr[i].toString(16)
+        if (num.length < 2) {
+            num = "0" + num;
+            arr[i] = num;
+        };
+        result += num;
+    };
+    return result;
+};
+
+function hex2a(hex) {
+    let str = '';
+    for (let i = 0; i < hex.length; i += 2) {
+        str += parseInt(hex.substr(i, 2), 16) + ",";
+    };
+    str = str.substr(0, str.length - 1);
+
+    return Buffer.from(JSON.parse('{"type":"Buffer","data":[' + str + ']}'));
+};
+
+async function updateHost(ip, port) {
+    return new Promise((resolve, reject) => {
+        let ping = Date.now()
+        let msg, output = []
+        const client = new net.Socket();
+        client.connect(port, ip, function () {
+            client.on('error', err => { reject(`Произошла ошибка: ${err}`) })
+            client.write(hex2a("1000F705096D75726B612D73797363DD010100")) //отправляем запрос на пинг
+            client.on('data', message => {
+                let temp
+                if (!msg) {
+                    temp = toHex(JSON.parse(JSON.stringify(message)).data)
+                    msg = temp.substring(10, temp.length)
+                } else {
+                    temp = toHex(JSON.parse(JSON.stringify(message)).data)
+                    msg += temp.substring(0, temp.length)
+                }
+                let textmsg = hex2tex(msg)
+                if (textmsg.substring(textmsg.length - 1, textmsg.length) == "}") { //если каким-то образом получится так, что ответ разделился на несколько сообщений, то мы их совмещаем
+                    client.destroy()
+                    output = JSON.parse(textmsg)
+                    output.ping = Date.now() - ping
+                    let playerlist = ''
+                    for (let i in output.players.sample) {
+                        playerlist += output.players.sample[i].name + ", "
+                    }
+                    if (playerlist != "") {
+                        playerlist = playerlist.substring(0, playerlist.length - 2)
+                        output.playerlist = ("Игроков на сервере: " + "`" + playerlist + "`")
+                    } else output.playerlist = "Никого в данный момент нет на сервере."
+                    if (output != undefined) { resolve(output) } else { reject('Произошла неизвестная ошибка.') }
+                }
+            })
+            client.on('close', function () {
+                client.destroy()
+            })
+            client.on('timeout', function () { reject('Превышено время ожидания.') })
+        });
+        client.on('error', err => { reject(`Произошла ошибка при подключении к серверу: ${err.code}`) })
+    })
+}
+
+module.exports = {
+    type: 'i',
+    idata: new SlashCommandBuilder()
+        .setName('followserver')
+        .setDescription('Пингует сервер каждые <minutes> минут. Отправляет выходы и заходы игроков.')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+        .addStringOption(option =>
+            option.setName('ip')
+                .setDescription('Айпи сервера, который будет пинговаться. Порт вписывается через ":".')
+                .setRequired(true))
+        .addChannelOption(option =>
+            option.setName('channel')
+                .setDescription('Канал, который будет задействован для пинга.')
+                .setRequired(true)
+                .addChannelTypes(ChannelType.GuildText))
+        .addIntegerOption(option =>
+            option.setName('minutes')
+                .setDescription('Через сколько минут будет пинг сервера. (По умолчанию 1)')),
+    async iexec(interaction, bot) {
+        const ip = interaction.options.getString('ip').split(':')[0]
+        let port = interaction.options.getString('ip').split(':')[1] ?? 25565
+        if (port < 0 || port > 65535) return interaction.reply(`Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`)
+        updateHost(ip, port).then(out => { interaction.reply(`${out}`) })
+    },
+    shareThread
+}
