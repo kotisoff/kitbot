@@ -107,7 +107,9 @@ const onMsg = async (msg) => {
         n: 1,
         user: msg.author.id,
         stream: config.options.ai_stream
-    }, { responseType: responseType })
+    }, { responseType: responseType }).catch(err=>{
+        memories[target].ai_messages=[]
+    })
 
     if (config.options.ai_stream) {
         let resultmsg = { content: "", role: "assistant" }, output = { content: "", stop: false }
@@ -130,7 +132,7 @@ const onMsg = async (msg) => {
                         memories[target].ai_messages.push(resultmsg)
                         output.stop = true
                     }
-                } catch(e) { output.content = "Произошла ошибка: \n"+e+"\nПопробуйте ещё раз...";output.stop=true }
+                } catch(e) { clearInterval(msginterval);instance.send("Произошла ошибка: \n"+e+"\nПопробуйте ещё раз...") }
             })
         })
 
@@ -191,8 +193,8 @@ module.exports = {
     type: 'i',
     idata: new discord.SlashCommandBuilder()
         .setName('ai')
-        .setDescription('Выводит список ИИ.')
-        .setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
+        .setDescription('Выводит список ИИ.'),
+        //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
     async iexec(interaction, bot) {
         new Promise(res => {
             let prefixes = "Prefixes to call AI's\n```"
