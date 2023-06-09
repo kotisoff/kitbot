@@ -2,4 +2,4 @@ config.json
 node_modules
 .vscode
 configs/kot.chatgpt/config.json
-configs/kot.chatgpt/memories/
+configs/kot.chatgpt/memories

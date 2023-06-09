@@ -1,10 +1,11 @@
 const discord = require('discord.js'), openai = require('openai'), fs = require('node:fs'), path = require("node:path"), colors = require('colors')
+const { profileEnd } = require('node:console')
 
 const configpath = path.join(__dirname, "../configs/kot.chatgpt")
 
 if (!fs.existsSync('./configs/kot.chatgpt')) { fs.mkdirSync('./configs/kot.chatgpt') }
-const config = fileimport(path.join(configpath, "./config.json"), { token: "placeyourtokenhere", prefix: "-", options: { ai_stream: true, savelog: false } })
-let profiles = fileimport(path.join(configpath, "./data/profiles.json"), {})
+const config = fileimport(path.join(configpath, "./config.json"), { token: "placeyourtokenhere", prefix: "-", options: { ai_stream: true, logdetails: false } }, true)
+let profiles = fileimport(path.join(configpath, "./data/profiles.json"), {}, true)
 let aitoken = config.token, mainprefix = config.mainprefix
 
 function fileimport(filepath, replacedata, hide) {
@@ -23,30 +24,39 @@ const ai = new openai.OpenAIApi(aiconfig)
 
 // Personalities
 
+const mainTemplate = {
+    modid: "kotisoff:main",
+    prefix: mainprefix,
+    name: "main",
+    avatar_url: "",
+    personality: "Ты бот помощник пользователя. Всегда отвечай на вопросы максимально точно и подробно.",
+    ai_settings: {
+        model: "gpt-3.5-turbo",
+        temperature: 1.2
+    }
+}
+
 if (!fs.existsSync(path.join(configpath, "./mods"))) fs.mkdirSync(path.join(configpath, "./mods"))
-
-let files = fs.readdirSync(path.join(configpath, "./mods"))
-files = files.filter(f => f.endsWith(".json"))
-console.log("Found", files.length, "personalities.")
-
 let mods = {}
 
-mods["main"] = { modid: "kotisoff:main", name: "main", prefix: mainprefix, ai_settings: { model: "gpt-3.5-turbo", temperature: 1.2 } }
+const refreshMods = () => {
+    let files = fs.readdirSync(path.join(configpath, "./mods"))
+    files = files.filter(f => f.endsWith(".json"))
+    console.log("Found", files.length, "personalities.")
 
-files.forEach(f => {
-    let tmp = require(path.join(configpath, `./mods/${f}`))
-    let name = f.split('.json')[0]
-    mods[name] = tmp
-})
+    mods["main"] = mainTemplate
+    files.forEach(f => {
+        let tmp = require(path.join(configpath, `./mods/${f}`))
+        mods[tmp.modid] = tmp
+    })
+}
 
 // Ai mem (working on)
 
 if (!fs.existsSync(path.join(configpath, "./memories"))) fs.mkdirSync(path.join(configpath, "./memories"))
-
 let memories = {}
 
-memories["main"] = fileimport(path.join(configpath, `./memories/main_memory.json`), { ai_system: [{ role: "system", content: "Ты - тот кем ты хочешь быть." }], ai_messages: [] }, true)
-
+const refreshMemory = () => {
 for (let mod in mods) {
     memories[mod] = fileimport(path.join(configpath, `./memories/${mod}_memory.json`),
         {
@@ -54,10 +64,9 @@ for (let mod in mods) {
             ai_messages: []
         }, true)
 }
+}
 
 // Main work
-
-if (config.options.ai_stream) console.log("[AI]", "Stream mode is ACTIVATED! It is in very early testing! Use it for your own risk!".bgRed.white)
 
 const editmsg = async (msg, data, inst, target) => {
     if (target == "main") return await msg.edit(data)
@@ -65,6 +74,9 @@ const editmsg = async (msg, data, inst, target) => {
 }
 
 const shareThread = async (client) => {
+    refreshMods()
+    refreshMemory()
+    if (config.options.ai_stream) console.log("[AI]", "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk.".bgRed.white)
     try { await client.on(discord.Events.MessageCreate, async msg => onMsg(msg)) }
     catch (e) { console.log("[AI]", e) }
 }
@@ -107,8 +119,8 @@ const onMsg = async (msg) => {
         n: 1,
         user: msg.author.id,
         stream: config.options.ai_stream
-    }, { responseType: responseType }).catch(err=>{
-        memories[target].ai_messages=[]
+    }, { responseType: responseType }).catch(err => {
+        memories[target].ai_messages = []
     })
 
     if (config.options.ai_stream) {
@@ -132,23 +144,23 @@ const onMsg = async (msg) => {
                         memories[target].ai_messages.push(resultmsg)
                         output.stop = true
                     }
-                } catch(e) { clearInterval(msginterval);instance.send("Произошла ошибка: \n"+e+"\nПопробуйте ещё раз...") }
+                } catch (e) { clearInterval(msginterval); instance.send("Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...") }
             })
         })
 
         let msginterval = setInterval(async () => {
             if (output.content.length > 2000) {
                 streaming = await instance.send("↓")
-                output.content = "↓\n"+output.content.substring(2000)
+                output.content = "↓\n" + output.content.substring(2000)
                 try { editmsg(streaming, output.content, instance, target) } catch { }
-            }else{
+            } else {
                 try { editmsg(streaming, output.content, instance, target) } catch { }
             }
             if (output.stop) {
                 clearInterval(msginterval)
                 console.log("[AI]", "Printing done.".gray)
                 if (target != "main") {
-                    setTimeout(()=>{instance.delete()},1500)
+                    setTimeout(() => { instance.delete() }, 1500)
                 }
                 return
             }
@@ -182,11 +194,11 @@ const onMsg = async (msg) => {
 }
 
 setInterval(() => {
-    if (config.options.savelog) console.log("[AI] Saving data...")
+    if (config.options.logdetails) console.log("[AI] Saving data...")
     for (let mod in memories) {
         fs.writeFileSync(path.join(configpath, `/memories/${mod}_memory.json`), JSON.stringify(memories[mod]), err => { })
     }
-    if (config.options.savelog) console.log("[AI] Data saved!")
+    if (config.options.logdetails) console.log("[AI] Data saved!")
 }, 180000)
 
 module.exports = {
@@ -194,7 +206,7 @@ module.exports = {
     idata: new discord.SlashCommandBuilder()
         .setName('ai')
         .setDescription('Выводит список ИИ.'),
-        //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
+    //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
     async iexec(interaction, bot) {
         new Promise(res => {
             let prefixes = "Prefixes to call AI's\n```"
@@ -204,9 +216,14 @@ module.exports = {
                 prefixes += `${mods[mod].prefix} ← ${mods[mod].name}(${mods[mod].modid})\n`
             }
             prefixes += "```"
-            res(prefixes)
-        }).then(prefixes => {
-            interaction.reply({ content: prefixes })
+            let channels = "Also, they are avalible in:\n",i=1
+            profiles.channels.forEach(ch=>{
+                channels+= `${i}. <#${ch}>\n`
+                i++
+            })
+            res(`${prefixes}\n${channels}`)
+        }).then(res => {
+            interaction.reply({ content: res })
         })
     },
     shareThread,

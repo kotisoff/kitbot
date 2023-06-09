@@ -1,27 +1,27 @@
 // импорты всякие
 const discord = require('discord.js'), fs = require('node:fs'), path = require('node:path'), colors = require('colors')
 const config = fileimport("./config.json",{
-    "bot": {
-        "token": "bots_token",
-        "clientId": "bot_client_id",
-        "guildId": "guild_id",
-        "prefix": "'"
+    bot: {
+        token: "bots_token",
+        clientId: "bot_client_id",
+        guildId: "guild_id",
+        prefix: "'"
     },
-    "settings": {
-        "commandsPath":"commands",
-        "allowShortCommands":true,
-        "allowRussianCommands":true
+    settings: {
+        commandsPath:"commands",
+        allowShortCommands:true,
+        allowRussianCommands:true
     }
 })
-const { token, prefix } = require('./config.json').bot
-const settings = require('./config.json').settings
+const { token, prefix } = config.bot
+const settings = config.settings
 //const { token } = require('./config.json');
 //const TOKEN = require('./config.json').token
 const bot = new discord.Client({ intents: [65535] });
 
 function fileimport(filepath, replacedata, hide) {
     filename = path.basename(filepath)
-    if (!hide) console.log("[AI]", ('Importing ' + filename + '...').gray)
+    if (!hide) console.log("[Main]", ('Importing ' + filename + '...').gray)
     try { require(filepath) } catch { fs.writeFileSync(filepath, JSON.stringify(replacedata)) }
     return require(filepath)
 }
