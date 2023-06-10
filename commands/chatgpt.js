@@ -22,6 +22,23 @@ const aiconfig = new openai.Configuration({
 })
 const ai = new openai.OpenAIApi(aiconfig)
 
+// Additional functions
+
+const editmsg = async (msg, data, inst, target) => {
+    if (target == "main") return await msg.edit(data)
+    await inst.editMessage(msg, { content: data })
+}
+
+function saveAll(showlog) {
+    if (showlog) console.log("[AI] Saving data...")
+    for (let mod in memories) {
+        if (mod) {
+            fs.writeFileSync(path.join(configpath, `/memories/${mods[mod].filename}_memory.json`), JSON.stringify(memories[mod]), err => { })
+        }
+    }
+    if (showlog) console.log("[AI] Data saved!")
+}
+
 // Personalities
 
 const mainTemplate = {
@@ -33,13 +50,15 @@ const mainTemplate = {
     ai_settings: {
         model: "gpt-3.5-turbo",
         temperature: 1.2
-    }
+    },
+    filename: "main" // It's not necessary in mod file, if you want to create one. filename parameter is creating in code every reload, because file can be renamed.
 }
 
 if (!fs.existsSync(path.join(configpath, "./mods"))) fs.mkdirSync(path.join(configpath, "./mods"))
 let mods = {}
 
 const refreshMods = () => {
+    mods = {}
     let files = fs.readdirSync(path.join(configpath, "./mods"))
     files = files.filter(f => f.endsWith(".json"))
     console.log("Found", files.length, "personalities.")
@@ -48,6 +67,7 @@ const refreshMods = () => {
     files.forEach(f => {
         let tmp = require(path.join(configpath, `./mods/${f}`))
         mods[tmp.modid] = tmp
+        mods[tmp.modid].filename = f.split('.json')[0]
     })
 }
 
@@ -57,21 +77,17 @@ if (!fs.existsSync(path.join(configpath, "./memories"))) fs.mkdirSync(path.join(
 let memories = {}
 
 const refreshMemory = () => {
-for (let mod in mods) {
-    memories[mod] = fileimport(path.join(configpath, `./memories/${mod}_memory.json`),
-        {
-            ai_system: [{ role: "system", content: mods[mod].personality }],
-            ai_messages: []
-        }, true)
-}
+    memories = {}
+    for (let mod in mods) {
+        memories[mod] = fileimport(path.join(configpath, `./memories/${mods[mod].filename}_memory.json`),
+            {
+                ai_system: [{ role: "system", content: mods[mod].personality }],
+                ai_messages: []
+            }, true)
+    }
 }
 
 // Main work
-
-const editmsg = async (msg, data, inst, target) => {
-    if (target == "main") return await msg.edit(data)
-    await inst.editMessage(msg, { content: data })
-}
 
 const shareThread = async (client) => {
     refreshMods()
@@ -91,7 +107,12 @@ const onMsg = async (msg) => {
     }
     if (!target) return
 
-    console.log('[AI]', (`New message to ${target}: ` + msg.content.slice(mods[target].prefix.length).gray))
+    function isMain() {
+        if (target == "main") return true
+        return false
+    }
+
+    console.log('[AI]', (`New message to ${mods[target].name}: ` + msg.content.slice(mods[target].prefix.length).gray))
 
     memories[target].ai_messages.push({
         role: 'user',
@@ -104,7 +125,7 @@ const onMsg = async (msg) => {
     }
 
     let instance = msg.channel
-    if (target != "main") {
+    if (!isMain()) {
         instance = await msg.channel.createWebhook({ name: mods[target].name, avatar: mods[target].avatar_url })
     }
 
@@ -126,27 +147,29 @@ const onMsg = async (msg) => {
     if (config.options.ai_stream) {
         let resultmsg = { content: "", role: "assistant" }, output = { content: "", stop: false }
 
-        msgStream.data.on("data", event => {
-            let data = event.toString().split("data: ");
-            for (let i in data) {
-                if (data[i].length < 12) data.splice(i, 1)
-            }
-            data.forEach(dat => {
-                if (dat == "[DONE]" || dat.startsWith("[DONE]")) return
-                try {
-                    const message = JSON.parse(dat).choices[0]
-                    if (message.finish_reason == null) {
-                        if (message.delta.content) {
-                            resultmsg.content += message.delta.content
-                            output.content += message.delta.content
+        try {
+            msgStream.data.on("data", event => {
+                let data = event.toString().split("data: ");
+                for (let i in data) {
+                    if (data[i].length < 12) data.splice(i, 1)
+                }
+                data.forEach(dat => {
+                    if (dat == "[DONE]" || dat.startsWith("[DONE]")) return
+                    try {
+                        const message = JSON.parse(dat).choices[0]
+                        if (message.finish_reason == null) {
+                            if (message.delta.content) {
+                                resultmsg.content += message.delta.content
+                                output.content += message.delta.content
+                            }
+                        } else {
+                            memories[target].ai_messages.push(resultmsg)
+                            output.stop = true
                         }
-                    } else {
-                        memories[target].ai_messages.push(resultmsg)
-                        output.stop = true
-                    }
-                } catch (e) { clearInterval(msginterval); instance.send("Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...") }
+                    } catch (e) { clearInterval(msginterval);return instance.send("Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...")}
+                })
             })
-        })
+        } catch (e) { clearInterval(msginterval);return instance.send("Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...")}
 
         let msginterval = setInterval(async () => {
             if (output.content.length > 2000) {
@@ -159,7 +182,7 @@ const onMsg = async (msg) => {
             if (output.stop) {
                 clearInterval(msginterval)
                 console.log("[AI]", "Printing done.".gray)
-                if (target != "main") {
+                if (!isMain()) {
                     setTimeout(() => { instance.delete() }, 1500)
                 }
                 return
@@ -187,51 +210,78 @@ const onMsg = async (msg) => {
             await editmsg(streaming, resultmsg, instance, target)
         }
         memories[target].ai_messages.push(resultmsg)
-        if (target != "main") {
+        if (!isMain()) {
             instance.delete()
         }
     }
 }
 
 setInterval(() => {
-    if (config.options.logdetails) console.log("[AI] Saving data...")
-    for (let mod in memories) {
-        fs.writeFileSync(path.join(configpath, `/memories/${mod}_memory.json`), JSON.stringify(memories[mod]), err => { })
-    }
-    if (config.options.logdetails) console.log("[AI] Data saved!")
+    saveAll(config.options.logdetails)
 }, 180000)
 
 module.exports = {
     type: 'i',
     idata: new discord.SlashCommandBuilder()
         .setName('ai')
-        .setDescription('Выводит список ИИ.'),
+        .setDescription('Выводит список ИИ.')
+        .addStringOption(o =>
+            o.setName("parameter")
+                .setDescription("Параметр для управления ИИ.")
+                .addChoices(
+                    { name: "Отчистить память одному", value: "clmem" },
+                    { name: "Перезагрузить всю память", value: "rsmem" },
+                    { name: "Перезагрузить все моды", value: "rsmods" }
+                )
+        )
+        .addStringOption(o =>
+            o.setName("modid")
+                .setDescription("Идентификатор мода.")
+        ),
     //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
     async iexec(interaction, bot) {
-        new Promise(res => {
-            let prefixes = "Prefixes to call AI's\n```"
-            for (let mod in mods) {
-                if (mods[mod].name) {
+        let parameter = interaction.options.getString('parameter')
+        let modid = interaction.options.getString('modid')
+        if (!parameter) {
+            new Promise(res => {
+                let prefixes = "Prefixes to call AI's\n```"
+                for (let mod in mods) {
+                    if (mods[mod].name) {
+                    }
+                    prefixes += `${mods[mod].prefix} ← ${mods[mod].name}(${mods[mod].modid})\n`
                 }
-                prefixes += `${mods[mod].prefix} ← ${mods[mod].name}(${mods[mod].modid})\n`
-            }
-            prefixes += "```"
-            let channels = "Also, they are avalible in:\n",i=1
-            profiles.channels.forEach(ch=>{
-                channels+= `${i}. <#${ch}>\n`
-                i++
+                prefixes += "```"
+                let channels = "Also, they are avalible in:\n", i = 1
+                profiles.channels.forEach(ch => {
+                    channels += `${i}. <#${ch}>\n`
+                    i++
+                })
+                res(`${prefixes}\n${channels}`)
+            }).then(res => {
+                interaction.reply({ content: res })
             })
-            res(`${prefixes}\n${channels}`)
-        }).then(res => {
-            interaction.reply({ content: res })
-        })
+        } else {
+            if (parameter == "clmem") {
+                if (!modid) return interaction.reply({ content: "Ну укажи ты, ёбаный насрал, идентификатор мода.", ephemeral: true })
+                try {
+                    fs.rmSync(path.join(configpath, `/memories/${mods[modid].filename}_memory.json`))
+                    refreshMemory()
+                    interaction.reply({ content: "Очищена память " + mods[modid].name })
+                }
+                catch (e) {
+                    interaction.reply({ content: "Ну и хуета твой идентификатор...\n" + e, ephemeral: true })
+                }
+            } else if (parameter == "rsmem") {
+                refreshMemory()
+                interaction.reply({ content: "Вся память перезагружена." })
+            } else if (parameter == "rsmods") {
+                refreshMods()
+                interaction.reply({ content: "Все моды перезагружены." })
+            }
+        }
     },
     shareThread,
     shutdown() {
-        console.log("[AI] Saving data...")
-        for (let mod in memories) {
-            fs.writeFileSync(path.join(configpath, `/memories/${mod}_memory.json`), JSON.stringify(memories[mod]), e => { })
-        }
-        console.log("[AI] Data saved!")
+        saveAll(true)
     }
 }
