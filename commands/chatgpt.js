@@ -1,5 +1,4 @@
 const discord = require('discord.js'), openai = require('openai'), fs = require('node:fs'), path = require("node:path"), colors = require('colors')
-const { profileEnd } = require('node:console')
 
 const configpath = path.join(__dirname, "../configs/kot.chatgpt")
 
@@ -132,7 +131,6 @@ const onMsg = async (msg) => {
     let responseType = "text", streaming = await instance.send("*Думает...*")
 
     if (config.options.ai_stream) responseType = "stream"
-
     const msgStream = await ai.createChatCompletion({
         model: mods[target].ai_settings.model,
         messages: memories[target].ai_system.concat(memories[target].ai_messages),
@@ -141,7 +139,7 @@ const onMsg = async (msg) => {
         user: msg.author.id,
         stream: config.options.ai_stream
     }, { responseType: responseType }).catch(err => {
-        memories[target].ai_messages = []
+        return memories[target].ai_messages = []
     })
 
     if (config.options.ai_stream) {
@@ -169,7 +167,7 @@ const onMsg = async (msg) => {
                     } catch (e) { clearInterval(msginterval);return instance.send("Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...")}
                 })
             })
-        } catch (e) { clearInterval(msginterval);return instance.send("Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...")}
+        } catch (e) { console.log(e);return instance.send("Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...")}
 
         let msginterval = setInterval(async () => {
             if (output.content.length > 2000) {
@@ -190,8 +188,7 @@ const onMsg = async (msg) => {
         }, 1500)
 
     } else {
-
-        let resultmsg = msgStream.data.choices[0].message
+        let resultmsg = await msgStream.data.choices[0].message
         if (resultmsg.content.length > 2000) {
             const size = Math.ceil(resultmsg.content.length / 2000)
             const parts = Array(size)
@@ -221,7 +218,6 @@ setInterval(() => {
 }, 180000)
 
 module.exports = {
-    type: 'i',
     idata: new discord.SlashCommandBuilder()
         .setName('ai')
         .setDescription('Выводит список ИИ.')

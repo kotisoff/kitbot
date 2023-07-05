@@ -80,7 +80,6 @@ async function updateHost(ip, port) {
 }
 
 module.exports = {
-    type: 'i',
     idata: new SlashCommandBuilder()
         .setName('mcstatus')
         .setDescription('Запрашивает информацию об игроках на сервере Майнкрафт.')

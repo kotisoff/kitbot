@@ -1,7 +1,6 @@
 const discord = require('discord.js');
 
 module.exports = {
-	type: 'c',
 	idata: new discord.SlashCommandBuilder()
 		.setName('fy')
 		.setDescription('Послать нахуй')
@@ -15,8 +14,8 @@ module.exports = {
 	},
 	async iexec(interact, bot) {
 		let args = interact.options.getUser('user')
-		if (!args) await interact.channel.send('Пiшов нахуй!');
-		if (args) await interact.channel.send(`Пiшов нахуй, ${args}!`)
+		if (!args) await interact.channel.send('Пошёл нахуй!');
+		if (args) await interact.channel.send(`Пошёл нахуй, ${args}!`)
 		interact.reply('_ _')
 		interact.deleteReply()
 	},

@@ -1,7 +1,6 @@
 const discord = require('discord.js');
 
 module.exports = {
-	type: 'c',
 	idata: new discord.SlashCommandBuilder()
 		.setName('asay')
 		.setDescription('Админ говорит...')
