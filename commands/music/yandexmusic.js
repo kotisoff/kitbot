@@ -38,7 +38,7 @@ const checkVoice = (interact) => {
 }
 
 const playsound = async (interact, title, debug) => {
-    await interact.reply("Думоет...")
+    await interact.reply("*Думоет...*")
     const connection = checkVoice(interact)
     const player = discordv.createAudioPlayer();
     let resource = discordv.AudioResource.prototype

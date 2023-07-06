@@ -9,7 +9,7 @@ const checkVoice = (interact) => {
 }
 
 const playsound = async (interact, url) => {
-    await interact.reply("Думоет...")
+    await interact.reply("*Думоет...*")
     if (!url) return interact.editReply("ГДЕ ССЫЛКА МАТЬ ТВОЮ")
     const connection = checkVoice(interact)
     const player = discordv.createAudioPlayer();

@@ -128,7 +128,7 @@ const onMsg = async (msg) => {
         instance = await msg.channel.createWebhook({ name: mods[target].name, avatar: mods[target].avatar_url })
     }
 
-    let responseType = "text", streaming = await instance.send("*Думает...*")
+    let responseType = "text", streaming = await instance.send("*Думоет...*")
 
     if (config.options.ai_stream) responseType = "stream"
     const msgStream = await ai.createChatCompletion({

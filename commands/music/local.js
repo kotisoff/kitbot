@@ -25,7 +25,7 @@ const localSounds = async (interact) => {
 }
 
 const playsound = async (interact, url) => {
-    await interact.reply("Думоет...")
+    await interact.reply("*Думоет...*")
     if (!url) return interact.editReply("ГДЕ НАЗВАНИЕ ФАЙЛА МАТЬ ТВОЮ")
     const connection = checkVoice(interact)
     const player = discordv.createAudioPlayer();
