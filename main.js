@@ -17,6 +17,10 @@ const { token, prefix } = config.bot
 const settings = config.settings
 //const { token } = require('./config.json');
 //const TOKEN = require('./config.json').token
+
+if(!fs.existsSync(settings.commandsPath)) fs.mkdirSync(settings.commandsPath)
+if(!fs.existsSync("configs")) fs.mkdirSync("configs")
+
 const bot = new discord.Client({ intents: [3276799] });
 
 function fileimport(filepath, replacedata, hide) {
