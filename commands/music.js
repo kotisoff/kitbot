@@ -12,9 +12,9 @@ module.exports = {
     package: files,
     path: "music",
     async shareThread(client) {
-        const player = new discordp.Player(client)
+        const player = discordp.Player.singleton(client)
         await player.extractors.register(extractor.AttachmentExtractor);
         // await player.extractors.register(extractor.SoundCloudExtractor);
-        // await player.extractors.register(extractor.YouTubeExtractor);
+        await player.extractors.register(extractor.YouTubeExtractor);
     }
 }
