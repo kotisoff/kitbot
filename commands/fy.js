@@ -21,7 +21,7 @@ module.exports = {
 	},
 	async pexec(bot, mess, args){
 		mess.delete().catch();
-		if(!args[0]) return mess.channel.send('Пiшов нахуй!');
-		if(args[0]) return mess.channel.send(`Пiшов нахуй, ${args.join(" ")}!`);
+		if(!args[0]) return mess.channel.send('Пошёл нахуй!');
+		if(args[0]) return mess.channel.send(`Пошёл нахуй, ${args.join(" ")}!`);
 	}
 }

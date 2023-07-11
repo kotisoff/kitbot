@@ -115,7 +115,7 @@ bot.once(discord.Events.ClientReady, bot => {
 	console.log(`${bot.user.tag} запущен.`);
 	bot.user.setStatus('idle')
 	bot.user.setActivity('за ' + bot.guilds.cache.size + ' серверами ._.', { type: discord.ActivityType.Watching })
-	commands.forEach(command => {
+	commands.concat(packages).forEach(command => {
 		try { command.shareThread(bot) } catch { }
 	})
 })

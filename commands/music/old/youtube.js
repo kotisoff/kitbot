@@ -1,4 +1,4 @@
-const discord = require("discord.js"), discordv = require('@discordjs/voice'), ytdl = require("ytdl-core"), ytsr = require("ytsr");
+const discord = require("discord.js"), discordv = require('@discordjs/voice'), ytdl = require("ytdl-core")
 
 const checkVoice = (interact) => {
     let tmp = discordv.getVoiceConnection(interact.guildId)
