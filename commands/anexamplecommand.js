@@ -5,11 +5,11 @@ module.exports = {
 		.setName('ping')
 		.setDescription('Replies with Pong!'),
 	/**@param {discord.Interaction} interact @param {discord.Client} bot*/
-	async iexec(interaction,bot) {
+	async iexec(interact,bot) {
 		let APIping = Math.round(bot.ws.ping)
-		interaction.reply(`Понг сука! Задержка ебучего API: ${APIping}мс`);
+		interact.reply(`Понг сука! Задержка API: ${APIping}мс`);
 		if(APIping >= 400) {
-			interaction.followup('Происходит какой-то пиздец! Хули так много?');
+			interact.followup(`Задержка слегка выше ожидаемой суммы... А точнее ${APIping} наъуй.`);
 		};
 	}
 }

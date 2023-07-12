@@ -30,15 +30,16 @@ module.exports = {
             if (queue && queue.channel.id !== channel.id) return await interact.editReply("Музыка уже проигрывается в другом канале.");
             const player = discordp.useMainPlayer();
             const search = await player.search(query,{searchEngine:`youtube`,requestedBy:interact.member.id}).catch(()=>{});
-            if(!search?.hasTracks()) return interact.editReply("Не найдено треков по этому запросу.");
-            try{
-                await player.play(channel,search.tracks[0]).catch(()=>{});
-                console.log("[YTMusic] "+`Added to queue: "${search.tracks[0].title}" in "${interact.guild.name}" (${interact.guildId})`.gray);
-                return await interact.editReply(`Добавлено в очередь: \`${search.tracks[0].title}\``);
-            }
-            catch(e){
-                return await interact.editReply("Что-то пошло не так!\n"+e.message)
-            }
+            if(!search?.hasTracks()) return await interact.editReply("Не найдено треков по этому запросу.");
+            await player.play(channel,search.tracks[0])
+                .then(()=>{
+                    console.log("[YTMusic] "+`Added to queue: "${search.tracks[0].title}" in ${interact.guildId}`.gray);
+                    interact.editReply(`Добавлено в очередь: \`${search.tracks[0].title}\``);
+                })
+                .catch(e=>{
+                    console.log("[YTMusic] "+`Something went wrong! ${e.message}`.gray)
+                    interact.editReply("Упс, что-то пошло не так! "+e.message)
+                });
         }else
         if(param === "skip") {
             await interact.reply("*Думоет...*")
