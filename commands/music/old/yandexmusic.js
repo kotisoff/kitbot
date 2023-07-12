@@ -1,5 +1,6 @@
 const discord = require("discord.js"), discordv = require('@discordjs/voice'), ym = require("ym-api"), fs = require("fs"), path = require("path")
 
+/** @param {String} filepath @param {Boolean} hide*/
 function fileimport(filepath, replacedata, hide) {
     filename = path.basename(filepath)
     if (!hide) console.log("[YaMusic]", ('Importing ' + filename + '...').gray)
@@ -30,12 +31,14 @@ const YaMusicApi = new ym.YMApi();
 YaMusicApi.init({ access_token: config.user.token, uid: config.user.uid });
 const YaWrapper = new ym.WrappedYMApi(YaMusicApi);
 
+/**@param {discord.Interaction} interact*/
 const checkVoice = (interact) => {
     const connection = discordv.getVoiceConnection(interact.guildId)
     if (connection) return connection
     return discordv.joinVoiceChannel({ adapterCreator: interact.guild.voiceAdapterCreator, guildId: interact.guildId, channelId: interact.member.voice.channelId })
 }
 
+/**@param {discord.Interaction} interact @param {Boolean} debug*/
 const playsound = async (interact, query, debug) => {
     try{await interact.reply("*Думоет...*")}
     catch(e){console.log(e)}
@@ -101,6 +104,7 @@ module.exports = {
             o.setName("trackurl")
                 .setDescription("Или ссылка на песню.")
         ),
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         const param = await interact.options.getString("param")
         const title = await interact.options.getString("songtitle")

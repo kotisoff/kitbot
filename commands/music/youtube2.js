@@ -1,5 +1,4 @@
 const discord = require("discord.js"), discordp = require('discord-player'), colors = require("colors")
-
 module.exports = {
     idata: new discord.SlashCommandBuilder()
         .setName("yt")
@@ -17,6 +16,8 @@ module.exports = {
             o.setName("query")
                 .setDescription("Видео.")
         ),
+
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         const param = await interact.options.getString("param")
         const query = await interact.options.getString("query")
@@ -28,7 +29,8 @@ module.exports = {
             const queue = discordp.useQueue(interact.guildId)
             if (queue && queue.channel.id !== channel.id) return await interact.editReply("Музыка уже проигрывается в другом канале.");
             const player = discordp.useMainPlayer();
-            const search = await player.search(query,{searchEngine:`youtube`}).catch(()=>{});
+            const search = await player.search(query,{searchEngine:`youtube`,requestedBy:interact.member.id}).catch(()=>{});
+            console.log(search.toJSON())
             if(!search?.hasTracks()) return interact.editReply("Не найдено треков по этому запросу.");
             try{
                 await player.play(channel,search.tracks[0]).catch(()=>{});

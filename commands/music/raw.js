@@ -5,7 +5,7 @@ const checkVoice = (interact) => {
     if (tmp) return tmp
     return discordv.joinVoiceChannel({ adapterCreator: interact.guild.voiceAdapterCreator, guildId: interact.guildId, channelId: interact.member.voice.channelId })
 }
-
+/** @param {discord.Interaction} interact @param {String} url*/
 const playsound = async (interact, url) => {
     await interact.reply("*Думоет...*");
     if (!url) return interact.editReply("ГДЕ ССЫЛКА МАТЬ ТВОЮ");
@@ -35,6 +35,7 @@ module.exports = {
             o.setName("url")
                 .setDescription("Ссылка к сырому mp3 файлу.")
         ),
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         const param = await interact.options.getString("param")
         const url = await interact.options.getString("url")

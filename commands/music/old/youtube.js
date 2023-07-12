@@ -1,5 +1,6 @@
 const discord = require("discord.js"), discordv = require('@discordjs/voice'), ytdl = require("ytdl-core")
 
+/**@param {discord.Interaction} interact*/
 const checkVoice = (interact) => {
     let tmp = discordv.getVoiceConnection(interact.guildId)
     if (tmp) {
@@ -8,6 +9,7 @@ const checkVoice = (interact) => {
         return discordv.joinVoiceChannel({ adapterCreator: interact.guild.voiceAdapterCreator, guildId: interact.guildId, channelId: interact.member.voice.channelId })
 }
 
+/**@param {discord.Interaction} interact @param {String} url*/
 const playsound = async (interact, url) => {
     await interact.reply("*Думоет...*")
     if (!url) return interact.editReply("ГДЕ ССЫЛКА МАТЬ ТВОЮ")
@@ -43,6 +45,7 @@ module.exports = {
             o.setName("url")
                 .setDescription("Ссылка на видео.")
         ),
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         const param = await interact.options.getString("param")
         const url = await interact.options.getString("url")

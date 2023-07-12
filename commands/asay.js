@@ -20,6 +20,7 @@ module.exports = {
 		name: "asay",
 		shortname: 'as'
 	},
+	/**@param {discord.Interaction} interact @param {discord.Client} bot*/
 	async iexec(interact, bot) {
 		let args = interact.options.getString('message')
 		let tts = interact.options.getBoolean('tts') ?? false

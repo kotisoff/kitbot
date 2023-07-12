@@ -4,9 +4,10 @@ module.exports = {
 	idata: new SlashCommandBuilder()
 		.setName('user')
 		.setDescription('Provides information about the user.'),
-	async iexec(interaction,bot) {
+	/**@param {discord.Interaction} interact @param {discord.Client} bot*/
+	async iexec(interact,bot) {
 		// interaction.user is the object representing the User who ran the command
 		// interaction.member is the GuildMember object, which represents the user in the specific guild
-		interaction.reply(`This command was run by ${interaction.user.username}, who joined on ${interaction.member.joinedAt}.`);
+		interact.reply(`This command was run by ${interact.user.username}, who joined on ${interact.member.joinedAt}.`);
 	},
 };
