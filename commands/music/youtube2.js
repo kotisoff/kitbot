@@ -30,7 +30,6 @@ module.exports = {
             if (queue && queue.channel.id !== channel.id) return await interact.editReply("Музыка уже проигрывается в другом канале.");
             const player = discordp.useMainPlayer();
             const search = await player.search(query,{searchEngine:`youtube`,requestedBy:interact.member.id}).catch(()=>{});
-            console.log(search.toJSON())
             if(!search?.hasTracks()) return interact.editReply("Не найдено треков по этому запросу.");
             try{
                 await player.play(channel,search.tracks[0]).catch(()=>{});
