@@ -63,7 +63,7 @@ const refreshMods = () => {
     mods = {}
     let files = fs.readdirSync(path.join(configpath, "./mods"))
     files = files.filter(f => f.endsWith(".json"))
-    console.log("Found", files.length, "personalities.")
+    console.log("[AI] "+"Found".gray,files.length,"personalities.".gray)
 
     mods["main"] = mainTemplate
     files.forEach(f => {

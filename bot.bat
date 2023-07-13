@@ -1,4 +1,4 @@
 @echo off
 :start
-node main
+node --no-warnings main
 goto start
