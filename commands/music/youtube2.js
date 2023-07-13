@@ -44,7 +44,7 @@ module.exports = {
                 })
                 .catch(e=>{
                     console.log("[YTMusic] "+`Something went wrong! ${e.message}`.gray)
-                    interact.editReply("Упс, что-то пошло не так! "+e.message)
+                    interact.editReply(`Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``)
                 });
         }else
         if(param === "skip") {
