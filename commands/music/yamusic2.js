@@ -1,5 +1,5 @@
 const discord = require("discord.js"), discordp = require('discord-player'), discordv = require("@discordjs/voice"), ym = require("ym-api"), fs = require("fs"), path = require("path")
-
+/** @param {String} filepath @param {Boolean} hide*/
 function fileimport(filepath, replacedata, hide) {
     filename = path.basename(filepath)
     if (!hide) console.log("[YaMusic2]", ('Importing ' + filename + '...').gray)
@@ -30,6 +30,8 @@ const YaMusicApi = new ym.YMApi();
 YaMusicApi.init({ access_token: config.user.token, uid: config.user.uid });
 const YaWrapper = new ym.WrappedYMApi(YaMusicApi);
 
+
+/** @param {discord.Interaction} interact*/
 const play = async (interact, query) => {
     const channel = interact.member.voice.channel;
     const player = discordp.useMainPlayer();
@@ -43,14 +45,14 @@ const play = async (interact, query) => {
         const result = await YaMusicApi.searchTracks(query)
         track = result.tracks.results[0]
     }
-    const trackurl = await YaWrapper.getMp3DownloadUrl(parseInt(track.id+""),"low");
+    const trackurl = await YaWrapper.getMp3DownloadUrl(parseInt(track.id + ""), "low");
     console.log(trackurl);
     const artists = []
     track.artists.forEach(a => artists.push(a.name))
     out = `Добавлено в очередь: \`${track.title} - ${artists.join(", ")} (${track.id})\``
-    if ((await YaWrapper.getMp3DownloadInfo(parseInt(track.id+''))).preview) out += "\nУ вас нет Yandex Plus или использован некорректный токен!"
+    if ((await YaWrapper.getMp3DownloadInfo(parseInt(track.id + ''))).preview) out += "\nУ вас нет Yandex Plus или использован некорректный токен!"
     console.log(out);
-    queue.node.playRaw(discordv.createAudioResource(trackurl,{inlineVolume: true}))
+    queue.node.playRaw(discordv.createAudioResource(trackurl, { inlineVolume: true }))
     interact.editReply(out);
 }
 
@@ -84,6 +86,8 @@ module.exports = {
             o.setName("playlisturl")
                 .setDescription("Ссылка на плейлист")
         ),
+
+    /** @param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         await interact.reply("*Думоет...*")
         const param = await interact.options.getString("param")

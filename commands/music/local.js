@@ -7,23 +7,19 @@ const checkVoice = (interact) => {
     } else
         return discordv.joinVoiceChannel({ adapterCreator: interact.guild.voiceAdapterCreator, guildId: interact.guildId, channelId: interact.member.voice.channelId })
 }
-
+/** @param {discord.Interaction} interact*/
 const soundpath = "D:/Папки/Music/"
 const localSounds = async (interact) => {
     await interact.reply("Думоет...")
     let files = fs.readdirSync(soundpath).filter(f => f.endsWith(".mp3"))
-    let newfiles = []
     const text = "Список песен\n`" + files.join("\n")
-    let out = []
-    if (text.length > 2000) {
-        out.push(text.slice(0, 1999) + "`")
-        out.push("`" + text.substring(2000) + "`")
-        await interact.editReply(out[0])
-        await interact.followUp(out[1])
-    } else
-        interact.editReply(text + "`")
+    if(text.length>2000){
+        
+    }else{
+        interact.editReply
+    }
 }
-
+/** @param {discord.Interaction} interact @param {String} url*/
 const playsound = async (interact, url) => {
     await interact.reply("*Думоет...*")
     if (!url) return interact.editReply("ГДЕ НАЗВАНИЕ ФАЙЛА МАТЬ ТВОЮ")
@@ -61,6 +57,7 @@ module.exports = {
             o.setName("filename")
                 .setDescription("Название файла.")
         ),
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         const param = await interact.options.getString("param")
         const url = await interact.options.getString("filename")

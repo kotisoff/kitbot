@@ -23,47 +23,48 @@ module.exports = {
             options.setName('user')
                 .setDescription('Кому выдать/изъять роль.')
         ),
-    async iexec(interaction, bot) {
-        let parameter = await interaction.options.getString('parameter')
-        let role = await interaction.options.getRole('role')
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
+    async iexec(interact, bot) {
+        let parameter = await interact.options.getString('parameter')
+        let role = await interact.options.getRole('role')
         let id = role.id
-        let user = await interaction.options.getUser('user')
+        let user = await interact.options.getUser('user')
         let uid
         if(user) uid = user.id
-        if(!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles)){
-            if(interaction.user.id!='536257878429007873') return interaction.reply({ content: (`У вас нет прав для выполнения данной команды!`), ephemeral: true })
+        if(!interact.member.permissions.has(PermissionFlagsBits.ManageRoles)){
+            if(interact.user.id!='536257878429007873') return interact.reply({ content: (`У вас нет прав для выполнения данной команды!`), ephemeral: true })
         }
         if(parameter === 'give'){
             try {
                 if(user){
-                    console.log(`${('@'+interaction.user.username).magenta}: requested a role ${('@'+role.name).cyan}: for user ${('@'+user.username).magenta}.`)
-                    await interaction.guild.members.cache.get(uid).roles.add(`${id}`)
-                    return await interaction.reply({ content: (`Успешно выдана роль ${role} пользователю ${user}!`), ephemeral: true })
+                    console.log(`${('@'+interact.user.username).magenta}: requested a role ${('@'+role.name).cyan}: for user ${('@'+user.username).magenta}.`)
+                    await interact.guild.members.cache.get(uid).roles.add(`${id}`)
+                    return await interact.reply({ content: (`Успешно выдана роль ${role} пользователю ${user}!`), ephemeral: true })
                 }else{
-                    console.log(`${('@'+interaction.user.username).magenta}: requested themselves a role ${('@'+role.name).cyan}`)
-                    await interaction.member.roles.add(`${id}`)
-                    return await interaction.reply({ content: (`Успешно выдана роль ${role}!`), ephemeral: true })
+                    console.log(`${('@'+interact.user.username).magenta}: requested themselves a role ${('@'+role.name).cyan}`)
+                    await interact.member.roles.add(`${id}`)
+                    return await interact.reply({ content: (`Успешно выдана роль ${role}!`), ephemeral: true })
                 }
             } catch(err){
-                await interaction.reply({ content: ('Неудача! Эта роль выше роли бота или эта роль другого бота!'), ephemeral: true })
-                //if(interaction.user.id==='536257878429007873') await interaction.editReply({ content: (`${err}`), ephemeral: true })
+                await interact.reply({ content: ('Неудача! Эта роль выше роли бота или эта роль другого бота!'), ephemeral: true })
+                //if(interact.user.id==='536257878429007873') await interact.editReply({ content: (`${err}`), ephemeral: true })
                 console.log(`Failed. ${err}`.red)
                 return
             }
         } else if(parameter === 'take'){
             try {
                 if(user){
-                    console.log(`${('@'+interaction.user.username).magenta}: requested to take a role ${('@'+role.name).cyan}: from user ${('@'+user.username).magenta}`)
-                    await interaction.guild.members.cache.get(uid).roles.remove(`${id}`)
-                    return await interaction.reply({ content: (`Успешно удалена роль ${role} с пользователя ${user}!`), ephemeral: true })
+                    console.log(`${('@'+interact.user.username).magenta}: requested to take a role ${('@'+role.name).cyan}: from user ${('@'+user.username).magenta}`)
+                    await interact.guild.members.cache.get(uid).roles.remove(`${id}`)
+                    return await interact.reply({ content: (`Успешно удалена роль ${role} с пользователя ${user}!`), ephemeral: true })
                 }else{
-                    console.log(`${('@'+interaction.user.username).magenta}: requested to take themselves a role ${('@'+role.name).cyan}`)
-                    await interaction.member.roles.remove(`${id}`)
-                    return await interaction.reply({ content: (`Успешно удалена роль ${role}!`), ephemeral: true })
+                    console.log(`${('@'+interact.user.username).magenta}: requested to take themselves a role ${('@'+role.name).cyan}`)
+                    await interact.member.roles.remove(`${id}`)
+                    return await interact.reply({ content: (`Успешно удалена роль ${role}!`), ephemeral: true })
                 }
             }catch(err){
-                await interaction.reply({ content: ('Неудача! Нельзя забрать роль бота или роль, что выше бота!'), ephemeral: true })
-                //if(interaction.user.id==='536257878429007873') await interaction.editReply({ content: (`${err}`), ephemeral: true })
+                await interact.reply({ content: ('Неудача! Нельзя забрать роль бота или роль, что выше бота!'), ephemeral: true })
+                //if(interact.user.id==='536257878429007873') await interact.editReply({ content: (`${err}`), ephemeral: true })
                 console.log(`Failed. ${err}`.red)
                 return
             }

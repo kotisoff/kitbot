@@ -7,6 +7,7 @@ const config = fileimport(path.join(configpath, "./config.json"), { token: "plac
 let profiles = fileimport(path.join(configpath, "./data/profiles.json"), {}, true)
 let aitoken = config.token, mainprefix = config.mainprefix
 
+/** @param {String} filepath @param {Boolean} hide*/
 function fileimport(filepath, replacedata, hide) {
     filename = path.basename(filepath)
     if (!hide) console.log("[AI]", ('Importing ' + filename + '...').gray)
@@ -23,11 +24,13 @@ const ai = new openai.OpenAIApi(aiconfig)
 
 // Additional functions
 
+/**@param {discord.Message} msg @param {String} data @param {String} target @param {discord.Webhook} inst*/
 const editmsg = async (msg, data, inst, target) => {
     if (target == "main") return await msg.edit(data)
     await inst.editMessage(msg, { content: data })
 }
 
+/**@param {Boolean} showlog*/
 function saveAll(showlog) {
     if (showlog) console.log("[AI] Saving data...")
     for (let mod in memories) {
@@ -60,7 +63,7 @@ const refreshMods = () => {
     mods = {}
     let files = fs.readdirSync(path.join(configpath, "./mods"))
     files = files.filter(f => f.endsWith(".json"))
-    console.log("Found", files.length, "personalities.")
+    console.log("[AI] "+"Found".gray,files.length,"personalities.".gray)
 
     mods["main"] = mainTemplate
     files.forEach(f => {
@@ -88,14 +91,16 @@ const refreshMemory = () => {
 
 // Main work
 
+/**@param {discord.Client} client*/
 const shareThread = async (client) => {
     refreshMods()
     refreshMemory()
     if (config.options.ai_stream) console.log("[AI]", "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk.".bgRed.white)
-    try { await client.on(discord.Events.MessageCreate, async msg => onMsg(msg)) }
+    try { client.on(discord.Events.MessageCreate, async msg => onMsg(msg)) }
     catch (e) { console.log("[AI]", e) }
 }
 
+/**@param {discord.Message} msg*/
 const onMsg = async (msg) => {
     if (!profiles.channels.includes(msg.channelId)) return
     if (msg.author.bot) return
@@ -235,6 +240,7 @@ module.exports = {
                 .setDescription("Идентификатор мода.")
         ),
     //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interaction, bot) {
         let parameter = interaction.options.getString('parameter')
         let modid = interaction.options.getString('modid')

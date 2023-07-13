@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('discord.js')
 const net = require('net');
 const colors = require('colors')
 
+/**@param {String} hexx*/
 function hex2tex(hexx) {
     let hex = hexx.toString()
     let str = ''
@@ -9,6 +10,7 @@ function hex2tex(hexx) {
     return str
 }
 
+/**@param {Array} arr*/
 function toHex(arr) {
     let result = "";
     for (i = 0; i < arr.length; i++) {
@@ -86,11 +88,13 @@ module.exports = {
         .addStringOption(option =>
             option.setName('ip')
                 .setDescription('Айпи адрес сервера. Порт вписывается через ":".')
-                .setRequired(true)),
-    async iexec(interaction, bot) {
-        const ip = interaction.options.getString('ip').split(':')[0]
-        let port = interaction.options.getString('ip').split(':')[1] ?? 25565
-        if(port<0 || port>65535) return interaction.reply(`Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`)
-        updateHost(ip, port).then(out=>{interaction.reply(`${out}`)})
+                .setRequired(true)
+        ),
+    /**@param {discord.Interaction} interact @param {discord.Client} bot*/
+    async iexec(interact, bot) {
+        const ip = interact.options.getString('ip').split(':')[0]
+        let port = interact.options.getString('ip').split(':')[1] ?? 25565
+        if(port<0 || port>65535) return interact.reply(`Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`)
+        updateHost(ip, port).then(out=>{interact.reply(`${out}`)})
     }
 }
