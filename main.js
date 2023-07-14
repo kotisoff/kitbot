@@ -112,13 +112,13 @@ bot.on('messageCreate', async msg => {
 // По завершении инициализации
 
 bot.once(discord.Events.ClientReady, bot => {
-	console.log("[Main] "+`${bot.user.tag} запущен.`.yellow);
+	console.log("[Main] "+`${bot.user.tag} is online.`.yellow);
 	bot.user.setStatus('idle')
 	bot.user.setActivity('за ' + bot.guilds.cache.size + ' серверами ._.', { type: discord.ActivityType.Watching })
 	commands.concat(packages).forEach(command => {
 		try { command.shareThread(bot) } catch { }
 	})
-	console.log("[Main]",commands.length,"команд инициализировано.".green)
+	console.log("[Main]",commands.length,"commands initialized.".green)
 })
 
 
