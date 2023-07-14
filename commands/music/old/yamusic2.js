@@ -34,25 +34,23 @@ const YaWrapper = new ym.WrappedYMApi(YaMusicApi);
 /** @param {discord.Interaction} interact*/
 const play = async (interact, query) => {
     const channel = interact.member.voice.channel;
-    const player = discordp.useMainPlayer();
-    const queue = player.nodes.create(interact.guild);
-    queue.connect(channel)
-    console.log("Поиск по: " + query);
+    discordp.useMainPlayer().nodes.create(interact.guildId);
+    const queue = discordp.useQueue(interact.guildId);
+    queue.connect(channel);
     let track;
     if (typeof (query) === "number") {
         track = await YaWrapper.getTrack(parseInt(query));
     } else {
-        const result = await YaMusicApi.searchTracks(query)
+        const result = await YaMusicApi.searchTracks(query);
         track = result.tracks.results[0]
     }
     const trackurl = await YaWrapper.getMp3DownloadUrl(parseInt(track.id + ""), "low");
-    console.log(trackurl);
     const artists = []
     track.artists.forEach(a => artists.push(a.name))
     out = `Добавлено в очередь: \`${track.title} - ${artists.join(", ")} (${track.id})\``
     if ((await YaWrapper.getMp3DownloadInfo(parseInt(track.id + ''))).preview) out += "\nУ вас нет Yandex Plus или использован некорректный токен!"
-    console.log(out);
-    queue.node.playRaw(discordv.createAudioResource(trackurl, { inlineVolume: true }))
+    console.log("[YaMusic] "+`Added to queue: ${track.title} - ${artists.join(", ")} (${track.id}) in ${interact.guildId}`.gray);
+    queue.node.playRaw(discordv.createAudioResource(trackurl, { inlineVolume: true }));
     interact.editReply(out);
 }
 
