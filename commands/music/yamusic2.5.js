@@ -22,6 +22,7 @@ module.exports = {
                     { name: "Проиграть", value: "play" },
                     { name: "Пропустить", value: "skip" },
                     { name: "Пауза", value: "pause" },
+                    { name: "Текущий трек", value: "current" },
                     { name: "Список воспроизведения", value: "list" },
                     { name: "Остановить", value: "stop" }
                 )
@@ -48,10 +49,9 @@ module.exports = {
             const search = await player.search(query, { searchEngine: ymext, requestedBy: interact.member.id }).catch(() => { });
             if (!search?.hasTracks()) return await interact.editReply("Не найдено треков по этому запросу.");
             if (search.hasPlaylist()) {
-                console.log("Пытаемся высрать плейлист")
                 await player.play(channel, search.playlist, { searchEngine: ymext })
                     .then(() => {
-                        console.log("[YaMusic] "+`Added ${search.tracks.length} tracks to queue with "${search.playlist.title} - ${search.playlist.author.name}"`)
+                        console.log("[YaMusic] " + `Added ${search.tracks.length} tracks to queue with "${search.playlist.title} - ${search.playlist.author.name}"`.gray)
                         interact.editReply(`Добавлен плейлист: \`${search.playlist.title} - ${search.playlist.author.name}\` с ${search.tracks.length} песнями.`);
                     })
                     .catch(e => {
@@ -62,45 +62,46 @@ module.exports = {
                 await player.play(channel, search.tracks[0], { searchEngine: ymext })
                     .then(() => {
                         console.log("[YaMusic] " + `Added to queue: "${search.tracks[0].title} - ${search.tracks[0].author}" in ${interact.guildId}`.gray);
-                        interact.editReply(`Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\``);
-
+                        interact.editReply(`Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\` (${search.tracks[0].duration})`);
                     })
                     .catch(e => {
                         console.log("[YaMusic] " + `Something went wrong! ${e.message}`.gray)
                         interact.editReply(`Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``)
                     });
-        } else
-            if (param === "skip") {
-                await interact.reply("*Думоет...*")
-                const queue = discordp.useQueue(interact.guildId);
-                queue.node.skip();
-                return await interact.editReply("Трек пропущен.")
-            } else
-                if (param === "pause") {
-                    await interact.reply("*Думоет...*")
-                    const queue = discordp.useQueue(interact.guildId)
-                    if (queue.node.isPaused()) {
-                        queue.node.setPaused(false);
-                        interact.editReply("Воспроизведение продолжено.");
-                    } else {
-                        queue.node.setPaused(true);
-                        interact.editReply("Воспроизведение приостановлено.");
-                    }
-                } else
-                    if (param === "list") {
-                        await interact.reply("*Думоет...*");
-                        const queue = discordp.useQueue(interact.guildId);
-                        const tracks = queue.tracks.toArray()
-                        let out = "Список воспроизведения:\n"
-                        tracks.forEach(track => out += `${tracks.indexOf(track) + 1}. ${track.title} - by ${track.requestedBy.toString()}`)
-                        if (out.length > 2000) return interact.editReply(out.substring(0, 1980) + `\nAnd more...`);
-                        interact.editReply(out);
-                    } else
-                        if (param === "stop") {
-                            await interact.reply("*Думоет...*");
-                            const queue = discordp.useQueue(interact.guildId);
-                            queue.delete();
-                            await interact.editReply("Плейлист остановлен.");
-                        }
+        } else if (param === "skip") {
+            await interact.reply("*Думоет...*")
+            const queue = discordp.useQueue(interact.guildId);
+            queue.node.skip();
+            const track = queue.currentTrack
+            return await interact.editReply(`Трек \`${track.title} - ${track.author}\` пропущен.`);
+        } else if (param === "pause") {
+            await interact.reply("*Думоет...*")
+            const queue = discordp.useQueue(interact.guildId);
+            if (queue.node.isPaused()) {
+                queue.node.setPaused(false);
+                interact.editReply("Воспроизведение продолжено.");
+            } else {
+                queue.node.setPaused(true);
+                interact.editReply("Воспроизведение приостановлено.");
+            }
+        } else if (param === "current"){
+            await interact.reply("*Думоет...*");
+            const queue = discordp.useQueue(interact.guildId)
+            if(!queue) return await interact.editReply("Сейчас ничего не проигрывается!")
+            const track = queue.currentTrack
+            return await interact.editReply(`Текущий трек: \`${track.title} - ${track.author}\` ${queue.node.createProgressBar()}`);
+        } else if (param === "list") {
+            await interact.reply("*Думоет...*");
+            const queue = discordp.useQueue(interact.guildId);
+            const tracks = queue.tracks.data
+            let out = `Список воспроизведения:\n${tracks.map(track=>`${tracks.indexOf(track) + 1}. ${track.title} - by ${track.requestedBy.toString()}`)}`
+            if (out.length > 2000) return interact.editReply(out.substring(0, 1980) + `\nAnd more...`);
+            interact.editReply(out);
+        } else if (param === "stop") {
+            await interact.reply("*Думоет...*");
+            const queue = discordp.useQueue(interact.guildId);
+            queue.delete();
+            await interact.editReply("Плейлист остановлен.");
+        }
     }
 }

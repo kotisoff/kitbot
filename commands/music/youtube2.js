@@ -48,7 +48,7 @@ module.exports = {
                 });
         }else
         if(param === "skip") {
-            await interact.reply("*Думоет...*")
+            await interact.reply("*Думоет...*");
             const queue = discordp.useQueue(interact.guildId);
             queue.node.skip();
             return await interact.editReply("Трек пропущен.")
