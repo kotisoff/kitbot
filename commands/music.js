@@ -34,7 +34,6 @@ module.exports = {
         const player = discordp.Player.singleton(client)
         await player.extractors.register(extractor.AttachmentExtractor);
         await player.extractors.register(ymext.YandexMusicExtractor,config.user);
-        // await player.extractors.register(extractor.SoundCloudExtractor);
         await player.extractors.register(extractor.YouTubeExtractor);
     }
 }

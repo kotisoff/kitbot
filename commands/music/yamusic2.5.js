@@ -14,7 +14,7 @@ const ymext = `ext:${YandexMusicExtractor.identifier}`
 module.exports = {
     idata: new discord.SlashCommandBuilder()
         .setName("yamusic")
-        .setDescription("Plays music from YaMusic")
+        .setDescription("Plays music from YaMusic OUTDATED, USE /PLAY")
         .addStringOption(o =>
             o.setName("param")
                 .setDescription("Parameter")

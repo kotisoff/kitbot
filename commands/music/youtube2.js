@@ -2,7 +2,7 @@ const discord = require("discord.js"), discordp = require('discord-player'), col
 module.exports = {
     idata: new discord.SlashCommandBuilder()
         .setName("yt")
-        .setDescription("Plays music from Youtube")
+        .setDescription("Plays music from Youtube OUTDATED, USE /PLAY")
         .addStringOption(o =>
             o.setName("param")
                 .setDescription("Parameter")

@@ -14,7 +14,8 @@ module.exports = {
 		)
 		.addBooleanOption(option =>
 			option.setName('tts')
-				.setDescription(`Будет ли сообщение преобразовано в речь?`)),
+				.setDescription(`Будет ли сообщение преобразовано в речь?`)
+		),
 	/**@param {discord.Interaction} interact @param {discord.Client} bot*/
 	async iexec(interact,bot) {
 		if(interact.user.id!="429307451825717250") return await interact.reply({content:"Ты не мурка >:|",ephemeral: true })
