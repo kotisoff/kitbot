@@ -22,17 +22,16 @@ module.exports = {
         )
         .addStringOption(o =>
             o.setName("source")
-                .setDescription("Источник воспроизведения.")
+                .setDescription("Источник воспроизведения, можно не указывать при указании ссылок.")
                 .setChoices(
                     { name: "Youtube", value: "youtube" },
                     { name: "Yandex Music", value: ymext }
                 )
-                .setRequired(true)
         ),
     /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         discordp.Playlist.prototype.url
-        const source = await interact.options.getString("source")
+        const source = await interact.options.getString("source") ?? "auto"
         const query = await interact.options.getString("query")
         if (!query) return await interact.reply({ content: "А если подумать?", ephemeral: true });
         try { await interact.reply("*Думоет...*") } catch { return console.log("Unavalible for now") };
