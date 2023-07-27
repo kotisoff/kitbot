@@ -31,7 +31,7 @@ module.exports = {
     /**@param {discord.Interaction} interact @param {discord.Client} bot*/
     async iexec(interact, bot) {
         discordp.Playlist.prototype.url
-        const source = await interact.options.getString("source") ?? "auto"
+        const source = await interact.options.getString("source") ?? discordp.QueryType.AUTO_SEARCH
         const query = await interact.options.getString("query")
         if (!query) return await interact.reply({ content: "А если подумать?", ephemeral: true });
         try { await interact.reply("*Думоет...*") } catch { return console.log("Unavalible for now") };

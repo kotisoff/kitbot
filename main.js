@@ -15,8 +15,8 @@ const config = fileimport("./config.json", {
 })
 const { token, prefix } = config.bot
 const settings = config.settings
-//const { token } = require('./config.json');
-//const TOKEN = require('./config.json').token
+
+const loadtimer = Date.now();
 
 if(!fs.existsSync(settings.commandsPath)) fs.mkdirSync(settings.commandsPath)
 if(!fs.existsSync("configs")) fs.mkdirSync("configs")
@@ -119,6 +119,8 @@ bot.once(discord.Events.ClientReady, bot => {
 		try { command.shareThread(bot) } catch { }
 	})
 	console.log("[Main]",commands.length,"commands initialized.".green)
+	console.log("[Main]",`Bot took ${Date.now()-loadtimer}ms to launch.`.gray)
+	delete loadtimer
 })
 
 

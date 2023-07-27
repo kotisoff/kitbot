@@ -157,7 +157,7 @@ const onMsg = async (msg) => {
                     if (data[i].length < 12) data.splice(i, 1)
                 }
                 data.forEach(dat => {
-                    if (dat == "[DONE]" || dat.startsWith("[DONE]")) return
+                    if (dat == "[DONE]" || dat.startsWith("[DONE]")) return false
                     try {
                         const message = JSON.parse(dat).choices[0]
                         if (message.finish_reason == null) {
