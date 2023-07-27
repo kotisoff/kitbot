@@ -33,7 +33,7 @@ const config = fileimport(
       token: "yourAuthToken",
       uid: "yourUid",
     },
-  },
+  }
 );
 
 const YaMusicApi = new ym.YMApi();
@@ -106,22 +106,22 @@ module.exports = {
         .addChoices(
           { name: "Проиграть", value: "play" },
           { name: "Проиграть с отладкой", value: "playdebug" },
-          { name: "Покинуть", value: "leave" },
+          { name: "Покинуть", value: "leave" }
         )
-        .setRequired(true),
+        .setRequired(true)
     )
     .addStringOption((o) =>
-      o.setName("songtitle").setDescription("Название песни."),
+      o.setName("songtitle").setDescription("Название песни.")
     )
     .addNumberOption((o) =>
       o
         .setName("trackid")
         .setDescription(
-          "Или ID песни. (Последнее число в ссылке. Пример: /album/0/track/АЙДИ)",
-        ),
+          "Или ID песни. (Последнее число в ссылке. Пример: /album/0/track/АЙДИ)"
+        )
     )
     .addStringOption((o) =>
-      o.setName("trackurl").setDescription("Или ссылка на песню."),
+      o.setName("trackurl").setDescription("Или ссылка на песню.")
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {

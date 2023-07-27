@@ -15,9 +15,9 @@ module.exports = {
           { name: "Текущий трек", value: "current" },
           { name: "Список воспроизведения", value: "list" },
           { name: "Остановить", value: "stop" },
-          { name: "Эквалайзер", value: "eq" },
+          { name: "Эквалайзер", value: "eq" }
         )
-        .setRequired(true),
+        .setRequired(true)
     )
     .addStringOption((o) =>
       o
@@ -25,8 +25,8 @@ module.exports = {
         .setDescription("Настройки эквалайзера")
         .addChoices(
           { name: "BassBoost", value: "bassboost" },
-          { name: "NightCore", value: "nightcore" },
-        ),
+          { name: "NightCore", value: "nightcore" }
+        )
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
@@ -39,7 +39,7 @@ module.exports = {
       queue.node.skip();
       const track = queue.currentTrack;
       return await interact.editReply(
-        `Трек \`${track.title} - ${track.author}\` пропущен.`,
+        `Трек \`${track.title} - ${track.author}\` пропущен.`
       );
     } else if (param === "pause") {
       await interact.reply("*Думоет...*");
@@ -60,7 +60,7 @@ module.exports = {
       return await interact.editReply(
         `Текущий трек: \`${track.title} - ${
           track.author
-        }\` ${queue.node.createProgressBar()}`,
+        }\` ${queue.node.createProgressBar()}`
       );
     } else if (param === "list") {
       await interact.reply("*Думоет...*");
@@ -71,7 +71,7 @@ module.exports = {
           (track) =>
             `${tracks.indexOf(track) + 1}. \`${track.title} - ${
               track.author
-            }\` requested by @${track.requestedBy.username}`,
+            }\` requested by @${track.requestedBy.username}`
         )
         .join("\n")}`;
       if (out.length > 2000)
@@ -92,11 +92,11 @@ module.exports = {
       const eq = await interact.options.getString("eqsetups");
       if (!eq)
         return await interact.reply(
-          "Не выбран пресет эквалайзера для переключения!",
+          "Не выбран пресет эквалайзера для переключения!"
         );
       await queue.filters.ffmpeg.toggle([eq]);
       await interact.editReply(
-        `Фильтр ${eq} переключён на ${queue.filters.ffmpeg.isEnabled(eq)}.`,
+        `Фильтр ${eq} переключён на ${queue.filters.ffmpeg.isEnabled(eq)}.`
       );
     }
   },

@@ -9,7 +9,7 @@ module.exports = {
         .setName("voicechannel")
         .setDescription("Voice channel where you want to be.")
         .addChannelTypes(discord.ChannelType.GuildVoice)
-        .setRequired(true),
+        .setRequired(true)
     )
     .setDefaultMemberPermissions(discord.PermissionFlagsBits.MoveMembers),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
@@ -19,7 +19,7 @@ module.exports = {
     const channel = interact.member.voice.channel;
     if (voice.id === channel.id)
       return await interact.editReply(
-        "Вы не можете перенестись в канал в котором вы уже находитесь!",
+        "Вы не можете перенестись в канал в котором вы уже находитесь!"
       );
     channel.members.forEach((u) => {
       u.voice.setChannel(voice).catch((e) => {
@@ -27,7 +27,7 @@ module.exports = {
       });
     });
     await interact.editReply(
-      `Перенесено ${channel.members.size} пользователей в <#${voice.id}>`,
+      `Перенесено ${channel.members.size} пользователей в <#${voice.id}>`
     );
   },
 };

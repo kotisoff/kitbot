@@ -5,7 +5,7 @@ module.exports = {
     .setName("fy")
     .setDescription("Послать нахуй")
     .addUserOption((option) =>
-      option.setName("user").setDescription(`Кого послать?`),
+      option.setName("user").setDescription(`Кого послать?`)
     ),
   pdata: {
     name: "fuckyou",

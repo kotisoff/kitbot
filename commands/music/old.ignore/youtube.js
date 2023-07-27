@@ -26,7 +26,7 @@ const playsound = async (interact, url) => {
   if (ytdl.validateURL(url)) {
     resource = discordv.createAudioResource(
       ytdl(url, { filter: "audioonly" }),
-      { inlineVolume: true },
+      { inlineVolume: true }
     );
     out = "Запущено: `" + (await ytdl.getInfo(url)).videoDetails.title + "`";
   } else {
@@ -47,12 +47,12 @@ module.exports = {
         .setDescription("Parameter")
         .addChoices(
           { name: "Проиграть (ОЧЕНЬ часто крашается)", value: "play" },
-          { name: "Покинуть", value: "leave" },
+          { name: "Покинуть", value: "leave" }
         )
-        .setRequired(true),
+        .setRequired(true)
     )
     .addStringOption((o) =>
-      o.setName("url").setDescription("Ссылка на видео."),
+      o.setName("url").setDescription("Ссылка на видео.")
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {

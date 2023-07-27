@@ -14,9 +14,9 @@ module.exports = {
           { name: "Пропустить", value: "skip" },
           { name: "Пауза", value: "pause" },
           { name: "Список воспроизведения", value: "list" },
-          { name: "Остановить", value: "stop" },
+          { name: "Остановить", value: "stop" }
         )
-        .setRequired(true),
+        .setRequired(true)
     )
     .addStringOption((o) => o.setName("query").setDescription("Видео.")),
 
@@ -39,12 +39,12 @@ module.exports = {
       const channel = interact.member?.voice?.channel;
       if (!channel)
         return await interact.editReply(
-          "Сначала подключитесь к голосовому каналу!",
+          "Сначала подключитесь к голосовому каналу!"
         );
       const queue = discordp.useQueue(interact.guildId);
       if (queue && queue.channel.id !== channel.id)
         return await interact.editReply(
-          "Музыка уже проигрывается в другом канале.",
+          "Музыка уже проигрывается в другом канале."
         );
       const player = discordp.useMainPlayer();
       const search = await player
@@ -61,7 +61,7 @@ module.exports = {
           console.log(
             "[YTMusic] " +
               `Added to queue: "${search.tracks[0].title}" in ${interact.guildId}`
-                .gray,
+                .gray
           );
           let out = `Добавлено в очередь: \`${search.tracks[0].title}\``;
           interact.editReply(out);
@@ -69,7 +69,7 @@ module.exports = {
         .catch((e) => {
           console.log("[YTMusic] " + `Something went wrong! ${e.message}`.gray);
           interact.editReply(
-            `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``,
+            `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``
           );
         });
     } else if (param === "skip") {
@@ -96,7 +96,7 @@ module.exports = {
         (track) =>
           (out += `${tracks.indexOf(track) + 1}. ${
             track.title
-          } - by ${track.requestedBy.toString()}`),
+          } - by ${track.requestedBy.toString()}`)
       );
       if (out.length > 2000)
         return interact.editReply(out.substring(0, 1980) + `\nAnd more...`);

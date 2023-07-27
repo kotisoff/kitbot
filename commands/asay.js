@@ -9,17 +9,17 @@ module.exports = {
       option
         .setName("message")
         .setDescription(`Сообщение, которое будет отображено ботом`)
-        .setRequired(true),
+        .setRequired(true)
     )
     .addAttachmentOption((option) =>
       option
         .setName("attachment")
-        .setDescription("Вложение (фото, файл, видева)."),
+        .setDescription("Вложение (фото, файл, видева).")
     )
     .addBooleanOption((option) =>
       option
         .setName("tts")
-        .setDescription(`Будет ли сообщение преобразовано в речь?`),
+        .setDescription(`Будет ли сообщение преобразовано в речь?`)
     ),
   pdata: {
     name: "asay",
@@ -32,7 +32,7 @@ module.exports = {
     let attachment;
     try {
       attachment = new discord.Attachment(
-        interact.options.getAttachment("attachment"),
+        interact.options.getAttachment("attachment")
       );
     } catch {}
     interact.deferReply();

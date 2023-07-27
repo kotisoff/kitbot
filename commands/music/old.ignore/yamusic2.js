@@ -33,7 +33,7 @@ const config = fileimport(
       token: "yourAuthToken",
       uid: "yourUid",
     },
-  },
+  }
 );
 
 const YaMusicApi = new ym.YMApi();
@@ -55,7 +55,7 @@ const play = async (interact, query) => {
   }
   const trackurl = await YaWrapper.getMp3DownloadUrl(
     parseInt(track.id + ""),
-    "low",
+    "low"
   );
   const artists = [];
   track.artists.forEach((a) => artists.push(a.name));
@@ -68,10 +68,10 @@ const play = async (interact, query) => {
     "[YaMusic] " +
       `Added to queue: ${track.title} - ${artists.join(", ")} (${
         track.id
-      }) in ${interact.guildId}`.gray,
+      }) in ${interact.guildId}`.gray
   );
   queue.node.playRaw(
-    discordv.createAudioResource(trackurl, { inlineVolume: true }),
+    discordv.createAudioResource(trackurl, { inlineVolume: true })
   );
   interact.editReply(out);
 };
@@ -87,25 +87,25 @@ module.exports = {
         .addChoices(
           { name: "Проиграть", value: "play" },
           { name: "Пропустить", value: "skip" },
-          { name: "Остановить все песни", value: "stop" },
+          { name: "Остановить все песни", value: "stop" }
         )
-        .setRequired(true),
+        .setRequired(true)
     )
     .addStringOption((o) =>
-      o.setName("songtitle").setDescription("Название песни."),
+      o.setName("songtitle").setDescription("Название песни.")
     )
     .addNumberOption((o) =>
       o
         .setName("trackid")
         .setDescription(
-          "ID песни. (Последнее число в ссылке. Пример: /album/0/track/АЙДИ)",
-        ),
+          "ID песни. (Последнее число в ссылке. Пример: /album/0/track/АЙДИ)"
+        )
     )
     .addStringOption((o) =>
-      o.setName("trackurl").setDescription("Ссылка на песню."),
+      o.setName("trackurl").setDescription("Ссылка на песню.")
     )
     .addStringOption((o) =>
-      o.setName("playlisturl").setDescription("Ссылка на плейлист"),
+      o.setName("playlisturl").setDescription("Ссылка на плейлист")
     ),
 
   /** @param {discord.Interaction} interact @param {discord.Client} bot*/

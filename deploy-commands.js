@@ -6,32 +6,27 @@ const guildId = process.argv.slice(2)[0] ?? config.guildId;
 const { clientId, token } = config;
 
 const commands = [];
-const deploycommands = [];
-// Grab all the command files from the commands directory you created earlier
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter((file) => file.endsWith(".js"));
+const commandFiles = [];
 
+const resolvedir = (dir) => {
+  const files = fs.readdirSync(dir);
+  files.forEach((file) => {
+    const filepath = path.join(dir, file);
+    const stat = fs.lstatSync(filepath);
+    if (stat.isFile() && file.endsWith(".js"))
+      return commandFiles.push(filepath);
+    else if (stat.isDirectory() && !file.endsWith(".ignore"))
+      return resolvedir(filepath);
+  });
+};
+resolvedir(path.join(__dirname, "./commands"));
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  commands.push(command);
+  const command = require(file);
+  if (!command.idata) return;
+  commands.push(command.idata.toJSON());
+  console.log(path.basename(file), "успешно загружен.");
 }
-
-const packages = commands.filter((command) => command.package);
-
-packages.forEach((file) => {
-  file.package.forEach((subfile) => {
-    commands.push(require("./" + path.join("commands", file.path, subfile)));
-  });
-});
-
-commands.forEach((command) => {
-  if (command.idata) {
-    deploycommands.push(command.idata.toJSON());
-    console.log(command.idata.name + " успешно загружен.");
-  }
-});
 
 // Construct and prepare an instance of the REST module
 const rest = new REST({ version: "10" }).setToken(token);
@@ -40,17 +35,17 @@ const rest = new REST({ version: "10" }).setToken(token);
 (async () => {
   try {
     console.log(
-      `Started refreshing ${deploycommands.length} application (/) commands.`,
+      `Started refreshing ${commands.length} application (/) commands.`
     );
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
       Routes.applicationGuildCommands(clientId, guildId),
-      { body: deploycommands },
+      { body: commands }
     );
 
     console.log(
-      `Successfully reloaded ${data.length} application (/) commands.`,
+      `Successfully reloaded ${data.length} application (/) commands.`
     );
     process.exit();
   } catch (error) {

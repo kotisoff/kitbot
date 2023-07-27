@@ -27,14 +27,12 @@ module.exports = {
           { name: "Пауза", value: "pause" },
           { name: "Текущий трек", value: "current" },
           { name: "Список воспроизведения", value: "list" },
-          { name: "Остановить", value: "stop" },
+          { name: "Остановить", value: "stop" }
         )
-        .setRequired(true),
+        .setRequired(true)
     )
     .addStringOption((o) =>
-      o
-        .setName("query")
-        .setDescription("Песня/Плейлист/Альбом с Yandex Music."),
+      o.setName("query").setDescription("Песня/Плейлист/Альбом с Yandex Music.")
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
@@ -56,12 +54,12 @@ module.exports = {
       const channel = interact.member?.voice?.channel;
       if (!channel)
         return await interact.editReply(
-          "Сначала подключитесь к голосовому каналу!",
+          "Сначала подключитесь к голосовому каналу!"
         );
       const queue = discordp.useQueue(interact.guildId);
       if (queue && queue.channel.id !== channel.id)
         return await interact.editReply(
-          "Музыка уже проигрывается в другом канале.",
+          "Музыка уже проигрывается в другом канале."
         );
       const player = discordp.useMainPlayer();
       const search = await player
@@ -76,18 +74,18 @@ module.exports = {
             console.log(
               "[YaMusic] " +
                 `Added ${search.tracks.length} tracks to queue with "${search.playlist.title} - ${search.playlist.author.name}"`
-                  .gray,
+                  .gray
             );
             interact.editReply(
-              `Добавлен плейлист: \`${search.playlist.title} - ${search.playlist.author.name}\` с ${search.tracks.length} песнями.`,
+              `Добавлен плейлист: \`${search.playlist.title} - ${search.playlist.author.name}\` с ${search.tracks.length} песнями.`
             );
           })
           .catch((e) => {
             console.log(
-              "[YaMusic] " + `Something went wrong! ${e.message}`.gray,
+              "[YaMusic] " + `Something went wrong! ${e.message}`.gray
             );
             interact.editReply(
-              `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``,
+              `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``
             );
           });
       } else
@@ -97,18 +95,18 @@ module.exports = {
             console.log(
               "[YaMusic] " +
                 `Added to queue: "${search.tracks[0].title} - ${search.tracks[0].author}" in ${interact.guildId}`
-                  .gray,
+                  .gray
             );
             interact.editReply(
-              `Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\` (${search.tracks[0].duration})`,
+              `Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\` (${search.tracks[0].duration})`
             );
           })
           .catch((e) => {
             console.log(
-              "[YaMusic] " + `Something went wrong! ${e.message}`.gray,
+              "[YaMusic] " + `Something went wrong! ${e.message}`.gray
             );
             interact.editReply(
-              `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``,
+              `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``
             );
           });
     } else if (param === "skip") {
@@ -117,7 +115,7 @@ module.exports = {
       queue.node.skip();
       const track = queue.currentTrack;
       return await interact.editReply(
-        `Трек \`${track.title} - ${track.author}\` пропущен.`,
+        `Трек \`${track.title} - ${track.author}\` пропущен.`
       );
     } else if (param === "pause") {
       await interact.reply("*Думоет...*");
@@ -138,7 +136,7 @@ module.exports = {
       return await interact.editReply(
         `Текущий трек: \`${track.title} - ${
           track.author
-        }\` ${queue.node.createProgressBar()}`,
+        }\` ${queue.node.createProgressBar()}`
       );
     } else if (param === "list") {
       await interact.reply("*Думоет...*");
@@ -148,7 +146,7 @@ module.exports = {
         (track) =>
           `${tracks.indexOf(track) + 1}. ${
             track.title
-          } - by ${track.requestedBy.toString()}`,
+          } - by ${track.requestedBy.toString()}`
       )}`;
       if (out.length > 2000)
         return interact.editReply(out.substring(0, 1980) + `\nAnd more...`);

@@ -23,7 +23,7 @@ if (!fs.existsSync("./config.json"))
         allowShortCommands: true,
         allowRussianCommands: true,
       },
-    }),
+    })
   );
 const config = require("./config.json");
 const { token, prefix } = config.bot;
@@ -42,7 +42,7 @@ bot.pcommands = new discord.Collection();
 const commands = [];
 
 const commandsPath = path.join(__dirname, config.settings.commandsPath);
-const commandFiles = []; // fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const commandFiles = [];
 const resolvedir = (dir) => {
   const files = fs.readdirSync(dir);
   files.forEach((file) => {
@@ -62,7 +62,7 @@ for (const file of commandFiles) {
 console.log(
   "[Main]",
   commands.length,
-  `commands loaded... (${Date.now() - loadtimer}ms)`.gray,
+  `commands loaded... (${Date.now() - loadtimer}ms)`.gray
 );
 
 // Init commands
@@ -84,14 +84,14 @@ commands.forEach((command) => {
     console.log(
       "[Main]",
       "[WARNING]".red +
-        ` The command (${commandname}) is missing required properties.`.yellow,
+        ` The command (${commandname}) is missing required properties.`.yellow
     );
   }
 });
 console.log(
   "[Main]",
   commands.length,
-  `commands collected... (${Date.now() - loadtimer}ms)`.gray,
+  `commands collected... (${Date.now() - loadtimer}ms)`.gray
 );
 
 // Интерактивные команды
@@ -106,7 +106,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
     });
     console.error(
       "[Main]",
-      `No command matching ${interaction.commandName} was found.`.gray,
+      `No command matching ${interaction.commandName} was found.`.gray
     );
     return;
   }
@@ -129,7 +129,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
 
 console.log(
   "[Main]",
-  `Interactive commands function loaded. (${Date.now() - loadtimer}ms)`.gray,
+  `Interactive commands function loaded. (${Date.now() - loadtimer}ms)`.gray
 );
 
 // Префикс команды
@@ -148,7 +148,7 @@ bot.on("messageCreate", async (msg) => {
 
 console.log(
   "[Main]",
-  `Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray,
+  `Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray
 );
 
 // По завершении инициализации
@@ -163,8 +163,8 @@ bot.once(discord.Events.ClientReady, (bot) => {
         console.log(
           "[Main]",
           `${path.basename(
-            commandFiles[commands.indexOf(command)],
-          )} initialized... (${Date.now() - loadtimer}ms)`.gray,
+            commandFiles[commands.indexOf(command)]
+          )} initialized... (${Date.now() - loadtimer}ms)`.gray
         );
       } catch {}
     });

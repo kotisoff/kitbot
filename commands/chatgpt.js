@@ -16,12 +16,12 @@ const config = fileimport(
     prefix: "-",
     options: { ai_stream: true, logdetails: false },
   },
-  true,
+  true
 );
 let profiles = fileimport(
   path.join(configpath, "./data/profiles.json"),
   {},
-  true,
+  true
 );
 let aitoken = config.token,
   mainprefix = config.mainprefix;
@@ -61,7 +61,7 @@ function saveAll(showlog) {
       fs.writeFileSync(
         path.join(configpath, `/memories/${mods[mod].filename}_memory.json`),
         JSON.stringify(memories[mod]),
-        (err) => {},
+        (err) => {}
       );
     }
   }
@@ -117,7 +117,7 @@ const refreshMemory = () => {
         ai_system: [{ role: "system", content: mods[mod].personality }],
         ai_messages: [],
       },
-      true,
+      true
     );
   }
 };
@@ -132,7 +132,7 @@ const shareThread = async (client) => {
     console.log(
       "[AI]",
       "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk."
-        .bgRed.white,
+        .bgRed.white
     );
   try {
     client.on(discord.Events.MessageCreate, async (msg) => onMsg(msg));
@@ -160,7 +160,7 @@ const onMsg = async (msg) => {
   console.log(
     "[AI]",
     `New message to ${mods[target].name}: ` +
-      msg.content.slice(mods[target].prefix.length).gray,
+      msg.content.slice(mods[target].prefix.length).gray
   );
 
   memories[target].ai_messages.push({
@@ -190,14 +190,14 @@ const onMsg = async (msg) => {
       {
         model: mods[target].ai_settings.model,
         messages: memories[target].ai_system.concat(
-          memories[target].ai_messages,
+          memories[target].ai_messages
         ),
         temperature: mods[target].ai_settings.temperature,
         n: 1,
         user: msg.author.id,
         stream: config.options.ai_stream,
       },
-      { responseType: responseType },
+      { responseType: responseType }
     )
     .catch((err) => {
       return (memories[target].ai_messages = []);
@@ -229,7 +229,7 @@ const onMsg = async (msg) => {
           } catch (e) {
             clearInterval(msginterval);
             return instance.send(
-              "Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...",
+              "Произошла ошибка: \n" + e + "\nПопробуйте ещё раз..."
             );
           }
         });
@@ -237,7 +237,7 @@ const onMsg = async (msg) => {
     } catch (e) {
       console.log(e);
       return instance.send(
-        "Произошла ошибка: \n" + e + "\nПопробуйте ещё раз...",
+        "Произошла ошибка: \n" + e + "\nПопробуйте ещё раз..."
       );
     }
 
@@ -305,11 +305,11 @@ module.exports = {
         .addChoices(
           { name: "Отчистить память одному", value: "clmem" },
           { name: "Перезагрузить всю память", value: "rsmem" },
-          { name: "Перезагрузить все моды", value: "rsmods" },
-        ),
+          { name: "Перезагрузить все моды", value: "rsmods" }
+        )
     )
     .addStringOption((o) =>
-      o.setName("modid").setDescription("Идентификатор мода."),
+      o.setName("modid").setDescription("Идентификатор мода.")
     ),
   //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
@@ -346,8 +346,8 @@ module.exports = {
           fs.rmSync(
             path.join(
               configpath,
-              `/memories/${mods[modid].filename}_memory.json`,
-            ),
+              `/memories/${mods[modid].filename}_memory.json`
+            )
           );
           refreshMemory();
           interaction.reply({ content: "Очищена память " + mods[modid].name });

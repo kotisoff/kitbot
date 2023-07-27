@@ -16,7 +16,7 @@ if (!fs.existsSync(cfgpath))
         access_token: "yourAuthToken",
         uid: "yourUid_ItShouldBeANumber",
       },
-    }),
+    })
   );
 const config = require(cfgpath);
 
@@ -38,18 +38,18 @@ module.exports = {
       o
         .setName("query")
         .setDescription("Песня/Плейлист/Альбом ссылка или название.")
-        .setRequired(true),
+        .setRequired(true)
     )
     .addStringOption((o) =>
       o
         .setName("source")
         .setDescription(
-          "Источник воспроизведения, можно не указывать при указании ссылок.",
+          "Источник воспроизведения, можно не указывать при указании ссылок."
         )
         .setChoices(
           { name: "Youtube", value: "youtube" },
-          { name: "Yandex Music", value: ymext },
-        ),
+          { name: "Yandex Music", value: ymext }
+        )
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
@@ -71,12 +71,12 @@ module.exports = {
     const channel = interact.member?.voice?.channel;
     if (!channel)
       return await interact.editReply(
-        "Сначала подключитесь к голосовому каналу!",
+        "Сначала подключитесь к голосовому каналу!"
       );
     const queue = discordp.useQueue(interact.guildId);
     if (queue && queue.channel.id !== channel.id)
       return await interact.editReply(
-        "Музыка уже проигрывается в другом канале.",
+        "Музыка уже проигрывается в другом канале."
       );
     const player = discordp.useMainPlayer();
     const search = await player
@@ -91,16 +91,16 @@ module.exports = {
           console.log(
             "[Music] " +
               `Added ${search.tracks.length} tracks to queue with "${search.playlist.title} - ${search.playlist.author.name}" in ${interact.guildId} with "${source}"`
-                .gray,
+                .gray
           );
           interact.editReply(
-            `Добавлен плейлист: \`${search.playlist.title} - ${search.playlist.author.name}\` с ${search.tracks.length} песнями.`,
+            `Добавлен плейлист: \`${search.playlist.title} - ${search.playlist.author.name}\` с ${search.tracks.length} песнями.`
           );
         })
         .catch((e) => {
           console.log("[Music] " + `Something went wrong! ${e.message}`.gray);
           interact.editReply(
-            `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``,
+            `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``
           );
         });
     } else
@@ -110,16 +110,16 @@ module.exports = {
           console.log(
             "[Music] " +
               `Added to queue: "${search.tracks[0].title} - ${search.tracks[0].author}" in ${interact.guildId} with "${source}"`
-                .gray,
+                .gray
           );
           interact.editReply(
-            `Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\` (${search.tracks[0].duration})`,
+            `Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\` (${search.tracks[0].duration})`
           );
         })
         .catch((e) => {
           console.log("[Music] " + `Something went wrong! ${e.message}`.gray);
           interact.editReply(
-            `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``,
+            `Упс, что-то пошло не так! \n\`\`\`${e.message}\`\`\``
           );
         });
   },

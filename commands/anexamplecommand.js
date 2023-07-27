@@ -10,7 +10,7 @@ module.exports = {
     interact.reply(`Понг сука! Задержка API: ${APIping}мс`);
     if (APIping >= 400) {
       interact.followup(
-        `Задержка слегка выше ожидаемой суммы... А точнее ${APIping} наъуй.`,
+        `Задержка слегка выше ожидаемой суммы... А точнее ${APIping} наъуй.`
       );
     }
   },

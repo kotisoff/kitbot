@@ -11,18 +11,18 @@ module.exports = {
         .setDescription("Параметр для команды.")
         .addChoices(
           { name: "Выдать", value: "give" },
-          { name: "Изъять", value: "take" },
+          { name: "Изъять", value: "take" }
         )
-        .setRequired(true),
+        .setRequired(true)
     )
     .addRoleOption((options) =>
       options
         .setName("role")
         .setDescription(`Роль для выдачи/изъятия.`)
-        .setRequired(true),
+        .setRequired(true)
     )
     .addUserOption((options) =>
-      options.setName("user").setDescription("Кому выдать/изъять роль."),
+      options.setName("user").setDescription("Кому выдать/изъять роль.")
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
@@ -45,7 +45,7 @@ module.exports = {
           console.log(
             `${("@" + interact.user.username).magenta}: requested a role ${
               ("@" + role.name).cyan
-            }: for user ${("@" + user.username).magenta}.`,
+            }: for user ${("@" + user.username).magenta}.`
           );
           await interact.guild.members.cache.get(uid).roles.add(`${id}`);
           return await interact.reply({
@@ -56,7 +56,7 @@ module.exports = {
           console.log(
             `${
               ("@" + interact.user.username).magenta
-            }: requested themselves a role ${("@" + role.name).cyan}`,
+            }: requested themselves a role ${("@" + role.name).cyan}`
           );
           await interact.member.roles.add(`${id}`);
           return await interact.reply({
@@ -82,7 +82,7 @@ module.exports = {
               ("@" + interact.user.username).magenta
             }: requested to take a role ${("@" + role.name).cyan}: from user ${
               ("@" + user.username).magenta
-            }`,
+            }`
           );
           await interact.guild.members.cache.get(uid).roles.remove(`${id}`);
           return await interact.reply({
@@ -93,7 +93,7 @@ module.exports = {
           console.log(
             `${
               ("@" + interact.user.username).magenta
-            }: requested to take themselves a role ${("@" + role.name).cyan}`,
+            }: requested to take themselves a role ${("@" + role.name).cyan}`
           );
           await interact.member.roles.remove(`${id}`);
           return await interact.reply({

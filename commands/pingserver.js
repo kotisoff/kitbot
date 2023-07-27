@@ -101,7 +101,7 @@ module.exports = {
       option
         .setName("ip")
         .setDescription('Айпи адрес сервера. Порт вписывается через ":".')
-        .setRequired(true),
+        .setRequired(true)
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
@@ -109,7 +109,7 @@ module.exports = {
     let port = interact.options.getString("ip").split(":")[1] ?? 25565;
     if (port < 0 || port > 65535)
       return interact.reply(
-        `Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`,
+        `Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`
       );
     updateHost(ip, port).then((out) => {
       interact.reply(`${out}`);
