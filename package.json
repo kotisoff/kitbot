@@ -1,6 +1,10 @@
 {
   "name": "discord-kitbot",
   "author": "kotisoff",
+  "main": "main.js",
+  "scripts": {
+    "format": "prettier --write ."
+  },
   "dependencies": {
     "@discord-player/extractor": "^4.4.0",
     "@discordjs/opus": "^0.9.0",
@@ -8,7 +12,7 @@
     "bufferutil": "^4.0.7",
     "colors": "^1.4.0",
     "discord-player": "^6.6.1",
-    "discord-player-yandexmusic": "^0.0.5",
+    "discord-player-yandexmusic": "^0.0.8",
     "discord.js": "^14.11.0",
     "ffmpeg-static": "^5.1.0",
     "libsodium-wrappers": "^0.7.11",
@@ -21,7 +25,8 @@
     "zlib-sync": "^0.1.8"
   },
   "devDependencies": {
-    "eslint": "^8.31.0"
+    "eslint": "^8.31.0",
+    "prettier": "^3.0.0"
   },
-  "license": "ISC"
+  "license": "MIT"
 }
