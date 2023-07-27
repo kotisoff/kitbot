@@ -1,6 +1,7 @@
 {
   "name": "discord-kitbot",
   "author": "kotisoff",
+  "main": "main.js",
   "scripts": {
     "format": "prettier --write ."
   },

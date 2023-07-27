@@ -43,19 +43,18 @@ const commands = [];
 
 const commandsPath = path.join(__dirname, config.settings.commandsPath);
 const commandFiles = []; // fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-const resolvedir = (files) => {};
-fs.readdirSync(commandsPath).forEach((obj) => {
-  const objdir = path.join(commandsPath, obj);
-  const stat = fs.lstatSync(objdir);
-  if (stat.isFile() && obj.endsWith(".js")) return commandFiles.push(objdir);
-  else if (stat.isDirectory())
-    commandFiles.push(
-      ...fs
-        .readdirSync(objdir)
-        .filter((f) => f.endsWith(".js"))
-        .map((file) => path.join(objdir, file)),
-    );
-});
+const resolvedir = (dir) => {
+  const files = fs.readdirSync(dir);
+  files.forEach((file) => {
+    const filepath = path.join(dir, file);
+    const stat = fs.lstatSync(filepath);
+    if (stat.isFile() && file.endsWith(".js"))
+      return commandFiles.push(filepath);
+    else if (stat.isDirectory() && !file.endsWith(".ignore"))
+      return resolvedir(filepath);
+  });
+};
+resolvedir(commandsPath);
 
 for (const file of commandFiles) {
   commands.push(require(file));
