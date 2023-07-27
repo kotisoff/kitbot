@@ -6,15 +6,19 @@ const fs = require("fs"),
   path = require("path");
 const ymext = `ext:${YandexMusicExtractor.identifier}`;
 
-const config = fileimport(
-  path.join(__dirname, "../configs/kot.music/yaconfig.json"),
-  {
-    user: {
-      access_token: "yourAuthToken",
-      uid: "yourUid_ItShouldBeANumber",
-    },
-  },
-);
+console.log("[Music]", "Importing yaconfig...".gray);
+const cfgpath = path.join(__dirname, "../../configs/kot.music/yaconfig.json");
+if (!fs.existsSync(cfgpath))
+  fs.writeFileSync(
+    cfgpath,
+    JSON.stringify({
+      user: {
+        access_token: "yourAuthToken",
+        uid: "yourUid_ItShouldBeANumber",
+      },
+    }),
+  );
+const config = require(cfgpath);
 
 /*Как получить token и uid?
     Инструкция по токену: https://github.com/MarshalX/yandex-music-api/discussions/513
@@ -120,18 +124,9 @@ module.exports = {
         });
   },
   async shareThread(client) {
-    const config = fileimport(
-      path.join(__dirname, "../configs/kot.music/yaconfig.json"),
-      {
-        user: {
-          access_token: "yourAuthToken",
-          uid: "yourUid_ItShouldBeANumber",
-        },
-      },
-    );
     const player = discordp.Player.singleton(client);
     await player.extractors.register(extractor.AttachmentExtractor);
-    await player.extractors.register(ymext.YandexMusicExtractor, config.user);
+    await player.extractors.register(YandexMusicExtractor, config.user);
     await player.extractors.register(extractor.YouTubeExtractor);
   },
 };

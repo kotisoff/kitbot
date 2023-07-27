@@ -7,8 +7,8 @@ const loadtimer = Date.now();
 
 // Loading configuration
 
-console.log("[Main]", "Importing config...".gray);
-if (!fs.existsSync(""))
+console.log("[Main]", `Importing config...`.gray);
+if (!fs.existsSync("./config.json"))
   fs.writeFileSync(
     "./config.json",
     JSON.stringify({
@@ -32,7 +32,10 @@ if (!fs.existsSync(config.settings.commandsPath))
   fs.mkdirSync(config.settings.commandsPath);
 if (!fs.existsSync("configs")) fs.mkdirSync("configs");
 
+// Логин бота
+
 const bot = new discord.Client({ intents: [3276799] });
+bot.login(token);
 
 bot.icommands = new discord.Collection();
 bot.pcommands = new discord.Collection();
@@ -40,42 +43,34 @@ const commands = [];
 
 const commandsPath = path.join(__dirname, config.settings.commandsPath);
 const commandFiles = []; // fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const resolvedir = (files) => {};
 fs.readdirSync(commandsPath).forEach((obj) => {
   const objdir = path.join(commandsPath, obj);
   const stat = fs.lstatSync(objdir);
-  if (stat.isFile()) return commandFiles.push(objdir);
-  commandFiles.push(
-    ...fs
-      .readdirSync(objdir)
-      .filter((f) => f.endsWith(".js"))
-      .map((file) => path.join(objdir, file)),
-  );
+  if (stat.isFile() && obj.endsWith(".js")) return commandFiles.push(objdir);
+  else if (stat.isDirectory())
+    commandFiles.push(
+      ...fs
+        .readdirSync(objdir)
+        .filter((f) => f.endsWith(".js"))
+        .map((file) => path.join(objdir, file)),
+    );
 });
-console.log(commandFiles);
+
 for (const file of commandFiles) {
-  const command = require(file);
-  try {
-    command.load();
-  } catch {}
-  commands.push(command);
+  commands.push(require(file));
 }
-
-// Find packages
-
-// const packages = commands.filter(command => command.package)
-
-// packages.forEach(file => {
-// 	commands.splice(commands.indexOf(file), 1)
-// 	file.package.forEach(subfile => {
-// 		commands.push(require(path.join(commandsPath, file.path, subfile)));
-// 	})
-// })
+console.log(
+  "[Main]",
+  commands.length,
+  `commands loaded... (${Date.now() - loadtimer}ms)`.gray,
+);
 
 // Init commands
 
 commands.forEach((command) => {
   // Set a new item in the Collection with the key as the command name and the value as the exported module
-  const commandname = commandFiles[commands.indexOf(command)];
+  const commandname = path.basename(commandFiles[commands.indexOf(command)]);
   if (command.idata) {
     bot.icommands.set(command.idata.name, command);
   }
@@ -88,11 +83,17 @@ commands.forEach((command) => {
   }
   if (!command.pdata & !command.idata) {
     console.log(
+      "[Main]",
       "[WARNING]".red +
         ` The command (${commandname}) is missing required properties.`.yellow,
     );
   }
 });
+console.log(
+  "[Main]",
+  commands.length,
+  `commands collected... (${Date.now() - loadtimer}ms)`.gray,
+);
 
 // Интерактивные команды
 
@@ -127,6 +128,11 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
   }
 });
 
+console.log(
+  "[Main]",
+  `Interactive commands function loaded. (${Date.now() - loadtimer}ms)`.gray,
+);
+
 // Префикс команды
 
 bot.on("messageCreate", async (msg) => {
@@ -141,27 +147,35 @@ bot.on("messageCreate", async (msg) => {
   }
 });
 
+console.log(
+  "[Main]",
+  `Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray,
+);
+
 // По завершении инициализации
 
 bot.once(discord.Events.ClientReady, (bot) => {
   console.log("[Main] " + `${bot.user.tag} is online.`.yellow);
+  commands
+    .filter((cmd) => cmd.shareThread)
+    .forEach((command) => {
+      try {
+        command.shareThread(bot);
+        console.log(
+          "[Main]",
+          `${path.basename(
+            commandFiles[commands.indexOf(command)],
+          )} initialized... (${Date.now() - loadtimer}ms)`.gray,
+        );
+      } catch {}
+    });
   bot.user.setStatus("idle");
   bot.user.setActivity("за " + bot.guilds.cache.size + " серверами ._.", {
     type: discord.ActivityType.Watching,
   });
-  commands.concat(packages).forEach((command) => {
-    try {
-      command.shareThread(bot);
-    } catch {}
-  });
   console.log("[Main]", commands.length, "commands initialized.".green);
   console.log("[Main]", `Bot took ${Date.now() - loadtimer}ms to launch.`.gray);
-  delete loadtimer;
 });
-
-// Логин бота
-
-bot.login(token);
 
 process.on("unhandledRejection", (error) => {
   console.log("Unhandled promise rejection:", error);
