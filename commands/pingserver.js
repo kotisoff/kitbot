@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const net = require("net");
-const colors = require("colors");
+require("colors");
 
 /**@param {String} hexx*/
 function hex2tex(hexx) {

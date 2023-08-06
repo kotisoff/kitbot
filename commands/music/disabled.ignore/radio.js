@@ -32,36 +32,18 @@ const config = require(cfgpath);
 
 module.exports = {
   idata: new discord.SlashCommandBuilder()
-    .setName("play")
-    .setDescription("Plays music from Any Platforms")
+    .setName("radio")
+    .setDescription("Radio")
     .addStringOption((o) =>
       o
-        .setName("query")
-        .setDescription("Песня/Плейлист/Альбом ссылка или название.")
+        .setName("state")
+        .setDescription("Установка статуса радио.")
+        .setChoices({ name: "Переключить статус" })
         .setRequired(true)
-    )
-    .addStringOption((o) =>
-      o
-        .setName("source")
-        .setDescription(
-          "Источник воспроизведения, можно не указывать при указании ссылок."
-        )
-        .setChoices(
-          { name: "Youtube", value: "youtube" },
-          { name: "Yandex Music", value: ymext }
-        )
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
-    const source =
-      (await interact.options.getString("source")) ??
-      discordp.QueryType.AUTO_SEARCH;
-    const query = await interact.options.getString("query");
-    if (!query)
-      return await interact.reply({
-        content: "А если подумать?",
-        ephemeral: true,
-      });
+    const state = await interact.options.getString("state");
     try {
       await interact.reply("*Думоет...*");
     } catch {
@@ -78,9 +60,6 @@ module.exports = {
         "Музыка уже проигрывается в другом канале."
       );
     const player = discordp.useMainPlayer();
-    const search = await player
-      .search(query, { searchEngine: source, requestedBy: interact.member.id })
-      .catch(() => {});
     if (!search?.hasTracks())
       return await interact.editReply("Не найдено треков по этому запросу.");
     if (search.hasPlaylist()) {

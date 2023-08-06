@@ -1,8 +1,8 @@
 const discord = require("discord.js"),
   openai = require("openai"),
   fs = require("node:fs"),
-  path = require("node:path"),
-  colors = require("colors");
+  path = require("node:path");
+require("colors");
 
 const configpath = path.join(__dirname, "../configs/kot.chatgpt");
 
@@ -20,7 +20,7 @@ const config = fileimport(
 );
 let profiles = fileimport(
   path.join(configpath, "./data/profiles.json"),
-  {},
+  { channels: [] },
   true
 );
 let aitoken = config.token,
@@ -28,7 +28,7 @@ let aitoken = config.token,
 
 /** @param {String} filepath @param {Boolean} hide*/
 function fileimport(filepath, replacedata, hide) {
-  filename = path.basename(filepath);
+  const filename = path.basename(filepath);
   if (!hide) console.log("[AI]", ("Importing " + filename + "...").gray);
   try {
     require(filepath);
@@ -48,29 +48,37 @@ const ai = new openai.OpenAIApi(aiconfig);
 // Additional functions
 
 /**@param {discord.Message} msg @param {String} data @param {String} target @param {discord.Webhook} inst*/
-const editmsg = async (msg, data, inst, target) => {
-  if (target == "main") return await msg.edit(data);
-  await inst.editMessage(msg, { content: data });
+const editmsg = async (msg, data, target) => {
+  if (data.length === 0) return;
+  if (target.modid === "kotisoff:main") return await msg.edit(data);
+  await target.inst.editMessage(msg, { content: data });
 };
 
 /**@param {Boolean} showlog*/
 function saveAll(showlog) {
   if (showlog) console.log("[AI] Saving data...");
-  for (let mod in memories) {
-    if (mod) {
-      fs.writeFileSync(
-        path.join(configpath, `/memories/${mods[mod].filename}_memory.json`),
-        JSON.stringify(memories[mod]),
-        (err) => {}
-      );
-    }
+  for (let i in memories) {
+    fs.writeFileSync(
+      path.join(configpath, `/memories/${mods[i].filename}_memory.json`),
+      JSON.stringify(memories[i]),
+      () => {}
+    );
   }
   if (showlog) console.log("[AI] Data saved!");
 }
 
+const jsonParser = (data) => {
+  try {
+    const parsed = JSON.parse(data);
+    return parsed;
+  } catch {
+    return { choices: [{ delta: { content: "?" }, finish_reason: null }] };
+  }
+};
+
 // Personalities
 
-const mainTemplate = {
+const modTemplate = {
   modid: "kotisoff:main",
   prefix: mainprefix,
   name: "main",
@@ -78,48 +86,54 @@ const mainTemplate = {
   personality:
     "Ты бот помощник пользователя. Всегда отвечай на вопросы максимально точно и подробно.",
   ai_settings: {
-    model: "gpt-3.5-turbo",
+    model: "gpt-3.5-turbo-16k-0613",
     temperature: 1.2,
   },
   filename: "main", // It's not necessary in mod file, if you want to create one. filename parameter is creating in code every reload, because file can be renamed.
 };
+let mods = [modTemplate];
 
 if (!fs.existsSync(path.join(configpath, "./mods")))
   fs.mkdirSync(path.join(configpath, "./mods"));
-let mods = {};
 
 const refreshMods = () => {
-  mods = {};
   let files = fs.readdirSync(path.join(configpath, "./mods"));
   files = files.filter((f) => f.endsWith(".json"));
   console.log("[AI] " + "Found".gray, files.length, "personalities.".gray);
-
-  mods["main"] = mainTemplate;
   files.forEach((f) => {
-    let tmp = require(path.join(configpath, `./mods/${f}`));
-    mods[tmp.modid] = tmp;
-    mods[tmp.modid].filename = f.split(".json")[0];
+    const tmp = require(path.join(configpath, `./mods/${f}`));
+    tmp.filename = f.replace(".json", "");
+    if (mods.find((mod) => mod.modid === tmp.modid))
+      throw console.error(
+        `Mods with the same modid's found! Please edit one of them.\nThere they are: ${mods
+          .map((mod) => mod.filename)
+          .join(", ")}, ${tmp.filename}`
+      );
+    mods.push(tmp);
   });
 };
 
-// Ai mem (working on)
+// Ai mem
 
 if (!fs.existsSync(path.join(configpath, "./memories")))
   fs.mkdirSync(path.join(configpath, "./memories"));
-let memories = {};
+
+const memories = [];
 
 const refreshMemory = () => {
-  memories = {};
-  for (let mod in mods) {
-    memories[mod] = fileimport(
-      path.join(configpath, `./memories/${mods[mod].filename}_memory.json`),
-      {
-        ai_system: [{ role: "system", content: mods[mod].personality }],
-        ai_messages: [],
-      },
-      true
+  mods.forEach((mod) => {
+    memories.push(
+      fileimport(
+        path.join(configpath, `./memories/${mod.filename}_memory.json`),
+        {
+          modid: mod.modid,
+          ai_system: [{ role: "system", content: mod.personality }],
+          ai_messages: [],
+        },
+        true
+      )
     );
-  }
+  });
 };
 
 // Main work
@@ -131,7 +145,7 @@ const shareThread = async (client) => {
   if (config.options.ai_stream)
     console.log(
       "[AI]",
-      "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk."
+      "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk.\nFor some reason, stream mode works more stable than regular mode. paradox?"
         .bgRed.white
     );
   try {
@@ -146,61 +160,59 @@ const onMsg = async (msg) => {
   if (!profiles.channels.includes(msg.channelId)) return;
   if (msg.author.bot) return;
 
-  let target;
-  for (let mod in mods) {
-    if (msg.content.startsWith(mods[mod].prefix)) target = mod;
-  }
+  const target = mods.find((mod) => msg.content.startsWith(mod.prefix));
   if (!target) return;
+  target.memory = memories.find((mem) => mem.modid === target.modid);
+  if (!target.memory) return;
 
   function isMain() {
-    if (target == "main") return true;
+    if (target.modid === "kotisoff:main") return true;
     return false;
   }
 
   console.log(
     "[AI]",
-    `New message to ${mods[target].name}: ` +
-      msg.content.slice(mods[target].prefix.length).gray
+    `New message to ${target.name}: ` +
+      msg.content.slice(target.prefix.length).gray
   );
 
-  memories[target].ai_messages.push({
+  target.memory.ai_messages.push({
     role: "user",
-    content: msg.content.slice(mods[target].prefix.length),
+    content: msg.content.slice(target.prefix.length),
     name: msg.author.id,
   });
 
-  if (memories[target].ai_messages.length > 50) {
-    memories[target].ai_messages.splice(0, 2);
-  }
-
-  let instance = msg.channel;
+  target.inst = msg.channel;
   if (!isMain()) {
-    instance = await msg.channel.createWebhook({
-      name: mods[target].name,
-      avatar: mods[target].avatar_url,
+    target.inst = await msg.channel.createWebhook({
+      name: target.name,
+      avatar: target.avatar_url,
     });
   }
 
   let responseType = "text",
-    streaming = await instance.send("*Думоет...*");
+    streaming = await target.inst.send("*Думоет...*");
 
   if (config.options.ai_stream) responseType = "stream";
   const msgStream = await ai
     .createChatCompletion(
       {
-        model: mods[target].ai_settings.model,
-        messages: memories[target].ai_system.concat(
-          memories[target].ai_messages
-        ),
-        temperature: mods[target].ai_settings.temperature,
+        model: target.ai_settings.model,
+        messages: target.memory.ai_system.concat(target.memory.ai_messages),
+        temperature: target.ai_settings.temperature,
         n: 1,
         user: msg.author.id,
         stream: config.options.ai_stream,
       },
       { responseType: responseType }
     )
-    .catch((err) => {
-      return (memories[target].ai_messages = []);
+    .catch(() => {
+      target.memory.ai_messages = [];
+      return editmsg(
+        streaming,
+        "*Память переполнена и в последствии сброшена. Повторите попытку!*",
+        target
+      );
     });
 
   if (config.options.ai_stream) {
@@ -208,49 +220,42 @@ const onMsg = async (msg) => {
       output = { content: "", stop: false };
 
     try {
-      msgStream.data.on("data", (event) => {
-        let data = event.toString().split("data: ");
-        for (let i in data) {
-          if (data[i].length < 12) data.splice(i, 1);
-        }
-        data.forEach((dat) => {
-          if (dat == "[DONE]" || dat.startsWith("[DONE]")) return false;
-          try {
-            const message = JSON.parse(dat).choices[0];
-            if (message.finish_reason == null) {
-              if (message.delta.content) {
-                resultmsg.content += message.delta.content;
-                output.content += message.delta.content;
-              }
-            } else {
-              memories[target].ai_messages.push(resultmsg);
-              output.stop = true;
+      await msgStream?.data?.on("data", (event = Buffer) => {
+        const data = event.toString().split("\n\n");
+        data.forEach((chunk) => {
+          if (chunk.includes("[DONE]") || chunk === "") return false;
+          const parseddata = jsonParser(chunk.replace("data: ", ""));
+          const message = parseddata.choices[0];
+          if (message.finish_reason == null) {
+            if (message.delta.content) {
+              resultmsg.content += message.delta.content;
+              output.content += message.delta.content;
             }
-          } catch (e) {
-            clearInterval(msginterval);
-            return instance.send(
-              "Произошла ошибка: \n" + e + "\nПопробуйте ещё раз..."
-            );
+          } else {
+            target.memory.ai_messages.push(resultmsg);
+            output.stop = true;
           }
         });
       });
     } catch (e) {
+      clearInterval(msginterval);
       console.log(e);
-      return instance.send(
+      return target.inst.send(
         "Произошла ошибка: \n" + e + "\nПопробуйте ещё раз..."
       );
     }
 
     let msginterval = setInterval(async () => {
       if (output.content.length > 2000) {
-        streaming = await instance.send("↓");
-        output.content = "↓\n" + output.content.substring(2000);
+        output.content = "↓\n..." + output.content.substring(1900);
+        console.log(`[AI]`, `Выполнен перенос строки.`.gray);
+        streaming = await target.inst.send(output.content);
         try {
-          editmsg(streaming, output.content, instance, target);
+          editmsg(streaming, output.content, target);
         } catch {}
       } else {
         try {
-          editmsg(streaming, output.content, instance, target);
+          editmsg(streaming, output.content, target);
         } catch {}
       }
       if (output.stop) {
@@ -258,7 +263,7 @@ const onMsg = async (msg) => {
         console.log("[AI]", "Printing done.".gray);
         if (!isMain()) {
           setTimeout(() => {
-            instance.delete();
+            target.inst.delete();
           }, 1500);
         }
         return;
@@ -274,18 +279,18 @@ const onMsg = async (msg) => {
         parts[i] = resultmsg.content.substring(offset, 2000);
         offset += 2000;
       }
-      await editmsg(streaming, parts[0], instance, target);
+      await editmsg(streaming, parts[0], target);
       for (let part = 1; part < parts.length; part++) {
         if (parts[part] != "") {
-          await instance.send(parts[part]);
+          await target.inst.send(parts[part]);
         }
       }
     } else {
-      await editmsg(streaming, resultmsg, instance, target);
+      await editmsg(streaming, resultmsg, target);
     }
-    memories[target].ai_messages.push(resultmsg);
+    target.memory.ai_messages.push(resultmsg);
     if (!isMain()) {
-      instance.delete();
+      target.inst.delete();
     }
   }
 };
@@ -303,9 +308,11 @@ module.exports = {
         .setName("parameter")
         .setDescription("Параметр для управления ИИ.")
         .addChoices(
-          { name: "Отчистить память одному", value: "clmem" },
+          { name: "Очистить память одному", value: "clmem" },
           { name: "Перезагрузить всю память", value: "rsmem" },
-          { name: "Перезагрузить все моды", value: "rsmods" }
+          { name: "Перезагрузить все моды", value: "rsmods" },
+          { name: "Добавить данный канал в разрешённые", value: "addchannel" },
+          { name: "Удалить данный канал из разрешённых", value: "rmchannel" }
         )
     )
     .addStringOption((o) =>
@@ -313,9 +320,9 @@ module.exports = {
     ),
   //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interaction, bot) {
-    let parameter = interaction.options.getString("parameter");
-    let modid = interaction.options.getString("modid");
+  async iexec(interact, bot) {
+    let parameter = interact.options.getString("parameter");
+    let modid = interact.options.getString("modid");
     if (!parameter) {
       new Promise((res) => {
         let prefixes = "Prefixes to call AI's\n```";
@@ -333,37 +340,53 @@ module.exports = {
         });
         res(`${prefixes}\n${channels}`);
       }).then((res) => {
-        interaction.reply({ content: res });
+        interact.reply({ content: res });
       });
-    } else {
-      if (parameter == "clmem") {
-        if (!modid)
-          return interaction.reply({
-            content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
-            ephemeral: true,
-          });
-        try {
-          fs.rmSync(
-            path.join(
-              configpath,
-              `/memories/${mods[modid].filename}_memory.json`
-            )
-          );
-          refreshMemory();
-          interaction.reply({ content: "Очищена память " + mods[modid].name });
-        } catch (e) {
-          interaction.reply({
-            content: "Ну и хуета твой идентификатор...\n" + e,
-            ephemeral: true,
-          });
-        }
-      } else if (parameter == "rsmem") {
-        refreshMemory();
-        interaction.reply({ content: "Вся память перезагружена." });
-      } else if (parameter == "rsmods") {
-        refreshMods();
-        interaction.reply({ content: "Все моды перезагружены." });
+    }
+    if (parameter === "clmem") {
+      if (!modid)
+        return interact.reply({
+          content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
+          ephemeral: true,
+        });
+      const memory = memories.find((mem) => mem.modid === modid)[0];
+      if (memory) {
+        memory.ai_messages = [];
+        return await interact.reply({ content: "Очищена память " + modid });
       }
+      interact.reply({
+        content: "Ну и хуета твой идентификатор...\n",
+        ephemeral: true,
+      });
+    }
+    if (parameter === "rsmem") {
+      refreshMemory();
+      interact.reply({ content: "Вся память перезагружена." });
+    }
+    if (parameter === "rsmods") {
+      refreshMods();
+      interact.reply({ content: "Все моды перезагружены." });
+    }
+    if (parameter === "addchannel") {
+      profiles.channels.push(interact.channelId);
+      fs.writeFileSync(
+        path.join(configpath, "./data/profiles.json"),
+        JSON.stringify(profiles),
+        () => {}
+      );
+      interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
+    }
+    if (parameter === "rmchannel") {
+      profiles.channels.splice(
+        profiles.channels.indexOf(interact.channelId),
+        1
+      );
+      fs.writeFileSync(
+        path.join(configpath, "./data/profiles.json"),
+        JSON.stringify(profiles),
+        () => {}
+      );
+      interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
     }
   },
   shareThread,
