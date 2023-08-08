@@ -67,12 +67,22 @@ function saveAll(showlog) {
   if (showlog) console.log("[AI] Data saved!");
 }
 
+let lostdata = "";
 const jsonParser = (data) => {
   try {
-    const parsed = JSON.parse(data);
-    return parsed;
+    return JSON.parse(data);
   } catch {
-    return { choices: [{ delta: { content: "?" }, finish_reason: null }] };
+    const blankdata = {
+      choices: [{ delta: { content: "" }, finish_reason: null }],
+    };
+    if (lostdata.length > 0) {
+      const parsed = JSON.parse(lostdata + data);
+      lostdata = "";
+      return parsed;
+    } else {
+      lostdata += data;
+      return blankdata;
+    }
   }
 };
 
