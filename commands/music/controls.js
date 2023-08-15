@@ -14,6 +14,7 @@ module.exports = {
           { name: "Пауза", value: "pause" },
           { name: "Текущий трек", value: "current" },
           { name: "Список воспроизведения", value: "list" },
+          { name: "Перемешать", value: "shuffle" },
           { name: "Остановить", value: "stop" },
           { name: "Эквалайзер", value: "eq" }
         )
@@ -58,8 +59,7 @@ module.exports = {
         return await interact.editReply("Сейчас ничего не проигрывается!");
       const track = queue.currentTrack;
       return await interact.editReply(
-        `Текущий трек: \`${track.title} - ${
-          track.author
+        `Текущий трек: \`${track.title} - ${track.author
         }\` ${queue.node.createProgressBar()}`
       );
     } else if (param === "list") {
@@ -69,8 +69,7 @@ module.exports = {
       let out = `Список воспроизведения:\n${tracks
         .map(
           (track) =>
-            `${tracks.indexOf(track) + 1}. \`${track.title} - ${
-              track.author
+            `${tracks.indexOf(track) + 1}. \`${track.title} - ${track.author
             }\` requested by @${track.requestedBy.username}`
         )
         .join("\n")}`;
@@ -98,6 +97,13 @@ module.exports = {
       await interact.editReply(
         `Фильтр ${eq} переключён на ${queue.filters.ffmpeg.isEnabled(eq)}.`
       );
+    } else if (param === "shuffle") {
+      await interact.reply("*Думоет...*");
+      const queue = discordp.useQueue(interact.guildId);
+      if (!queue)
+        return await interact.editReply("Сейчас ничего не проигрывается!");
+      queue.tracks.shuffle()
+      await interact.editReply("Треки перемешаны.");
     }
   },
 };

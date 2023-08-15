@@ -216,8 +216,9 @@ const onMsg = async (msg) => {
       },
       { responseType: responseType }
     )
-    .catch(() => {
+    .catch((err) => {
       target.memory.ai_messages = [];
+      console.log(err);
       return editmsg(
         streaming,
         "*Память переполнена и в последствии сброшена. Повторите попытку!*",

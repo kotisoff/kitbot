@@ -1,1 +1,3 @@
-# Just a discord bot made with node.js
+# KitBot - An Bot for Discord made on Node.js
+
+Made for my own server.
