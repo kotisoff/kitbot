@@ -22,7 +22,10 @@ module.exports = {
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
-    if (interact.user.id != "429307451825717250")
+    if (
+      interact.user.id != "429307451825717250" &&
+      interact.user.id != "536257878429007873"
+    )
       return await interact.reply({
         content: "Ты не мурка >:|",
         ephemeral: true,

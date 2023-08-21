@@ -1,6 +1,6 @@
 const discord = require("discord.js"),
-  discordp = require("discord-player"),
-  colors = require("colors");
+  discordp = require("discord-player");
+require("colors");
 module.exports = {
   idata: new discord.SlashCommandBuilder()
     .setName("yt")
