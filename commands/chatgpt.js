@@ -1,56 +1,8 @@
 const discord = require("discord.js"),
   openai = require("openai"),
-  pawan = require("pawan_openai"),
-  fs = require("node:fs"),
-  path = require("node:path");
+  pawan = require("pawan_openai")
 require("colors");
-
-const configpath = path.join(__dirname, "../configs/kot.chatgpt");
-
-if (!fs.existsSync("./configs/kot.chatgpt")) {
-  fs.mkdirSync("./configs/kot.chatgpt");
-}
-const config = fileimport(
-  path.join(configpath, "./config.json"),
-  {
-    openai: {
-      token: "placeyourtokenhere",
-    },
-    pawan: {
-      token: "placeyourtokenhere",
-      basepath: "",
-    },
-    prefix: "-",
-    options: { ai_stream: true, logdetails: false, pawan: false },
-  },
-  true
-);
-let profiles = fileimport(
-  path.join(configpath, "./data/profiles.json"),
-  { channels: [] },
-  true
-);
-let aitoken = config.token,
-  mainprefix = config.prefix;
-
-/** @param {String} filepath @param {Boolean} hide*/
-function fileimport(filepath, replacedata, hide) {
-  const filename = path.basename(filepath);
-  if (!hide) console.log("[AI]", ("Importing " + filename + "...").gray);
-  try {
-    require(filepath);
-  } catch {
-    fs.writeFileSync(filepath, JSON.stringify(replacedata));
-  }
-  return require(filepath);
-}
-
-// OpenAI config
-
-const aiconfig = new openai.Configuration({
-  apiKey: aitoken,
-});
-const ai = new openai.OpenAIApi(aiconfig);
+const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("./ai.lib/datamgr");
 
 // Additional functions
 
@@ -60,19 +12,6 @@ const editmsg = async (msg, data, target) => {
   if (target.modid === "kotisoff:main") return await msg.edit(data);
   await target.inst.editMessage(msg, { content: data });
 };
-
-/**@param {Boolean} showlog*/
-function saveAll(showlog) {
-  if (showlog) console.log("[AI] Saving data...");
-  for (let i in memories) {
-    fs.writeFileSync(
-      path.join(configpath, `/memories/${mods[i].filename}_memory.json`),
-      JSON.stringify(memories[i]),
-      () => {}
-    );
-  }
-  if (showlog) console.log("[AI] Data saved!");
-}
 
 let lostdata = "";
 const jsonParser = (data) => {
@@ -93,76 +32,30 @@ const jsonParser = (data) => {
   }
 };
 
-// Personalities
+// Load data
 
-const modTemplate = {
-  modid: "kotisoff:main",
-  prefix: mainprefix,
-  name: "main",
-  avatar_url: "",
-  personality:
-    "Ты бот помощник пользователя. Всегда отвечай на вопросы максимально точно и подробно.",
-  ai_settings: {
-    model: "gpt-3.5-turbo-16k-0613",
-    temperature: 1.2,
-  },
-  filename: "main", // It's not necessary in mod file, if you want to create one. filename parameter is creating in code every reload, because file can be renamed.
-};
-let mods = [modTemplate];
+let { config, profiles } = getConfigs();
+let mods = getMods(config);
+let memories = getMemory(mods);
+// console.log({ mods, memories })
 
-if (!fs.existsSync(path.join(configpath, "./mods")))
-  fs.mkdirSync(path.join(configpath, "./mods"));
 
-const refreshMods = () => {
-  let files = fs.readdirSync(path.join(configpath, "./mods"));
-  files = files.filter((f) => f.endsWith(".json"));
-  console.log("[AI] " + "Found".gray, files.length, "personalities.".gray);
-  files.forEach((f) => {
-    const tmp = require(path.join(configpath, `./mods/${f}`));
-    tmp.filename = f.replace(".json", "");
-    if (mods.find((mod) => mod.modid === tmp.modid))
-      throw console.error(
-        `Mods with the same modid's found! Please edit one of them.\nThere they are: ${mods
-          .map((mod) => mod.filename)
-          .join(", ")}, ${tmp.filename}`
-      );
-    mods.push(tmp);
-  });
-};
+// OpenAI
 
-// Ai mem
-
-if (!fs.existsSync(path.join(configpath, "./memories")))
-  fs.mkdirSync(path.join(configpath, "./memories"));
-
-const memories = [];
-
-const refreshMemory = () => {
-  mods.forEach((mod) => {
-    memories.push(
-      fileimport(
-        path.join(configpath, `./memories/${mod.filename}_memory.json`),
-        {
-          modid: mod.modid,
-          ai_system: [{ role: "system", content: mod.personality }],
-          ai_messages: [],
-        },
-        true
-      )
-    );
-  });
-};
+const aiconfig = new openai.Configuration({
+  apiKey: config.openai.token,
+});
+const ai = new openai.OpenAIApi(aiconfig)
 
 // Main work
 
 /**@param {discord.Client} client*/
 const shareThread = async (client) => {
-  refreshMods();
-  refreshMemory();
-  if (config.options.ai_stream)
+  if (!config.options.ai_stream)
     console.log(
       "[AI]",
-      "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk.\nFor some reason, stream mode works more stable than regular mode. paradox?"
+      // "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk.\nFor some reason, stream mode works more stable than regular mode. paradox?"
+      "Static mode is activated! Use stream mode from now. Static is less optimized."
         .bgRed.white
     );
   try {
@@ -190,7 +83,7 @@ const onMsg = async (msg) => {
   console.log(
     "[AI]",
     `New message to ${target.name}: ` +
-      msg.content.slice(target.prefix.length).gray
+    msg.content.slice(target.prefix.length).gray
   );
 
   target.memory.ai_messages.push({
@@ -270,11 +163,11 @@ const onMsg = async (msg) => {
         streaming = await target.inst.send(output.content);
         try {
           editmsg(streaming, output.content, target);
-        } catch {}
+        } catch { }
       } else {
         try {
           editmsg(streaming, output.content, target);
-        } catch {}
+        } catch { }
       }
       if (output.stop) {
         clearInterval(msginterval);
@@ -314,5 +207,93 @@ const onMsg = async (msg) => {
 };
 
 setInterval(() => {
-  saveAll(config.options.logdetails);
+  saveAll(mods, memories, config.options.logdetails);
 }, 180000);
+
+module.exports = {
+  idata: new discord.SlashCommandBuilder()
+    .setName("ai")
+    .setDescription("Выводит список ИИ.")
+    .addStringOption((o) =>
+      o
+        .setName("parameter")
+        .setDescription("Параметр для управления ИИ.")
+        .addChoices(
+          { name: "Очистить память одному", value: "clmem" },
+          { name: "Перезагрузить всю память", value: "rsmem" },
+          { name: "Перезагрузить все моды", value: "rsmods" },
+          { name: "Добавить данный канал в разрешённые", value: "addchannel" },
+          { name: "Удалить данный канал из разрешённых", value: "rmchannel" }
+        )
+    )
+    .addStringOption((o) =>
+      o.setName("modid").setDescription("Идентификатор мода.")
+    ),
+  //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
+  /**@param {discord.Interaction} interact @param {discord.Client} bot*/
+  async iexec(interact, bot) {
+    let parameter = interact.options.getString("parameter");
+    let modid = interact.options.getString("modid");
+    if (!parameter) {
+      new Promise((res) => {
+        let prefixes = "Prefixes to call AI's\n```";
+        for (let mod in mods) {
+          if (mods[mod].name) {
+          }
+          prefixes += `${mods[mod].prefix} ← ${mods[mod].name}(${mods[mod].modid})\n`;
+        }
+        prefixes += "```";
+        let channels = "Also, they are avalible in:\n",
+          i = 1;
+        profiles.channels.forEach((ch) => {
+          channels += `${i}. <#${ch}>\n`;
+          i++;
+        });
+        res(`${prefixes}\n${channels}`);
+      }).then((res) => {
+        interact.reply({ content: res });
+      });
+    }
+    if (parameter === "clmem") {
+      if (!modid)
+        return interact.reply({
+          content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
+          ephemeral: true,
+        });
+      const memory = memories.find((mem) => mem.modid === modid)[0];
+      if (memory) {
+        memory.ai_messages = [];
+        return await interact.reply({ content: "Очищена память " + modid });
+      }
+      interact.reply({
+        content: "Ну и хуета твой идентификатор...\n",
+        ephemeral: true,
+      });
+    }
+    if (parameter === "rsmem") {
+      refreshMemory();
+      interact.reply({ content: "Вся память перезагружена." });
+    }
+    if (parameter === "rsmods") {
+      refreshMods();
+      interact.reply({ content: "Все моды перезагружены." });
+    }
+    if (parameter === "addchannel") {
+      profiles.channels.push(interact.channelId);
+      writeProfiles(profiles, config.options.logdetails);
+      interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
+    }
+    if (parameter === "rmchannel") {
+      profiles.channels.splice(
+        profiles.channels.indexOf(interact.channelId),
+        1
+      );
+      writeProfiles(profiles, config.options.logdetails);
+      interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
+    }
+  },
+  shareThread,
+  shutdown() {
+    saveAll(mods, memories, true);
+  },
+};

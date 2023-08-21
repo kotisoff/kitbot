@@ -3,6 +3,8 @@ const discord = require("discord.js"),
   path = require("node:path");
 require("colors");
 
+const ignoredirs = [".ignore", ".lib", ".i"]
+
 const loadtimer = Date.now();
 
 // Loading configuration
@@ -50,8 +52,10 @@ const resolvedir = (dir) => {
     const stat = fs.lstatSync(filepath);
     if (stat.isFile() && file.endsWith(".js"))
       return commandFiles.push(filepath);
-    else if (stat.isDirectory() && !file.endsWith(".ignore"))
+    else if (stat.isDirectory()) {
+      for (let item of ignoredirs) { if (file.endsWith(item)) return }
       return resolvedir(filepath);
+    }
   });
 };
 resolvedir(commandsPath);
@@ -84,7 +88,7 @@ commands.forEach((command) => {
     console.log(
       "[Main]",
       "[WARNING]".red +
-        ` The command (${commandname}) is missing required properties.`.yellow
+      ` The command (${commandname}) is missing required properties.`.yellow
     );
   }
 });
@@ -166,7 +170,7 @@ bot.once(discord.Events.ClientReady, (bot) => {
             commandFiles[commands.indexOf(command)]
           )} initialized... (${Date.now() - loadtimer}ms)`.gray
         );
-      } catch {}
+      } catch { }
     });
   bot.user.setStatus("idle");
   bot.user.setActivity("за " + bot.guilds.cache.size + " серверами ._.", {
@@ -185,7 +189,7 @@ process.on("SIGINT", () => {
   commands.forEach((command) => {
     try {
       command.shutdown();
-    } catch {}
+    } catch { }
   });
   console.log("[Main] Bye!");
   bot.destroy();

@@ -66,7 +66,7 @@ module.exports = {
       await interact.reply("*Думоет...*");
       const queue = discordp.useQueue(interact.guildId);
       const tracks = [queue.currentTrack].concat(queue.tracks.data);
-      let out = `Список воспроизведения:\n${tracks
+      let out = `Список воспроизведения (Всего: ${tracks.length}):\n${tracks
         .map(
           (track) =>
             `${tracks.indexOf(track) + 1}. \`${track.title} - ${track.author
