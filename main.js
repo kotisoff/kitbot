@@ -2,32 +2,49 @@ const discord = require("discord.js"),
   fs = require("node:fs"),
   path = require("node:path");
 require("colors");
-
-const ignoredirs = [".ignore", ".lib", ".i"]
+const package = require("./package.json");
 
 const loadtimer = Date.now();
 
 // Loading configuration
 
 console.log("[Main]", `Importing config...`.gray);
+const idealConfig = {
+  bot: {
+    token: "bots_token",
+    clientId: "bot_client_id",
+    guildId: "guild_id",
+    prefix: "'",
+  },
+  settings: {
+    commandsPath: "commands",
+    allowShortCommands: true,
+    allowRussianCommands: true,
+    ignoredCommandDirs: [".lib", ".i"],
+  },
+  latestVersion: package.version,
+};
 if (!fs.existsSync("./config.json"))
-  fs.writeFileSync(
-    "./config.json",
-    JSON.stringify({
-      bot: {
-        token: "bots_token",
-        clientId: "bot_client_id",
-        guildId: "guild_id",
-        prefix: "'",
-      },
-      settings: {
-        commandsPath: "commands",
-        allowShortCommands: true,
-        allowRussianCommands: true,
-      },
-    })
-  );
+  fs.writeFileSync("./config.json", JSON.stringify(idealConfig));
 const config = require("./config.json");
+if (config.latestVersion != package.version) {
+  function objDeepScan(target, ideal) {
+    for (let p in ideal) {
+      if (!target.hasOwnProperty(p)) target[p] = ideal[p];
+      else if (typeof (target[p]) === "object" && !Array.isArray(target[p])) objDeepScan(target[p], ideal[p]);
+    }
+    for (let p in target) {
+      if (!ideal.hasOwnProperty(p) && p !== "old") {
+        config.old = {};
+        config.old[p] = target[p];
+        delete target[p];
+      }
+    }
+  }
+  objDeepScan(config, idealConfig, "root");
+  config.latestVersion = idealConfig.latestVersion;
+  fs.writeFileSync("./config.json", JSON.stringify(config));
+}
 const { token, prefix } = config.bot;
 
 if (!fs.existsSync(config.settings.commandsPath))
@@ -53,7 +70,9 @@ const resolvedir = (dir) => {
     if (stat.isFile() && file.endsWith(".js"))
       return commandFiles.push(filepath);
     else if (stat.isDirectory()) {
-      for (let item of ignoredirs) { if (file.endsWith(item)) return }
+      for (let item of config.settings.ignoredCommandDirs) {
+        if (file.endsWith(item)) return;
+      }
       return resolvedir(filepath);
     }
   });

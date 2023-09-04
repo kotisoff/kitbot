@@ -1,6 +1,5 @@
 const discord = require("discord.js"),
-  openai = require("openai"),
-  pawan = require("pawan_openai")
+  openai = require("openai")
 require("colors");
 const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("./ai.lib/datamgr");
 
@@ -121,7 +120,7 @@ const onMsg = async (msg) => {
       console.log(err);
       return editmsg(
         streaming,
-        "*Память переполнена и в последствии сброшена. Повторите попытку!*",
+        "*Память переполнена и в последствии сброшена. Повторите попытку!*" + `\nCaught ${err}`,
         target
       );
     });

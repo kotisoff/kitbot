@@ -31,7 +31,6 @@ module.exports = {
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async iexec(interact, bot) {
-    discordp.Playlist.prototype.url;
     const param = await interact.options.getString("param");
     if (!param) return interact.reply("А если подумать?");
     if (param === "skip") {

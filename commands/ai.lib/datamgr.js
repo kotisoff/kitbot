@@ -1,4 +1,3 @@
-const { profile } = require("node:console");
 const fs = require("node:fs"),
   path = require("node:path");
 require("colors");
@@ -26,12 +25,8 @@ const getConfigs = () => {
     openai: {
       token: "placeyourtokenhere",
     },
-    pawan: {
-      token: "placeyourtokenhere",
-      basepath: "https://api.pawan.krd/v1",
-    },
     prefix: "-",
-    options: { ai_stream: true, logdetails: false, pawan: false },
+    options: { ai_stream: true, logdetails: false, ai_type: "openai" }, // openai | gpt4all
   };
   config = fileimport(path.join(configpath, "./config.json"), config, true);
   let profiles = { channels: [] };

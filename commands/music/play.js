@@ -80,7 +80,7 @@ module.exports = {
     const player = discordp.useMainPlayer();
     const search = await player
       .search(query, { searchEngine: source, requestedBy: interact.member.id })
-      .catch(() => {});
+      .catch(() => { });
     if (!search?.hasTracks())
       return await interact.editReply("Не найдено треков по этому запросу.");
     if (search.hasPlaylist()) {
@@ -89,8 +89,8 @@ module.exports = {
         .then(() => {
           console.log(
             "[Music] " +
-              `Added ${search.tracks.length} tracks to queue with "${search.playlist.title} - ${search.playlist.author.name}" in ${interact.guildId} with "${source}"`
-                .gray
+            `Added ${search.tracks.length} tracks to queue with "${search.playlist.title} - ${search.playlist.author.name}" in ${interact.guildId} with "${source}"`
+              .gray
           );
           interact.editReply(
             `Добавлен плейлист: \`${search.playlist.title} - ${search.playlist.author.name}\` с ${search.tracks.length} песнями.`
@@ -108,8 +108,8 @@ module.exports = {
         .then(() => {
           console.log(
             "[Music] " +
-              `Added to queue: "${search.tracks[0].title} - ${search.tracks[0].author}" in ${interact.guildId} with "${source}"`
-                .gray
+            `Added to queue: "${search.tracks[0].title} - ${search.tracks[0].author}" in ${interact.guildId} with "${source}"`
+              .gray
           );
           interact.editReply(
             `Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\` (${search.tracks[0].duration})`
