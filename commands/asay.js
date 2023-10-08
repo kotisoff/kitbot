@@ -1,7 +1,7 @@
 const discord = require("discord.js");
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("asay")
     .setDescription("Админ говорит...")
     .setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator)
@@ -26,7 +26,7 @@ module.exports = {
     shortname: "as",
   },
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     let args = interact.options.getString("message");
     let tts = interact.options.getBoolean("tts") ?? false;
     let attachment;
@@ -34,7 +34,7 @@ module.exports = {
       attachment = new discord.Attachment(
         interact.options.getAttachment("attachment")
       );
-    } catch {}
+    } catch { }
     interact.deferReply();
     if (attachment) {
       if (args)

@@ -20,6 +20,7 @@ const idealConfig = {
     commandsPath: "commands",
     allowShortCommands: true,
     allowRussianCommands: true,
+    autodeploy: true,
     ignoredCommandDirs: [".lib", ".i"],
   },
   latestVersion: package.version,
@@ -214,3 +215,9 @@ process.on("SIGINT", () => {
   bot.destroy();
   process.exit();
 });
+
+let cycle = 0
+setInterval(() => {
+  if (process.argv.slice(2)[0] === "debug") console.log("Still alive. Cycle:", cycle)
+  cycle++
+}, 1000);

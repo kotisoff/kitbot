@@ -19,7 +19,7 @@ module.exports = {
     const data = (await axios.get("https://astolfo.rocks/")).data;
     const url = /https:\/\/astolfo\.rocks\/astolfo\/[0-9]+\.[A-Za-z]+/i.exec(data)[0];
     const Embed = new discord.EmbedBuilder()
-      .setColor(0xefcbc6)
+      .setColor(0xf7bfd7)
       .setImage(url)
       .setDescription(`${replyMessages[Math.round(Math.random() * replyMessages.length)]}`)
       .setTimestamp()
