@@ -61,7 +61,7 @@ function saveAll(showlog) {
     fs.writeFileSync(
       path.join(configpath, `/memories/${mods[i].filename}_memory.json`),
       JSON.stringify(memories[i]),
-      () => {}
+      () => { }
     );
   }
   if (showlog) console.log("[AI] Data saved!");
@@ -183,7 +183,7 @@ const onMsg = async (msg) => {
   console.log(
     "[AI]",
     `New message to ${target.name}: ` +
-      msg.content.slice(target.prefix.length).gray
+    msg.content.slice(target.prefix.length).gray
   );
 
   target.memory.ai_messages.push({
@@ -263,11 +263,11 @@ const onMsg = async (msg) => {
         streaming = await target.inst.send(output.content);
         try {
           editmsg(streaming, output.content, target);
-        } catch {}
+        } catch { }
       } else {
         try {
           editmsg(streaming, output.content, target);
-        } catch {}
+        } catch { }
       }
       if (output.stop) {
         clearInterval(msginterval);
@@ -311,7 +311,7 @@ setInterval(() => {
 }, 180000);
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("ai")
     .setDescription("Выводит список ИИ.")
     .addStringOption((o) =>
@@ -331,7 +331,7 @@ module.exports = {
     ),
   //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     let parameter = interact.options.getString("parameter");
     let modid = interact.options.getString("modid");
     if (!parameter) {
@@ -383,7 +383,7 @@ module.exports = {
       fs.writeFileSync(
         path.join(configpath, "./data/profiles.json"),
         JSON.stringify(profiles),
-        () => {}
+        () => { }
       );
       interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
     }
@@ -395,7 +395,7 @@ module.exports = {
       fs.writeFileSync(
         path.join(configpath, "./data/profiles.json"),
         JSON.stringify(profiles),
-        () => {}
+        () => { }
       );
       interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
     }

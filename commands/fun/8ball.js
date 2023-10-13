@@ -21,7 +21,7 @@ const replyMessages = [
 ]
 
 module.exports = {
-    idata: new discord.SlashCommandBuilder()
+    data: new discord.SlashCommandBuilder()
         .setName("8ball")
         .setDescription("Replies with random answer!")
         .addStringOption(o =>
@@ -31,7 +31,7 @@ module.exports = {
                 .setMinLength(1)
         ),
     /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-    async iexec(interact, bot) {
+    async exec(interact, bot) {
         const question = interact.options.getString("question")
         const Embed = new discord.EmbedBuilder()
             .setColor(0x4287f5)

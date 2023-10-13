@@ -210,7 +210,7 @@ setInterval(() => {
 }, 180000);
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("ai")
     .setDescription("Выводит список ИИ.")
     .addStringOption((o) =>
@@ -230,7 +230,7 @@ module.exports = {
     ),
   //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     let parameter = interact.options.getString("parameter");
     let modid = interact.options.getString("modid");
     if (!parameter) {

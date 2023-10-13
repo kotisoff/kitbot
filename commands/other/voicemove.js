@@ -1,7 +1,7 @@
 const discord = require("discord.js");
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("voicemove")
     .setDescription("Move you and your friends to other voice channel.")
     .addChannelOption((o) =>
@@ -13,7 +13,7 @@ module.exports = {
     )
     .setDefaultMemberPermissions(discord.PermissionFlagsBits.MoveMembers),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     await interact.reply("*Думоет...*");
     const voice = interact.options.getChannel("voicechannel");
     const channel = interact.member.voice.channel;

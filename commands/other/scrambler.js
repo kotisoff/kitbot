@@ -45,7 +45,7 @@ const encrypt = (input, alphabet) => {
 };
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("scrambler")
     .setDescription("Шифрует вам ебало.")
     .addStringOption((o) =>
@@ -77,7 +77,7 @@ module.exports = {
         .setRequired(true)
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     const param = interact.options.getString("parameter");
     const alphabet = interact.options.getString("alphabet");
     const query = interact.options.getString("query");

@@ -1,7 +1,7 @@
 const discord = require("discord.js");
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("murka")
     .setDescription("Murka said...")
     .addStringOption((option) =>
@@ -21,7 +21,7 @@ module.exports = {
         .setDescription(`Будет ли сообщение преобразовано в речь?`)
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     if (
       interact.user.id != "429307451825717250" &&
       interact.user.id != "536257878429007873"
@@ -40,7 +40,7 @@ module.exports = {
       attachment = new discord.Attachment(
         interact.options.getAttachment("attachment")
       );
-    } catch {}
+    } catch { }
     await interact.reply({
       content: "Сообщение отправляется...",
       ephemeral: true,

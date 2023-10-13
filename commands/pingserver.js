@@ -94,7 +94,7 @@ async function updateHost(ip, port) {
 }
 
 module.exports = {
-  idata: new SlashCommandBuilder()
+  data: new SlashCommandBuilder()
     .setName("mcstatus")
     .setDescription("Запрашивает информацию об игроках на сервере Майнкрафт.")
     .addStringOption((option) =>
@@ -104,7 +104,7 @@ module.exports = {
         .setRequired(true)
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     const ip = interact.options.getString("ip").split(":")[0];
     let port = interact.options.getString("ip").split(":")[1] ?? 25565;
     if (port < 0 || port > 65535)

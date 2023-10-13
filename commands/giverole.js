@@ -2,7 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 require("colors");
 
 module.exports = {
-  idata: new SlashCommandBuilder()
+  data: new SlashCommandBuilder()
     .setName("role")
     .setDescription("Управление ролями у пользователей.")
     .addStringOption((options) =>
@@ -25,7 +25,7 @@ module.exports = {
       options.setName("user").setDescription("Кому выдать/изъять роль.")
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     let parameter = await interact.options.getString("parameter");
     let role = await interact.options.getRole("role");
     let id = role.id;
@@ -43,8 +43,7 @@ module.exports = {
       try {
         if (user) {
           console.log(
-            `${("@" + interact.user.username).magenta}: requested a role ${
-              ("@" + role.name).cyan
+            `${("@" + interact.user.username).magenta}: requested a role ${("@" + role.name).cyan
             }: for user ${("@" + user.username).magenta}.`
           );
           await interact.guild.members.cache.get(uid).roles.add(`${id}`);
@@ -54,8 +53,7 @@ module.exports = {
           });
         } else {
           console.log(
-            `${
-              ("@" + interact.user.username).magenta
+            `${("@" + interact.user.username).magenta
             }: requested themselves a role ${("@" + role.name).cyan}`
           );
           await interact.member.roles.add(`${id}`);
@@ -78,10 +76,8 @@ module.exports = {
       try {
         if (user) {
           console.log(
-            `${
-              ("@" + interact.user.username).magenta
-            }: requested to take a role ${("@" + role.name).cyan}: from user ${
-              ("@" + user.username).magenta
+            `${("@" + interact.user.username).magenta
+            }: requested to take a role ${("@" + role.name).cyan}: from user ${("@" + user.username).magenta
             }`
           );
           await interact.guild.members.cache.get(uid).roles.remove(`${id}`);
@@ -91,8 +87,7 @@ module.exports = {
           });
         } else {
           console.log(
-            `${
-              ("@" + interact.user.username).magenta
+            `${("@" + interact.user.username).magenta
             }: requested to take themselves a role ${("@" + role.name).cyan}`
           );
           await interact.member.roles.remove(`${id}`);

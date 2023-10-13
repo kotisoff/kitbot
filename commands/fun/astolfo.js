@@ -11,11 +11,11 @@ const replyMessages = [
 ]
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("astolfo")
     .setDescription("Replies random Astolfo image!"),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     const data = (await axios.get("https://astolfo.rocks/")).data;
     const url = /https:\/\/astolfo\.rocks\/astolfo\/[0-9]+\.[A-Za-z]+/i.exec(data)[0];
     const Embed = new discord.EmbedBuilder()

@@ -94,8 +94,8 @@ console.log(
 commands.forEach((command) => {
   // Set a new item in the Collection with the key as the command name and the value as the exported module
   const commandname = path.basename(commandFiles[commands.indexOf(command)]);
-  if (command.idata) {
-    bot.icommands.set(command.idata.name, command);
+  if (command.data) {
+    bot.icommands.set(command.data.name, command);
   }
   if (command.pdata) {
     bot.pcommands.set(command.pdata.name, command);
@@ -104,7 +104,7 @@ commands.forEach((command) => {
     if (config.settings.allowRussianCommands)
       bot.pcommands.set(command.pdata.runame, command);
   }
-  if (!command.pdata & !command.idata) {
+  if (!command.pdata & !command.data) {
     console.log(
       "[Main]",
       "[WARNING]".red +
@@ -135,7 +135,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
     return;
   }
   try {
-    await command.iexec(interaction, bot);
+    await command.exec(interaction, bot);
   } catch (error) {
     console.error(error);
     let errcontent = {

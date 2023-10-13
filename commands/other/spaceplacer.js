@@ -1,7 +1,7 @@
 const discord = require("discord.js");
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("spaceplacer")
     .setDescription('Places more "space"')
     .addNumberOption((o) =>
@@ -14,7 +14,7 @@ module.exports = {
         .setRequired(true)
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     const count = interact.options.getNumber("count");
     const query = interact.options.getString("query");
     await interact.reply({

@@ -31,7 +31,7 @@ const config = require(cfgpath);
 */
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("play")
     .setDescription("Plays music from Any Platforms")
     .addStringOption((o) =>
@@ -52,7 +52,7 @@ module.exports = {
         )
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     const source =
       (await interact.options.getString("source")) ??
       discordp.QueryType.AUTO_SEARCH;

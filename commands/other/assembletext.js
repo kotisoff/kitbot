@@ -1,7 +1,7 @@
 const discord = require("discord.js");
 
 module.exports = {
-    idata: new discord.SlashCommandBuilder()
+    data: new discord.SlashCommandBuilder()
         .setName("assemble")
         .setDescription("Concats messages in one.")
         .addNumberOption((o) =>
@@ -10,7 +10,7 @@ module.exports = {
                 .setRequired(true)
         ),
     /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-    async iexec(interact, bot) {
+    async exec(interact, bot) {
         const amount = interact.options.getNumber("amount");
         if (amount > 100) return interact.reply("Количество охватываемых сообщений не должно превышать 100!") // "А хуй за воротник? Дохуя хочешь мудила."
         const messages = (await interact.channel.messages.fetch({ limit: amount })).reverse();

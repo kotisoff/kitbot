@@ -2,7 +2,7 @@ const discord = require("discord.js"),
   discordp = require("discord-player");
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("music")
     .setDescription("Music controls.")
     .addStringOption((o) =>
@@ -30,7 +30,7 @@ module.exports = {
         )
     ),
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     const param = await interact.options.getString("param");
     if (!param) return interact.reply("А если подумать?");
     if (param === "skip") {
