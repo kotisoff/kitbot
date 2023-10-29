@@ -47,9 +47,10 @@ class Command {
     }
     setPrefixCommandInfo = (PrefixCommand = this.prefixCommandInfo) => {
         this.prefixCommandInfo = PrefixCommand
+        return this;
     }
     setSlashAction = (callback = this.slashRun) => {
-        this.run = callback;
+        this.slashRun = callback;
         return this;
     }
     setPrefixAction = (callback = this.prefixRun) => {

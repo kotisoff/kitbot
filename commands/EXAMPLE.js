@@ -1,8 +1,11 @@
 const discord = require("discord.js");
 const { Command } = require("../assets/utils").Command;
 
+//СТАЛО
 
 const Example = new Command("ping");
+
+Example.slashCommandInfo.setDescription("Replies with Pong!");
 
 Example.setSlashAction(
   async (interact, bot) => {
@@ -16,7 +19,9 @@ Example.setSlashAction(
   }
 );
 
-//
+module.exports = Example;
+
+//БЫЛО
 
 // module.exports = {
 //   data: new discord.SlashCommandBuilder()

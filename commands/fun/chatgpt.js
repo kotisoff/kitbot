@@ -1,7 +1,8 @@
 const discord = require("discord.js"),
   { OpenAI } = require("openai")
 require("colors");
-const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("../ai.lib/datamgr");
+const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("./ai.lib/datamgr");
+const { Command } = require("../../assets/utils").Command;
 
 // Additional functions
 
@@ -99,10 +100,8 @@ const onMsg = async (msg) => {
     });
   }
 
-  let responseType = "text",
-    streaming = await target.inst.send("*Думоет...*");
+  streaming = await target.inst.send("*Думоет...*");
 
-  if (config.options.ai_stream) responseType = "stream";
   const msgStream = await ai
     .chat.completions.create(
       {
@@ -112,10 +111,8 @@ const onMsg = async (msg) => {
         n: 1,
         user: msg.author.id,
         stream: config.options.ai_stream,
-      },
-      { responseType: responseType }
-    )
-    .catch((err) => {
+      }
+    ).catch((err) => {
       target.memory.ai_messages = [];
       console.log(err);
       return editmsg(
@@ -125,62 +122,47 @@ const onMsg = async (msg) => {
       );
     });
 
+  const interval = 10;
+  let i = 0;
+
   if (config.options.ai_stream) {
     let resultmsg = { content: "", role: "assistant" },
       output = { content: "", stop: false };
-
-    try {
-      await msgStream?.data?.on("data", (event = Buffer) => {
-        const data = event.toString().split("\n\n");
-        data.forEach((chunk) => {
-          if (chunk.includes("[DONE]") || chunk === "") return false;
-          const parseddata = jsonParser(chunk.replace("data: ", ""));
-          const message = parseddata.choices[0];
-          if (message.finish_reason == null) {
-            if (message.delta.content) {
-              resultmsg.content += message.delta.content;
-              output.content += message.delta.content;
+    for await (const part of msgStream) {
+      const message = part.choices[0];
+      if (message.finish_reason == null) {
+        if (message?.delta?.content) {
+          resultmsg.content += message.delta.content;
+          output.content += message.delta.content;
+          i++;
+          if (i % interval === 0) {
+            if (output.content.length > 2000) {
+              output.content = "↓\n..." + output.content.substring(1900);
+              console.log(`[AI]`, `Выполнен перенос строки.`.gray);
+              streaming = await target.inst.send(output.content);
             }
-          } else {
-            target.memory.ai_messages.push(resultmsg);
-            output.stop = true;
+            try {
+              editmsg(streaming, output.content, target);
+            } catch { }
           }
-        });
-      });
-    } catch (e) {
-      clearInterval(msginterval);
-      console.log(e);
-      return target.inst.send(
-        "Произошла ошибка: \n" + e + "\nПопробуйте ещё раз..."
-      );
-    }
-
-    let msginterval = setInterval(async () => {
-      if (output.content.length > 2000) {
-        output.content = "↓\n..." + output.content.substring(1900);
-        console.log(`[AI]`, `Выполнен перенос строки.`.gray);
-        streaming = await target.inst.send(output.content);
-        try {
-          editmsg(streaming, output.content, target);
-        } catch { }
+        }
       } else {
         try {
           editmsg(streaming, output.content, target);
         } catch { }
-      }
-      if (output.stop) {
-        clearInterval(msginterval);
+        target.memory.ai_messages.push(resultmsg);
         console.log("[AI]", "Printing done.".gray);
+        if (process.argv.slice(2).includes("--printresponse")) console.log("[AI]", resultmsg.content.gray);
         if (!isMain()) {
           setTimeout(() => {
             target.inst.delete();
           }, 1500);
         }
-        return;
       }
-    }, 1500);
+    }
+
   } else {
-    let resultmsg = await msgStream.data.choices[0].message;
+    let resultmsg = await msgStream.choices[0].message;
     if (resultmsg.content.length > 2000) {
       const size = Math.ceil(resultmsg.content.length / 2000);
       const parts = Array(size);
@@ -208,6 +190,87 @@ const onMsg = async (msg) => {
 setInterval(() => {
   saveAll(mods, memories, config.options.logdetails);
 }, 180000);
+
+// const AI = new Command("ai");
+// AI
+//   .setSlashAction(async (interact, bot) => {
+//     let parameter = interact.options.getString("parameter");
+//     let modid = interact.options.getString("modid");
+//     if (!parameter) {
+//       new Promise((res) => {
+//         let prefixes = "Prefixes to call AI's\n```";
+//         for (let mod in mods) {
+//           if (mods[mod].name) {
+//           }
+//           prefixes += `${mods[mod].prefix} ← ${mods[mod].name}(${mods[mod].modid})\n`;
+//         }
+//         prefixes += "```";
+//         let channels = "Also, they are avalible in:\n",
+//           i = 1;
+//         profiles.channels.forEach((ch) => {
+//           channels += `${i}. <#${ch}>\n`;
+//           i++;
+//         });
+//         res(`${prefixes}\n${channels}`);
+//       }).then((res) => {
+//         interact.reply({ content: res });
+//       });
+//     }
+//     if (parameter === "clmem") {
+//       if (!modid)
+//         return interact.reply({
+//           content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
+//           ephemeral: true,
+//         });
+//       const memory = memories.find((mem) => mem.modid === modid)[0];
+//       if (memory) {
+//         memory.ai_messages = [];
+//         return await interact.reply({ content: "Очищена память " + modid });
+//       }
+//       interact.reply({
+//         content: "Ну и хуета твой идентификатор...\n",
+//         ephemeral: true,
+//       });
+//     }
+//     if (parameter === "rsmem") {
+//       refreshMemory();
+//       interact.reply({ content: "Вся память перезагружена." });
+//     }
+//     if (parameter === "rsmods") {
+//       refreshMods();
+//       interact.reply({ content: "Все моды перезагружены." });
+//     }
+//     if (parameter === "addchannel") {
+//       profiles.channels.push(interact.channelId);
+//       writeProfiles(profiles, config.options.logdetails);
+//       interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
+//     }
+//     if (parameter === "rmchannel") {
+//       profiles.channels.splice(
+//         profiles.channels.indexOf(interact.channelId),
+//         1
+//       );
+//       writeProfiles(profiles, config.options.logdetails);
+//       interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
+//     }
+//   })
+//   .slashCommandInfo
+//   .setDescription("Выводит список ИИ.")
+//   .addStringOption((o) =>
+//     o
+//       .setName("parameter")
+//       .setDescription("Параметр для управления ИИ.")
+//       .addChoices(
+//         { name: "Очистить память одному", value: "clmem" },
+//         { name: "Перезагрузить всю память", value: "rsmem" },
+//         { name: "Перезагрузить все моды", value: "rsmods" },
+//         { name: "Добавить данный канал в разрешённые", value: "addchannel" },
+//         { name: "Удалить данный канал из разрешённых", value: "rmchannel" }
+//       )
+//   )
+//   .addStringOption((o) =>
+//     o.setName("modid").setDescription("Идентификатор мода.")
+//   )
 
 module.exports = {
   data: new discord.SlashCommandBuilder()

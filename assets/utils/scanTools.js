@@ -3,7 +3,7 @@ const path = require("path"), fs = require("fs");
 const configDeepScan = (target, ideal) => {
     for (let p in ideal) {
         if (!target.hasOwnProperty(p)) target[p] = ideal[p];
-        else if (typeof (target[p]) === "object" && !Array.isArray(target[p])) objDeepScan(target[p], ideal[p]);
+        else if (typeof (target[p]) === "object" && !Array.isArray(target[p])) configDeepScan(target[p], ideal[p]);
     }
     for (let p in target) {
         if (!ideal.hasOwnProperty(p) && p !== "old") {

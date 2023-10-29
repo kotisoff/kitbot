@@ -2,7 +2,7 @@ const fs = require("node:fs"),
   path = require("node:path");
 require("colors");
 
-const configpath = path.join(__dirname, "../../configs/kot.chatgpt");
+const configpath = path.join(process.cwd(), "/configs/kot.chatgpt");
 
 if (!fs.existsSync(configpath)) {
   fs.mkdirSync(configpath);

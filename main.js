@@ -25,7 +25,7 @@ const idealConfig = {
     commandsPath: "commands",
     allowShortCommands: true,
     allowRussianCommands: true,
-    autodeploy: true,
+    autoDeploy: true,
     ignoredCommandDirs: [".lib", ".i"],
   },
   latestVersion: package.version,
@@ -88,7 +88,8 @@ commands.forEach((command) => {
     if (command.isSlashCommand) {
       bot.interCmd.set(command.slashCommandInfo.name, command)
     }
-  } else if (command.data) {
+  }
+  if (command.data) {
     bot.interCmd.set(command.data.name, command);
   }
   if (command.pdata) {
@@ -129,7 +130,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
     return;
   }
   try {
-    if (command.name) await command.run(interaction, bot)
+    if (command.name) await command.slashRun(interaction, bot)
     else await command.exec(interaction, bot);
   } catch (error) {
     console.error(error);
@@ -212,7 +213,12 @@ process.on("SIGINT", () => {
 
 let cycle = 0;
 setInterval(() => {
-  if (process.argv.slice(2)[0] === "debug")
-    console.log("Still alive. Cycle:", cycle);
+  const args = process.argv.slice(2)
+  if (args.includes("--debug")) {
+    const param = args[args.indexOf("--debug") + 1];
+    if (param === `${parseInt(param)}`) {
+      if (cycle % parseInt(param) == 0) console.log("Still alive. Cycle:", cycle);
+    } else console.log("Still alive. Cycle:", cycle);
+  }
   cycle++;
 }, 1000);
