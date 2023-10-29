@@ -191,9 +191,114 @@ setInterval(() => {
   saveAll(mods, memories, config.options.logdetails);
 }, 180000);
 
-// const AI = new Command("ai");
-// AI
-//   .setSlashAction(async (interact, bot) => {
+const AI = new Command("ai");
+AI.setSlashAction(async (interact, bot) => {
+  let parameter = interact.options.getString("parameter");
+  let modid = interact.options.getString("modid");
+  if (!parameter) {
+    new Promise((res) => {
+      let prefixes = "Prefixes to call AI's\n```";
+      for (let mod in mods) {
+        if (mods[mod].name) {
+        }
+        prefixes += `${mods[mod].prefix} ← ${mods[mod].name}(${mods[mod].modid})\n`;
+      }
+      prefixes += "```";
+      let channels = "Also, they are avalible in:\n",
+        i = 1;
+      profiles.channels.forEach((ch) => {
+        channels += `${i}. <#${ch}>\n`;
+        i++;
+      });
+      res(`${prefixes}\n${channels}`);
+    }).then((res) => {
+      interact.reply({ content: res });
+    });
+  }
+  if (parameter === "clmem") {
+    if (!modid)
+      return interact.reply({
+        content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
+        ephemeral: true,
+      });
+    const memory = memories.find((mem) => mem.modid === modid)[0];
+    if (memory) {
+      memory.ai_messages = [];
+      return await interact.reply({ content: "Очищена память " + modid });
+    }
+    interact.reply({
+      content: "Ну и хуета твой идентификатор...\n",
+      ephemeral: true,
+    });
+  }
+  if (parameter === "rsmem") {
+    refreshMemory();
+    interact.reply({ content: "Вся память перезагружена." });
+  }
+  if (parameter === "rsmods") {
+    refreshMods();
+    interact.reply({ content: "Все моды перезагружены." });
+  }
+  if (parameter === "addchannel") {
+    profiles.channels.push(interact.channelId);
+    writeProfiles(profiles, config.options.logdetails);
+    interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
+  }
+  if (parameter === "rmchannel") {
+    profiles.channels.splice(
+      profiles.channels.indexOf(interact.channelId),
+      1
+    );
+    writeProfiles(profiles, config.options.logdetails);
+    interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
+  }
+})
+  .slashCommandInfo
+  .setDescription("Выводит список ИИ.")
+  .addStringOption((o) =>
+    o
+      .setName("parameter")
+      .setDescription("Параметр для управления ИИ.")
+      .addChoices(
+        { name: "Очистить память одному", value: "clmem" },
+        { name: "Перезагрузить всю память", value: "rsmem" },
+        { name: "Перезагрузить все моды", value: "rsmods" },
+        { name: "Добавить данный канал в разрешённые", value: "addchannel" },
+        { name: "Удалить данный канал из разрешённых", value: "rmchannel" }
+      )
+  )
+  .addStringOption((o) =>
+    o.setName("modid").setDescription("Идентификатор мода.")
+  )
+AI.setShutdownAction(() => {
+  saveAll(mods, memories, true);
+})
+AI.setSharedThread(shareThread)
+
+module.exports = AI;
+
+// module.exports = {
+//   data: new discord.SlashCommandBuilder()
+//     .setName("ai")
+//     .setDescription("Выводит список ИИ.")
+//     .addStringOption((o) =>
+//       o
+//         .setName("parameter")
+//         .setDescription("Параметр для управления ИИ.")
+//         .addChoices(
+//           { name: "Очистить память одному", value: "clmem" },
+//           { name: "Перезагрузить всю память", value: "rsmem" },
+//           { name: "Перезагрузить все моды", value: "rsmods" },
+//           { name: "Добавить данный канал в разрешённые", value: "addchannel" },
+//           { name: "Удалить данный канал из разрешённых", value: "rmchannel" }
+//         )
+//     )
+//     .addStringOption((o) =>
+//       o.setName("modid").setDescription("Идентификатор мода.")
+//     ),
+//   //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
+//   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
+//   async exec(interact, bot) {
 //     let parameter = interact.options.getString("parameter");
 //     let modid = interact.options.getString("modid");
 //     if (!parameter) {
@@ -253,109 +358,9 @@ setInterval(() => {
 //       writeProfiles(profiles, config.options.logdetails);
 //       interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
 //     }
-//   })
-//   .slashCommandInfo
-//   .setDescription("Выводит список ИИ.")
-//   .addStringOption((o) =>
-//     o
-//       .setName("parameter")
-//       .setDescription("Параметр для управления ИИ.")
-//       .addChoices(
-//         { name: "Очистить память одному", value: "clmem" },
-//         { name: "Перезагрузить всю память", value: "rsmem" },
-//         { name: "Перезагрузить все моды", value: "rsmods" },
-//         { name: "Добавить данный канал в разрешённые", value: "addchannel" },
-//         { name: "Удалить данный канал из разрешённых", value: "rmchannel" }
-//       )
-//   )
-//   .addStringOption((o) =>
-//     o.setName("modid").setDescription("Идентификатор мода.")
-//   )
-
-module.exports = {
-  data: new discord.SlashCommandBuilder()
-    .setName("ai")
-    .setDescription("Выводит список ИИ.")
-    .addStringOption((o) =>
-      o
-        .setName("parameter")
-        .setDescription("Параметр для управления ИИ.")
-        .addChoices(
-          { name: "Очистить память одному", value: "clmem" },
-          { name: "Перезагрузить всю память", value: "rsmem" },
-          { name: "Перезагрузить все моды", value: "rsmods" },
-          { name: "Добавить данный канал в разрешённые", value: "addchannel" },
-          { name: "Удалить данный канал из разрешённых", value: "rmchannel" }
-        )
-    )
-    .addStringOption((o) =>
-      o.setName("modid").setDescription("Идентификатор мода.")
-    ),
-  //.setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator),
-  /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async exec(interact, bot) {
-    let parameter = interact.options.getString("parameter");
-    let modid = interact.options.getString("modid");
-    if (!parameter) {
-      new Promise((res) => {
-        let prefixes = "Prefixes to call AI's\n```";
-        for (let mod in mods) {
-          if (mods[mod].name) {
-          }
-          prefixes += `${mods[mod].prefix} ← ${mods[mod].name}(${mods[mod].modid})\n`;
-        }
-        prefixes += "```";
-        let channels = "Also, they are avalible in:\n",
-          i = 1;
-        profiles.channels.forEach((ch) => {
-          channels += `${i}. <#${ch}>\n`;
-          i++;
-        });
-        res(`${prefixes}\n${channels}`);
-      }).then((res) => {
-        interact.reply({ content: res });
-      });
-    }
-    if (parameter === "clmem") {
-      if (!modid)
-        return interact.reply({
-          content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
-          ephemeral: true,
-        });
-      const memory = memories.find((mem) => mem.modid === modid)[0];
-      if (memory) {
-        memory.ai_messages = [];
-        return await interact.reply({ content: "Очищена память " + modid });
-      }
-      interact.reply({
-        content: "Ну и хуета твой идентификатор...\n",
-        ephemeral: true,
-      });
-    }
-    if (parameter === "rsmem") {
-      refreshMemory();
-      interact.reply({ content: "Вся память перезагружена." });
-    }
-    if (parameter === "rsmods") {
-      refreshMods();
-      interact.reply({ content: "Все моды перезагружены." });
-    }
-    if (parameter === "addchannel") {
-      profiles.channels.push(interact.channelId);
-      writeProfiles(profiles, config.options.logdetails);
-      interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
-    }
-    if (parameter === "rmchannel") {
-      profiles.channels.splice(
-        profiles.channels.indexOf(interact.channelId),
-        1
-      );
-      writeProfiles(profiles, config.options.logdetails);
-      interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
-    }
-  },
-  shareThread,
-  shutdown() {
-    saveAll(mods, memories, true);
-  },
-};
+//   },
+//   shareThread,
+//   shutdown() {
+//     saveAll(mods, memories, true);
+//   },
+// };

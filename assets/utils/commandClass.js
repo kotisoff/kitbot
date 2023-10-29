@@ -39,15 +39,9 @@ class Command {
         this.prefixCommandInfo = new PrefixCommandBuilder().setName(this.name)
 
         this.slashRun = (interact = CommandInteraction.prototype, bot = Client.prototype) => { interact.channel.send("Example Action!") };
-        this.prefixRun = (message = Message.prototype, bot = Client.prototype) => { message.channel.send("Example Action!") }
-    }
-    setSlashCommandInfo = (SlashCommand = this.slashCommand) => {
-        this.slashCommandInfo = SlashCommand;
-        return this;
-    }
-    setPrefixCommandInfo = (PrefixCommand = this.prefixCommandInfo) => {
-        this.prefixCommandInfo = PrefixCommand
-        return this;
+        this.prefixRun = (message = Message.prototype, bot = Client.prototype) => { message.channel.send("Example Action!") };
+        this.shutdown = () => { };
+        this.shareThread = (bot = Client.prototype) => { };
     }
     setSlashAction = (callback = this.slashRun) => {
         this.slashRun = callback;
@@ -62,6 +56,14 @@ class Command {
         else this.isPrefixCommand = false;
         if (settings.slash) this.isSlashCommand = true;
         else this.isSlashCommand = false;
+        return this;
+    }
+    setShutdownAction = (callback = this.shutdown) => {
+        this.shutdown = callback;
+        return this;
+    }
+    setSharedThread = (callback = this.shareThread) => {
+        this.shareThread = callback;
         return this;
     }
     setGlobal = (boolean = true) => {
