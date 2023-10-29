@@ -48,7 +48,8 @@ module.exports = {
     }
     interact.deleteReply();
   },
-  async pexec(bot, mess, args) {
+  async pexec(mess, bot) {
+    const args = mess.content.split(" ").slice(1);
     if (!mess.member.permissions.has(discord.PermissionFlagsBits.Administrator))
       return mess.channel.send("У  вас нет прав!");
     mess.delete().catch();

@@ -22,8 +22,9 @@ const fileimport = (filepath, replacedata, hide) => {
 
 const getConfigs = () => {
   let config = {
-    openai: {
-      token: "placeyourtokenhere",
+    api: {
+      url: "https://api.openai.com",
+      key: "placeyourtokenhere",
     },
     prefix: "-",
     options: { ai_stream: true, logdetails: false, ai_type: "openai" }, // openai | gpt4all

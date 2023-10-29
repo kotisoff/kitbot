@@ -1,7 +1,7 @@
 const discord = require("discord.js"),
-  openai = require("openai")
+  { OpenAI } = require("openai")
 require("colors");
-const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("./ai.lib/datamgr");
+const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("../ai.lib/datamgr");
 
 // Additional functions
 
@@ -41,10 +41,10 @@ let memories = getMemory(mods);
 
 // OpenAI
 
-const aiconfig = new openai.Configuration({
-  apiKey: config.openai.token,
-});
-const ai = new openai.OpenAIApi(aiconfig)
+const ai = new OpenAI({
+  apiKey: config.api.key,
+  baseURL: config.api.url
+})
 
 // Main work
 
@@ -104,7 +104,7 @@ const onMsg = async (msg) => {
 
   if (config.options.ai_stream) responseType = "stream";
   const msgStream = await ai
-    .createChatCompletion(
+    .chat.completions.create(
       {
         model: target.ai_settings.model,
         messages: target.memory.ai_system.concat(target.memory.ai_messages),

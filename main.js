@@ -1,7 +1,11 @@
 const discord = require("discord.js"),
   fs = require("node:fs"),
   path = require("node:path");
+
 require("colors");
+
+const { configDeepScan, dirDeepScan } = require("./assets/utils").Scan;
+
 const package = require("./package.json");
 
 const loadtimer = Date.now();
@@ -9,6 +13,7 @@ const loadtimer = Date.now();
 // Loading configuration
 
 console.log("[Main]", `Importing config...`.gray);
+
 const idealConfig = {
   bot: {
     token: "bots_token",
@@ -25,31 +30,23 @@ const idealConfig = {
   },
   latestVersion: package.version,
 };
+
 if (!fs.existsSync("./config.json"))
   fs.writeFileSync("./config.json", JSON.stringify(idealConfig));
+
 const config = require("./config.json");
+
 if (config.latestVersion != package.version) {
-  function objDeepScan(target, ideal) {
-    for (let p in ideal) {
-      if (!target.hasOwnProperty(p)) target[p] = ideal[p];
-      else if (typeof (target[p]) === "object" && !Array.isArray(target[p])) objDeepScan(target[p], ideal[p]);
-    }
-    for (let p in target) {
-      if (!ideal.hasOwnProperty(p) && p !== "old") {
-        config.old = {};
-        config.old[p] = target[p];
-        delete target[p];
-      }
-    }
-  }
-  objDeepScan(config, idealConfig, "root");
+  configDeepScan(config, idealConfig);
   config.latestVersion = idealConfig.latestVersion;
   fs.writeFileSync("./config.json", JSON.stringify(config));
 }
+
 const { token, prefix } = config.bot;
 
 if (!fs.existsSync(config.settings.commandsPath))
   fs.mkdirSync(config.settings.commandsPath);
+
 if (!fs.existsSync("configs")) fs.mkdirSync("configs");
 
 // Логин бота
@@ -57,28 +54,14 @@ if (!fs.existsSync("configs")) fs.mkdirSync("configs");
 const bot = new discord.Client({ intents: [3276799] });
 bot.login(token);
 
-bot.icommands = new discord.Collection();
-bot.pcommands = new discord.Collection();
+bot.interCmd = new discord.Collection();
+bot.prefCmd = new discord.Collection();
+
 const commands = [];
 
 const commandsPath = path.join(__dirname, config.settings.commandsPath);
 const commandFiles = [];
-const resolvedir = (dir) => {
-  const files = fs.readdirSync(dir);
-  files.forEach((file) => {
-    const filepath = path.join(dir, file);
-    const stat = fs.lstatSync(filepath);
-    if (stat.isFile() && file.endsWith(".js"))
-      return commandFiles.push(filepath);
-    else if (stat.isDirectory()) {
-      for (let item of config.settings.ignoredCommandDirs) {
-        if (file.endsWith(item)) return;
-      }
-      return resolvedir(filepath);
-    }
-  });
-};
-resolvedir(commandsPath);
+dirDeepScan(commandsPath, commandFiles, config);
 
 for (const file of commandFiles) {
   commands.push(require(file));
@@ -94,17 +77,28 @@ console.log(
 commands.forEach((command) => {
   // Set a new item in the Collection with the key as the command name and the value as the exported module
   const commandname = path.basename(commandFiles[commands.indexOf(command)]);
-  if (command.data) {
-    bot.icommands.set(command.data.name, command);
+  if (command.name) {
+    if (command.isPrefixCommand) {
+      bot.prefCmd.set(command.prefixCommandInfo.name, command);
+      if (config.settings.allowShortCommands)
+        bot.prefCmd.set(command.prefixCommandInfo.shortName, command);
+      if (config.settings.allowRussianCommands)
+        bot.prefCmd.set(command.prefixCommandInfo.ruName, command);
+    }
+    if (command.isSlashCommand) {
+      bot.interCmd.set(command.slashCommandInfo.name, command)
+    }
+  } else if (command.data) {
+    bot.interCmd.set(command.data.name, command);
   }
   if (command.pdata) {
-    bot.pcommands.set(command.pdata.name, command);
+    bot.prefCmd.set(command.pdata.name, command);
     if (config.settings.allowShortCommands)
-      bot.pcommands.set(command.pdata.shortname, command);
+      bot.prefCmd.set(command.pdata.shortname, command);
     if (config.settings.allowRussianCommands)
-      bot.pcommands.set(command.pdata.runame, command);
+      bot.prefCmd.set(command.pdata.runame, command);
   }
-  if (!command.pdata & !command.data) {
+  if (!command.pdata & !command.data & !command.name) {
     console.log(
       "[Main]",
       "[WARNING]".red +
@@ -122,7 +116,7 @@ console.log(
 
 bot.on(discord.Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
-  const command = bot.icommands.get(interaction.commandName);
+  const command = bot.interCmd.get(interaction.commandName);
   if (!command) {
     interaction.reply({
       content: `Команда ${interaction.commandName} не существует!\nОна была либо удалена, либо перенесена.\nСвяжитесь с @kotisoff для подробностей!`,
@@ -135,7 +129,8 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
     return;
   }
   try {
-    await command.exec(interaction, bot);
+    if (command.name) await command.run(interaction, bot)
+    else await command.exec(interaction, bot);
   } catch (error) {
     console.error(error);
     let errcontent = {
@@ -163,10 +158,9 @@ bot.on("messageCreate", async (msg) => {
   if (!msg.content.startsWith(prefix)) return;
   let commandBody = msg.content.split(" ");
   let command = commandBody[0].toLowerCase();
-  let args = commandBody.slice(1);
-  let name = bot.pcommands.get(command.slice(prefix.length));
+  let name = bot.prefCmd.get(command.slice(prefix.length));
   if (name) {
-    name.pexec(bot, msg, args);
+    name.pexec(msg, bot);
   }
 });
 
@@ -216,8 +210,9 @@ process.on("SIGINT", () => {
   process.exit();
 });
 
-let cycle = 0
+let cycle = 0;
 setInterval(() => {
-  if (process.argv.slice(2)[0] === "debug") console.log("Still alive. Cycle:", cycle)
-  cycle++
+  if (process.argv.slice(2)[0] === "debug")
+    console.log("Still alive. Cycle:", cycle);
+  cycle++;
 }, 1000);

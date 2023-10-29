@@ -7,24 +7,24 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@discord-player/extractor": "^4.4.0",
+    "@discord-player/extractor": "^4.4.5",
     "@discordjs/opus": "^0.9.0",
-    "bufferutil": "^4.0.7",
+    "bufferutil": "^4.0.8",
     "colors": "^1.4.0",
-    "discord-player": "^6.6.1",
+    "discord-player": "^6.6.6",
     "discord-player-yandexmusic": "^0.0.12",
-    "discord.js": "^14.12.1",
-    "ffmpeg-static": "^5.1.0",
-    "libsodium-wrappers": "^0.7.11",
+    "discord.js": "^14.13.0",
+    "ffmpeg-static": "^5.2.0",
+    "libsodium-wrappers": "^0.7.13",
     "net": "^1.0.2",
-    "openai": "^3.2.1",
-    "play-dl": "^1.9.6",
+    "openai": "^4.14.1",
+    "play-dl": "^1.9.7",
     "utf-8-validate": "^6.0.3",
-    "youtube-sr": "^4.3.4"
+    "youtube-sr": "^4.3.9"
   },
   "devDependencies": {
-    "eslint": "^8.31.0",
-    "prettier": "^3.0.0"
+    "eslint": "^8.52.0",
+    "prettier": "^3.0.3"
   },
   "license": "MIT"
 }

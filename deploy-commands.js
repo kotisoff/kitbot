@@ -25,10 +25,13 @@ const resolvedir = (dir) => {
 };
 resolvedir(path.join(__dirname, "./commands"));
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+// Здесь я проебался и решил: Ну его нахуй этот отдельный скрипт, пойду лучше утилиту напишу к основному скрипту для этого
+console.log(commandFiles)
 for (const file of commandFiles) {
   const command = require(file);
-  if (!command.idata) return;
-  commands.push(command.idata.toJSON());
+  if (!command.data || !command.slashCommandInfo) return;
+  if (command.slashCommandInfo) command.push(command.slashCommandInfo.toJSON());
+  else commands.push(command.data.toJSON());
   console.log(path.basename(file), "успешно загружен.");
 }
 
