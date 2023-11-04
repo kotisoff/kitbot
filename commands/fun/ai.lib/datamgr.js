@@ -50,7 +50,7 @@ const getMods = (config) => {
     personality:
       "Ты бот помощник пользователя. Всегда отвечай на вопросы максимально точно и подробно.",
     ai_settings: {
-      model: "gpt-3.5-turbo", // -16k-0613
+      model: "gpt-3.5-turbo-16k-0613", // -16k-0613
       temperature: 1.2,
     },
     filename: "main", // It's not necessary in mod file, if you want to create one. filename parameter is creating in object every reload.

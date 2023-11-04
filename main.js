@@ -26,7 +26,7 @@ const idealConfig = {
     allowShortCommands: true,
     allowRussianCommands: true,
     autoDeploy: true,
-    ignoredCommandDirs: [".lib", ".i"],
+    ignoredCommandDirs: [".lib", ".i", "libs"],
   },
   latestVersion: package.version,
 };
@@ -161,7 +161,8 @@ bot.on("messageCreate", async (msg) => {
   let command = commandBody[0].toLowerCase();
   let name = bot.prefCmd.get(command.slice(prefix.length));
   if (name) {
-    name.pexec(msg, bot);
+    if (name.name) name.prefixRun(msg, bot);
+    else name.pexec(msg, bot);
   }
 });
 
@@ -213,12 +214,5 @@ process.on("SIGINT", () => {
 
 let cycle = 0;
 setInterval(() => {
-  const args = process.argv.slice(2)
-  if (args.includes("--debug")) {
-    const param = args[args.indexOf("--debug") + 1];
-    if (param === `${parseInt(param)}`) {
-      if (cycle % parseInt(param) == 0) console.log("Still alive. Cycle:", cycle);
-    } else console.log("Still alive. Cycle:", cycle);
-  }
   cycle++;
 }, 1000);
