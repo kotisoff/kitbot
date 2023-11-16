@@ -2,7 +2,7 @@ const discord = require("discord.js"),
   { OpenAI } = require("openai")
 require("colors");
 const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("./ai.lib/datamgr");
-const { Command } = require("../../assets/utils").Command;
+const Command = require("../../utils").Command;
 
 // Additional functions
 
@@ -58,6 +58,7 @@ const shareThread = async (client) => {
       "Static mode is activated! Use stream mode from now. Static is less optimized."
         .bgRed.white
     );
+  AI.logger.info("Пиздося!".bgRed.white);
   try {
     client.on(discord.Events.MessageCreate, async (msg) => onMsg(msg));
   } catch (e) {
@@ -151,7 +152,8 @@ const onMsg = async (msg) => {
           editmsg(streaming, output.content, target);
         } catch { }
         target.memory.ai_messages.push(resultmsg);
-        console.log("[AI]", "Printing done.".gray);
+        AI.logger.info("Printing done.")
+        // console.log("[AI]", "Printing done.".gray);
         if (process.argv.slice(2).includes("--printresponse")) console.log("[AI]", resultmsg.content.gray);
         if (!isMain()) {
           setTimeout(() => {
@@ -191,7 +193,7 @@ setInterval(() => {
   saveAll(mods, memories, config.options.logdetails);
 }, 180000);
 
-const AI = new Command("ai");
+const AI = new Command("ai", "AI");
 AI.setSlashAction(async (interact, bot) => {
   let parameter = interact.options.getString("parameter");
   let modid = interact.options.getString("modid");

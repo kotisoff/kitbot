@@ -1,7 +1,7 @@
 const discord = require("discord.js");
-const { Command } = require("../../assets/utils").Command;
+const Command = require("../../utils").Command;
 
-const targetVoice = new Command("targetvoice")
+const targetVoice = new Command("targetvoice", "TargetVoice")
 targetVoice.setSlashAction(
     async (interact, bot) => {
         await interact.reply("WIP")

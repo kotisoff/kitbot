@@ -1,10 +1,10 @@
-const { Command } = require("../../assets/utils").Command;
+const Command = require("../../utils").Command;
 const { AttachmentBuilder } = require("discord.js");
 const msclass = require("./libs/Minesweeper");
 
 const ms = new msclass();
 
-const MS = new Command("minesweeper");
+const MS = new Command("minesweeper", "MS");
 MS.setCommandType({ prefix: true, slash: true });
 MS.setPrefixAction((msg, bot) => {
     msg.channel.sendTyping();

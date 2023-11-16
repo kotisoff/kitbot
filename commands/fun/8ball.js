@@ -1,4 +1,4 @@
-const discord = require("discord.js"), axios = require("axios").default;
+const discord = require("discord.js")
 
 const replyMessages = [
     "Думаю да.",

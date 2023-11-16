@@ -1,9 +1,9 @@
 const discord = require("discord.js");
-const { Command } = require("../assets/utils").Command;
+const Command = require("../utils").Command;
 
 //СТАЛО
 
-const Example = new Command("ping");
+const Example = new Command("ping", "PING");
 
 Example.slashCommandInfo.setDescription("Replies with Pong!");
 

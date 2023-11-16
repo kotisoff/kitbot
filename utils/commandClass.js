@@ -1,11 +1,13 @@
 const { SlashCommandBuilder, Message, CommandInteraction, Client } = require("discord.js");
+require("colors");
 
 class PrefixCommandBuilder {
-    constructor() {
+    constructor(CommandConstructor = Command.prototype) {
         this.name = "thisHappensIfYouDoNotSetCommandName";
-        this.ruName = "";
-        this.shortName = "";
-        this.description = "Example Description...";
+        this.ruName;
+        this.shortName;
+        this.description;
+        this.back = CommandConstructor;
     }
     setName = (name = this.name) => {
         this.name = name;
@@ -28,20 +30,22 @@ class PrefixCommandBuilder {
 const CommandTypes = { slash: true, prefix: false };
 
 class Command {
-    constructor(name) {
+    constructor(id = "example", name = "Example") {
+        this.id = id;
         this.name = name;
 
         this.isSlashCommand = true;
         this.isPrefixCommand = false;
         this.isGlobal = true;
 
-        this.slashCommandInfo = new SlashCommandBuilder().setName(this.name).setDescription("ExampleDescription")
-        this.prefixCommandInfo = new PrefixCommandBuilder().setName(this.name)
+        this.slashCommandInfo = new SlashCommandBuilder().setName(this.id).setDescription("ExampleDescription")
+        this.prefixCommandInfo = new PrefixCommandBuilder(this).setName(this.id).setDescription("ExampleDescription")
+        this.logger = new (require("./logger"))(this.name);
 
         this.slashRun = (interact = CommandInteraction.prototype, bot = Client.prototype) => { interact.channel.send("Example Action!") };
         this.prefixRun = (message = Message.prototype, bot = Client.prototype) => { message.channel.send("Example Action!") };
         this.shutdown = () => { };
-        this.shareThread = (bot = Client.prototype) => { };
+        this.shareThread = (bot = Client.prototype) => { throw Error() };
     }
     setSlashAction = (callback = this.slashRun) => {
         this.slashRun = callback;
@@ -52,10 +56,8 @@ class Command {
         return this;
     }
     setCommandType = (settings = CommandTypes) => {
-        if (settings.prefix) this.isPrefixCommand = true;
-        else this.isPrefixCommand = false;
-        if (settings.slash) this.isSlashCommand = true;
-        else this.isSlashCommand = false;
+        this.isPrefixCommand = settings.prefix ?? this.isPrefixCommand;
+        this.isSlashCommand = settings.slash ?? this.isSlashCommand;
         return this;
     }
     setShutdownAction = (callback = this.shutdown) => {
@@ -72,7 +74,4 @@ class Command {
     }
 }
 
-module.exports = {
-    PrefixCommandBuilder,
-    Command
-}
+module.exports = Command

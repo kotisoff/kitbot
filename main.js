@@ -4,7 +4,9 @@ const discord = require("discord.js"),
 
 require("colors");
 
-const { configDeepScan, dirDeepScan } = require("./assets/utils").Scan;
+const { configDeepScan, dirDeepScan } = require("./utils").Scan;
+
+const log = new (require("./utils").Logger)("Main");
 
 const package = require("./package.json");
 
@@ -12,7 +14,7 @@ const loadtimer = Date.now();
 
 // Loading configuration
 
-console.log("[Main]", `Importing config...`.gray);
+log.info(`Importing config...`.gray);
 
 const idealConfig = {
   bot: {
@@ -66,8 +68,7 @@ dirDeepScan(commandsPath, commandFiles, config);
 for (const file of commandFiles) {
   commands.push(require(file));
 }
-console.log(
-  "[Main]",
+log.info(
   commands.length,
   `commands loaded... (${Date.now() - loadtimer}ms)`.gray
 );
@@ -100,15 +101,12 @@ commands.forEach((command) => {
       bot.prefCmd.set(command.pdata.runame, command);
   }
   if (!command.pdata & !command.data & !command.name) {
-    console.log(
-      "[Main]",
-      "[WARNING]".red +
-      ` The command (${commandname}) is missing required properties.`.yellow
+    log.warn(
+      `The command (${commandname}) is missing required properties.`.yellow
     );
   }
 });
-console.log(
-  "[Main]",
+log.info(
   commands.length,
   `commands collected... (${Date.now() - loadtimer}ms)`.gray
 );
@@ -123,8 +121,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
       content: `Команда ${interaction.commandName} не существует!\nОна была либо удалена, либо перенесена.\nСвяжитесь с @kotisoff для подробностей!`,
       ephemeral: true,
     });
-    console.error(
-      "[Main]",
+    log.error(
       `No command matching ${interaction.commandName} was found.`.gray
     );
     return;
@@ -133,7 +130,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
     if (command.name) await command.slashRun(interaction, bot)
     else await command.exec(interaction, bot);
   } catch (error) {
-    console.error(error);
+    log.error(error);
     let errcontent = {
       content:
         "Произошёл пиздец при обработке функции! Сходите к врачу, а лучше к санитару!",
@@ -147,8 +144,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
   }
 });
 
-console.log(
-  "[Main]",
+log.info(
   `Interactive commands function loaded. (${Date.now() - loadtimer}ms)`.gray
 );
 
@@ -160,28 +156,27 @@ bot.on("messageCreate", async (msg) => {
   let commandBody = msg.content.split(" ");
   let command = commandBody[0].toLowerCase();
   let name = bot.prefCmd.get(command.slice(prefix.length));
+  log.info("[Debug]", bot.prefCmd, command.slice(prefix.length))
   if (name) {
     if (name.name) name.prefixRun(msg, bot);
     else name.pexec(msg, bot);
   }
 });
 
-console.log(
-  "[Main]",
+log.info(
   `Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray
 );
 
 // По завершении инициализации
 
 bot.once(discord.Events.ClientReady, (bot) => {
-  console.log("[Main] " + `${bot.user.tag} is online.`.yellow);
+  log.info(`${bot.user.tag} is online.`.yellow);
   commands
     .filter((cmd) => cmd.shareThread)
     .forEach((command) => {
       try {
         command.shareThread(bot);
-        console.log(
-          "[Main]",
+        log.info(
           `${path.basename(
             commandFiles[commands.indexOf(command)]
           )} initialized... (${Date.now() - loadtimer}ms)`.gray
@@ -192,22 +187,22 @@ bot.once(discord.Events.ClientReady, (bot) => {
   bot.user.setActivity("за " + bot.guilds.cache.size + " серверами ._.", {
     type: discord.ActivityType.Watching,
   });
-  console.log("[Main]", commands.length, "commands initialized.".green);
-  console.log("[Main]", `Bot took ${Date.now() - loadtimer}ms to launch.`.gray);
+  log.info(commands.length, "commands initialized.".green);
+  log.info(`Bot took ${Date.now() - loadtimer}ms to launch.`.gray);
 });
 
 process.on("unhandledRejection", (error) => {
-  console.log("Unhandled promise rejection:", error);
+  log.info("Unhandled promise rejection:", error);
 });
 
 process.on("SIGINT", () => {
-  console.log("[Main] Shutting down...");
+  log.info("Shutting down...");
   commands.forEach((command) => {
     try {
       command.shutdown();
     } catch { }
   });
-  console.log("[Main] Bye!");
+  log.info("Bye!");
   bot.destroy();
   process.exit();
 });
