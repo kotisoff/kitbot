@@ -156,7 +156,7 @@ bot.on("messageCreate", async (msg) => {
   let commandBody = msg.content.split(" ");
   let command = commandBody[0].toLowerCase();
   let name = bot.prefCmd.get(command.slice(prefix.length));
-  log.info("[Debug]", bot.prefCmd, command.slice(prefix.length))
+  console.log("[Debug]", bot.prefCmd, command.slice(prefix.length))
   if (name) {
     if (name.name) name.prefixRun(msg, bot);
     else name.pexec(msg, bot);

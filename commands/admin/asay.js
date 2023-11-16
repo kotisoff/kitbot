@@ -4,7 +4,7 @@ const Command = require("../../utils").Command;
 const asay = new Command("asay", "ASay");
 asay.setCommandType({ prefix: true })
   .setPrefixAction(
-    (mess, bot) => {
+    async (mess, bot) => {
       const args = mess.content.split(" ").slice(1);
       if (!mess.member.permissions.has(discord.PermissionFlagsBits.Administrator))
         return mess.channel.send("У вас нет прав!");

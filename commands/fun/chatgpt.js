@@ -1,10 +1,12 @@
 const discord = require("discord.js"),
   { OpenAI } = require("openai")
 require("colors");
-const { getConfigs, getMods, getMemory, saveAll, writeProfiles } = require("./ai.lib/datamgr");
+const { getConfigs, getMods, getMemory, saveAll, writeProfiles, setLogger } = require("./ai.lib/datamgr");
 const Command = require("../../utils").Command;
 
 // Additional functions
+const AI = new Command("ai", "AI");
+setLogger(AI.logger);
 
 /**@param {discord.Message} msg @param {String} data @param {String} target @param {discord.Webhook} inst*/
 const editmsg = async (msg, data, target) => {
@@ -52,17 +54,15 @@ const ai = new OpenAI({
 /**@param {discord.Client} client*/
 const shareThread = async (client) => {
   if (!config.options.ai_stream)
-    console.log(
-      "[AI]",
+    AI.logger.info(
       // "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk.\nFor some reason, stream mode works more stable than regular mode. paradox?"
       "Static mode is activated! Use stream mode from now. Static is less optimized."
         .bgRed.white
     );
-  AI.logger.info("Пиздося!".bgRed.white);
   try {
     client.on(discord.Events.MessageCreate, async (msg) => onMsg(msg));
   } catch (e) {
-    console.log("[AI]", e);
+    AI.logger.info(e);
   }
 };
 
@@ -81,8 +81,7 @@ const onMsg = async (msg) => {
     return false;
   }
 
-  console.log(
-    "[AI]",
+  AI.logger.info(
     `New message to ${target.name}: ` +
     msg.content.slice(target.prefix.length).gray
   );
@@ -115,7 +114,7 @@ const onMsg = async (msg) => {
       }
     ).catch((err) => {
       target.memory.ai_messages = [];
-      console.log(err);
+      AI.logger.info(err);
       return editmsg(
         streaming,
         "*Память переполнена и в последствии сброшена. Повторите попытку!*" + `\nCaught ${err}`,
@@ -139,7 +138,7 @@ const onMsg = async (msg) => {
           if (i % interval === 0) {
             if (output.content.length > 2000) {
               output.content = "↓\n..." + output.content.substring(1900);
-              console.log(`[AI]`, `Выполнен перенос строки.`.gray);
+              AI.logger.info(`Выполнен перенос строки.`.gray);
               streaming = await target.inst.send(output.content);
             }
             try {
@@ -153,8 +152,8 @@ const onMsg = async (msg) => {
         } catch { }
         target.memory.ai_messages.push(resultmsg);
         AI.logger.info("Printing done.")
-        // console.log("[AI]", "Printing done.".gray);
-        if (process.argv.slice(2).includes("--printresponse")) console.log("[AI]", resultmsg.content.gray);
+        // AI.logger.info( "Printing done.".gray);
+        if (process.argv.slice(2).includes("--printresponse")) AI.logger.info(resultmsg.content.gray);
         if (!isMain()) {
           setTimeout(() => {
             target.inst.delete();
@@ -193,7 +192,6 @@ setInterval(() => {
   saveAll(mods, memories, config.options.logdetails);
 }, 180000);
 
-const AI = new Command("ai", "AI");
 AI.setSlashAction(async (interact, bot) => {
   let parameter = interact.options.getString("parameter");
   let modid = interact.options.getString("modid");

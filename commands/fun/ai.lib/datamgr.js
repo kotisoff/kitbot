@@ -1,5 +1,6 @@
 const fs = require("node:fs"),
   path = require("node:path");
+const { Logger } = require("../../../utils");
 require("colors");
 
 const configpath = path.join(process.cwd(), "/configs/kot.chatgpt");
@@ -7,11 +8,15 @@ const configpath = path.join(process.cwd(), "/configs/kot.chatgpt");
 if (!fs.existsSync(configpath)) {
   fs.mkdirSync(configpath);
 }
+let logger = Logger.prototype;
 
-/** @param {String} filepath @param {Boolean} hide*/
-const fileimport = (filepath, replacedata, hide) => {
+const setLogger = (log = Logger.prototype) => {
+  logger = log;
+};
+
+const fileimport = (filepath = "", replacedata, hide = false) => {
   const filename = path.basename(filepath);
-  if (!hide) console.log("[AI]", ("Importing " + filename + "...").gray);
+  if (!hide) logger.info(("Importing " + filename + "...").gray);
   try {
     require(filepath);
   } catch {
@@ -63,7 +68,7 @@ const getMods = (config) => {
 
   let files = fs.readdirSync(path.join(configpath, "./mods"));
   files = files.filter((f) => f.endsWith(".json"));
-  console.log("[AI] " + "Found".gray, files.length, "personalities.".gray);
+  logger.info("Found".gray, files.length, "personalities.".gray);
   files.forEach((f) => {
     const tmp = require(path.join(configpath, `./mods/${f}`));
     tmp.filename = f.replace(".json", "");
@@ -110,7 +115,7 @@ const getMemory = (mods) => {
 
 /**@param {Boolean} showlog*/
 const saveAll = (mods, memories, showlog) => {
-  if (showlog) console.log("[AI] Saving data...");
+  if (showlog) logger.info("Saving data...");
   for (let i in memories) {
     fs.writeFileSync(
       path.join(configpath, `/memories/${mods[i].filename}_memory.json`),
@@ -118,7 +123,7 @@ const saveAll = (mods, memories, showlog) => {
       () => { }
     );
   }
-  if (showlog) console.log("[AI] Data saved!");
+  if (showlog) logger.info("Data saved!");
 }
 
 const writeProfiles = (profiles, showlog) => {
@@ -127,7 +132,7 @@ const writeProfiles = (profiles, showlog) => {
     JSON.stringify(profiles),
     () => { }
   );
-  if (showlog) console.log("[AI] Profiles are rewritten successfully.")
+  if (showlog) logger.info("Profiles are rewritten successfully.")
 }
 
 module.exports = {
@@ -135,5 +140,6 @@ module.exports = {
   getMods,
   getMemory,
   saveAll,
-  writeProfiles
+  writeProfiles,
+  setLogger
 };

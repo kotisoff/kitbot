@@ -1,6 +1,6 @@
 const seedrandom = require('seedrandom');
 
-const debug = process.argv.slice(2).includes("--debug");
+const debug = process.argv.slice(2).includes("--msdebug");
 
 const bombRng = [":stop_button:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:"];
 const bomb = ":o2:";

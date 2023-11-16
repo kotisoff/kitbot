@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const net = require("net");
+const { Command } = require("../../utils");
 require("colors");
 
 /**@param {String} hexx*/
@@ -93,26 +94,46 @@ async function updateHost(ip, port) {
   });
 }
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("mcstatus")
-    .setDescription("Запрашивает информацию об игроках на сервере Майнкрафт.")
-    .addStringOption((option) =>
-      option
-        .setName("ip")
-        .setDescription('Айпи адрес сервера. Порт вписывается через ":".')
-        .setRequired(true)
-    ),
-  /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async exec(interact, bot) {
-    const ip = interact.options.getString("ip").split(":")[0];
-    let port = interact.options.getString("ip").split(":")[1] ?? 25565;
-    if (port < 0 || port > 65535)
-      return interact.reply(
-        `Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`
-      );
-    updateHost(ip, port).then((out) => {
-      interact.reply(`${out}`);
-    });
-  },
-};
+const mcstatus = new Command("mcstatus", "MCStatus")
+mcstatus.setSlashAction(async (interact, bot) => {
+  const ip = interact.options.getString("ip").split(":")[0];
+  let port = interact.options.getString("ip").split(":")[1] ?? 25565;
+  if (port < 0 || port > 65535)
+    return interact.reply(
+      `Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`
+    );
+  updateHost(ip, port).then((out) => {
+    interact.reply(`${out}`);
+  });
+}).slashCommandInfo
+  .setDescription("Запрашивает информацию об игроках на сервере Майнкрафт.")
+  .addStringOption((option) =>
+    option
+      .setName("ip")
+      .setDescription('Айпи адрес сервера. Порт вписывается через ":".')
+      .setRequired(true)
+  )
+module.exports = mcstatus
+// module.exports = {
+//   data: new SlashCommandBuilder()
+//     .setName("mcstatus")
+//     .setDescription("Запрашивает информацию об игроках на сервере Майнкрафт.")
+//     .addStringOption((option) =>
+//       option
+//         .setName("ip")
+//         .setDescription('Айпи адрес сервера. Порт вписывается через ":".')
+//         .setRequired(true)
+//     ),
+//   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
+//   async exec(interact, bot) {
+//     const ip = interact.options.getString("ip").split(":")[0];
+//     let port = interact.options.getString("ip").split(":")[1] ?? 25565;
+//     if (port < 0 || port > 65535)
+//       return interact.reply(
+//         `Некорректный порт! Port should be >= 0 and < 65536. Received ${port}.`
+//       );
+//     updateHost(ip, port).then((out) => {
+//       interact.reply(`${out}`);
+//     });
+//   },
+// };
