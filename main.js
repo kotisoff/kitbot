@@ -3,12 +3,16 @@ const discord = require("discord.js"),
   path = require("node:path");
 
 require("colors");
-
 const { configDeepScan, dirDeepScan } = require("./utils").Scan;
+
+const args = (() => {
+  const args = process.argv.slice(2);
+  return { debug: args.includes("debug") };
+})();
 
 const log = new (require("./utils").Logger)("Main");
 
-const package = require("./package.json");
+const configVersion = "0.0.1";
 
 const loadtimer = Date.now();
 
@@ -18,10 +22,10 @@ log.info(`Importing config...`.gray);
 
 const idealConfig = {
   bot: {
-    token: "bots_token",
-    clientId: "bot_client_id",
-    guildId: "guild_id",
+    token: "bot's token",
     prefix: "'",
+    devGuildId: "guild id",
+    clientId: "bot's client id",
   },
   settings: {
     commandsPath: "commands",
@@ -30,15 +34,19 @@ const idealConfig = {
     autoDeploy: true,
     ignoredCommandDirs: [".lib", ".i", "libs"],
   },
-  latestVersion: package.version,
+  latestVersion: configVersion,
 };
 
-if (!fs.existsSync("./config.json"))
+if (!fs.existsSync("./config.json")) {
+  log.warn("Isn't it a first run of the bot?".gray);
   fs.writeFileSync("./config.json", JSON.stringify(idealConfig));
+  log.info("Created new config file!".green);
+  process.exit(0);
+}
 
 const config = require("./config.json");
 
-if (config.latestVersion != package.version) {
+if (config.latestVersion != configVersion) {
   configDeepScan(config, idealConfig);
   config.latestVersion = idealConfig.latestVersion;
   fs.writeFileSync("./config.json", JSON.stringify(config));
@@ -58,6 +66,8 @@ bot.login(token);
 
 bot.interCmd = new discord.Collection();
 bot.prefCmd = new discord.Collection();
+bot.data = {};
+bot.config = config;
 
 const commands = [];
 
@@ -75,41 +85,34 @@ log.info(
 
 // Init commands
 
+let collected = 0;
 commands.forEach((command) => {
   // Set a new item in the Collection with the key as the command name and the value as the exported module
   const commandname = path.basename(commandFiles[commands.indexOf(command)]);
-  if (command.name) {
+  if (command.id) {
     if (command.isPrefixCommand) {
+      const settings = config.settings;
       bot.prefCmd.set(command.prefixCommandInfo.name, command);
-      if (config.settings.allowShortCommands)
+      if (settings.allowShortCommands)
         bot.prefCmd.set(command.prefixCommandInfo.shortName, command);
-      if (config.settings.allowRussianCommands)
+      if (settings.allowRussianCommands)
         bot.prefCmd.set(command.prefixCommandInfo.ruName, command);
+      if (settings.allowRussianCommands && settings.allowShortCommands) {
+        bot.prefCmd.set(command.prefixCommandInfo.shortRuName, command);
+      }
     }
     if (command.isSlashCommand) {
-      bot.interCmd.set(command.slashCommandInfo.name, command)
+      bot.interCmd.set(command.slashCommandInfo.name, command);
     }
+    collected++;
   }
-  if (command.data) {
-    bot.interCmd.set(command.data.name, command);
-  }
-  if (command.pdata) {
-    bot.prefCmd.set(command.pdata.name, command);
-    if (config.settings.allowShortCommands)
-      bot.prefCmd.set(command.pdata.shortname, command);
-    if (config.settings.allowRussianCommands)
-      bot.prefCmd.set(command.pdata.runame, command);
-  }
-  if (!command.pdata & !command.data & !command.name) {
+  if (!command.id) {
     log.warn(
       `The command (${commandname}) is missing required properties.`.yellow
     );
   }
 });
-log.info(
-  commands.length,
-  `commands collected... (${Date.now() - loadtimer}ms)`.gray
-);
+log.info(collected, `commands collected... (${Date.now() - loadtimer}ms)`.gray);
 
 // Интерактивные команды
 
@@ -121,19 +124,16 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
       content: `Команда ${interaction.commandName} не существует!\nОна была либо удалена, либо перенесена.\nСвяжитесь с @kotisoff для подробностей!`,
       ephemeral: true,
     });
-    log.error(
-      `No command matching ${interaction.commandName} was found.`.gray
-    );
+    log.error(`No command matching ${interaction.commandName} was found.`.gray);
     return;
   }
   try {
-    if (command.name) await command.slashRun(interaction, bot)
+    if (command.name) await command.slashRun(interaction, bot);
     else await command.exec(interaction, bot);
   } catch (error) {
     log.error(error);
     let errcontent = {
-      content:
-        "Произошёл пиздец при обработке функции! Сходите к врачу, а лучше к санитару!",
+      content: "Бот съехал с катушек, звоните в дурку бля.",
       ephemeral: true,
     };
     if (!interaction.replied) {
@@ -156,43 +156,43 @@ bot.on("messageCreate", async (msg) => {
   let commandBody = msg.content.split(" ");
   let command = commandBody[0].toLowerCase();
   let name = bot.prefCmd.get(command.slice(prefix.length));
-  console.log("[Debug]", bot.prefCmd, command.slice(prefix.length))
   if (name) {
-    if (name.name) name.prefixRun(msg, bot);
-    else name.pexec(msg, bot);
+    name.prefixRun(msg, bot);
   }
 });
 
-log.info(
-  `Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray
-);
+log.info(`Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray);
 
 // По завершении инициализации
 
 bot.once(discord.Events.ClientReady, (bot) => {
+  let initialized = 0;
   log.info(`${bot.user.tag} is online.`.yellow);
-  commands
-    .filter((cmd) => cmd.shareThread)
-    .forEach((command) => {
-      try {
-        command.shareThread(bot);
-        log.info(
-          `${path.basename(
-            commandFiles[commands.indexOf(command)]
-          )} initialized... (${Date.now() - loadtimer}ms)`.gray
-        );
-      } catch { }
-    });
+  commands.forEach((command) => {
+    try {
+      command.shareThread(bot);
+      log.info(
+        `${path.basename(
+          commandFiles[commands.indexOf(command)]
+        )} initialized... (${Date.now() - loadtimer}ms)`.gray
+      );
+      initialized++;
+    } catch (e) {
+      args.debug ? log.warn("Debug caught", e) : undefined;
+    }
+  });
   bot.user.setStatus("idle");
   bot.user.setActivity("за " + bot.guilds.cache.size + " серверами ._.", {
     type: discord.ActivityType.Watching,
   });
-  log.info(commands.length, "commands initialized.".green);
+  log.info(initialized, "commands initialized.".green);
+  log.info(collected, "commands total.".green);
   log.info(`Bot took ${Date.now() - loadtimer}ms to launch.`.gray);
+  log.info("Bot invite link: ".gray + `https://discord.com/oauth2/authorize?client_id=${bot.application.id}&permissions=8&scope=bot`.blue);
 });
 
 process.on("unhandledRejection", (error) => {
-  log.info("Unhandled promise rejection:", error);
+  log.error("Unhandled promise rejection:", error);
 });
 
 process.on("SIGINT", () => {

@@ -1,7 +1,8 @@
 const discord = require("discord.js"),
   { OpenAI } = require("openai")
 require("colors");
-const { getConfigs, getMods, getMemory, saveAll, writeProfiles, setLogger } = require("./ai.lib/datamgr");
+const { getConfig, getMods, getMemories, saveAll, writeProfiles, setLogger } = require("./ai.lib/datamgr");
+const { chat } = require("./ai.lib/aiUtil");
 const Command = require("../../utils").Command;
 
 // Additional functions
@@ -15,30 +16,30 @@ const editmsg = async (msg, data, target) => {
   await target.inst.editMessage(msg, { content: data });
 };
 
-let lostdata = "";
-const jsonParser = (data) => {
-  try {
-    return JSON.parse(data);
-  } catch {
-    const blankdata = {
-      choices: [{ delta: { content: "" }, finish_reason: null }],
-    };
-    if (lostdata.length > 0) {
-      const parsed = JSON.parse(lostdata + data);
-      lostdata = "";
-      return parsed;
-    } else {
-      lostdata += data;
-      return blankdata;
-    }
-  }
-};
+// let lostdata = "";
+// const jsonParser = (data) => {
+//   try {
+//     return JSON.parse(data);
+//   } catch {
+//     const blankdata = {
+//       choices: [{ delta: { content: "" }, finish_reason: null }],
+//     };
+//     if (lostdata.length > 0) {
+//       const parsed = JSON.parse(lostdata + data);
+//       lostdata = "";
+//       return parsed;
+//     } else {
+//       lostdata += data;
+//       return blankdata;
+//     }
+//   }
+// };
 
 // Load data
 
-let { config, profiles } = getConfigs();
+let { config, profiles } = getConfig;
 let mods = getMods(config);
-let memories = getMemory(mods);
+let memories = getMemories(mods);
 // console.log({ mods, memories })
 
 
@@ -55,8 +56,8 @@ const ai = new OpenAI({
 const shareThread = async (client) => {
   if (!config.options.ai_stream)
     AI.logger.info(
-      // "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk.\nFor some reason, stream mode works more stable than regular mode. paradox?"
-      "Static mode is activated! Use stream mode from now. Static is less optimized."
+      "Stream mode is ACTIVATED! It is pretty laggy and causes a bunch of crashes. Use it for your own risk."
+        // "Static mode is activated! Use stream mode from now. Static is less optimized."
         .bgRed.white
     );
   try {
@@ -122,7 +123,7 @@ const onMsg = async (msg) => {
       );
     });
 
-  const interval = 10;
+  const interval = 15;
   let i = 0;
 
   if (config.options.ai_stream) {
@@ -163,27 +164,14 @@ const onMsg = async (msg) => {
     }
 
   } else {
-    let resultmsg = await msgStream.choices[0].message;
-    if (resultmsg.content.length > 2000) {
-      const size = Math.ceil(resultmsg.content.length / 2000);
-      const parts = Array(size);
-      let offset = 0;
-      for (let i = 0; i < size; i++) {
-        parts[i] = resultmsg.content.substring(offset, 2000);
-        offset += 2000;
-      }
-      await editmsg(streaming, parts[0], target);
-      for (let part = 1; part < parts.length; part++) {
-        if (parts[part] != "") {
-          await target.inst.send(parts[part]);
-        }
-      }
-    } else {
-      await editmsg(streaming, resultmsg, target);
-    }
-    target.memory.ai_messages.push(resultmsg);
+    const { content, role } = await chat.getStaticAnswer(msgStream);
+    await editmsg(streaming, content[0], target);
+    content.slice(1)?.forEach(async v => {
+      await target.inst.send(v);
+    })
+    target.memory.ai_messages.push({ content: content.join(""), role });
     if (!isMain()) {
-      target.inst.delete();
+      await target.inst.delete();
     }
   }
 };
@@ -215,42 +203,44 @@ AI.setSlashAction(async (interact, bot) => {
       interact.reply({ content: res });
     });
   }
-  if (parameter === "clmem") {
-    if (!modid)
-      return interact.reply({
-        content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
+  switch (parameter) {
+    case "clmem":
+      if (!modid)
+        return interact.reply({
+          content: "Ну укажи ты, ёбаный насрал, идентификатор мода.",
+          ephemeral: true,
+        });
+      const memory = memories.find((mem) => mem.modid === modid)[0];
+      if (memory) {
+        memory.ai_messages = [];
+        return await interact.reply({ content: "Очищена память " + modid });
+      }
+      interact.reply({
+        content: "Ну и хуета твой идентификатор...\n",
         ephemeral: true,
       });
-    const memory = memories.find((mem) => mem.modid === modid)[0];
-    if (memory) {
-      memory.ai_messages = [];
-      return await interact.reply({ content: "Очищена память " + modid });
-    }
-    interact.reply({
-      content: "Ну и хуета твой идентификатор...\n",
-      ephemeral: true,
-    });
-  }
-  if (parameter === "rsmem") {
-    refreshMemory();
-    interact.reply({ content: "Вся память перезагружена." });
-  }
-  if (parameter === "rsmods") {
-    refreshMods();
-    interact.reply({ content: "Все моды перезагружены." });
-  }
-  if (parameter === "addchannel") {
-    profiles.channels.push(interact.channelId);
-    writeProfiles(profiles, config.options.logdetails);
-    interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
-  }
-  if (parameter === "rmchannel") {
-    profiles.channels.splice(
-      profiles.channels.indexOf(interact.channelId),
-      1
-    );
-    writeProfiles(profiles, config.options.logdetails);
-    interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
+      break;
+    case "rsmem":
+      refreshMemory();
+      interact.reply({ content: "Вся память перезагружена." });
+      break;
+    case "rsmods":
+      refreshMods();
+      interact.reply({ content: "Все моды перезагружены." });
+      break;
+    case "addchannel":
+      profiles.channels.push(interact.channelId);
+      writeProfiles(profiles, config.options.logdetails);
+      interact.reply({ content: "Данный канал успешно добавлен в каналы ИИ!" });
+      break;
+    case "rmchannel":
+      profiles.channels.splice(
+        profiles.channels.indexOf(interact.channelId),
+        1
+      );
+      writeProfiles(profiles, config.options.logdetails);
+      interact.reply({ content: "Данный канал успешно убран из каналов ИИ!" });
+      break;
   }
 })
   .slashCommandInfo

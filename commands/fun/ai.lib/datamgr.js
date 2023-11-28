@@ -3,36 +3,48 @@ const fs = require("node:fs"),
 const { Logger } = require("../../../utils");
 require("colors");
 
+// Init
+
 const configpath = path.join(process.cwd(), "/configs/kot.chatgpt");
+const modsdir = path.join(configpath, "./mods");
+const memdir = path.join(configpath, "./memories")
 
-if (!fs.existsSync(configpath)) {
+try {
   fs.mkdirSync(configpath);
-}
-let logger = Logger.prototype;
+  fs.mkdirSync(modsdir);
+  fs.mkdirSync(memdir);
+} catch { }
 
+// Utils
+const fileimport = (filepath = "", replacedata, hide = false) => {
+  const filename = path.basename(filepath);
+  if (!hide) logger.info(("Importing " + filename + "...").gray);
+  let data = replacedata;
+  try {
+    data = JSON.parse(fs.readFileSync(filepath).toString());
+  } catch {
+    writeJson(filepath, replacedata);
+  }
+  return data;
+};
+
+const importJson = (dir = "./") => (fs.existsSync(dir)) ? JSON.parse(fs.readFileSync(dir)) : undefined;
+const writeJson = (dir = "./test.json", json = {}) => fs.writeFileSync(dir, JSON.stringify(json));
+
+let logger = new Logger("AInit");
 const setLogger = (log = Logger.prototype) => {
   logger = log;
 };
 
-const fileimport = (filepath = "", replacedata, hide = false) => {
-  const filename = path.basename(filepath);
-  if (!hide) logger.info(("Importing " + filename + "...").gray);
-  try {
-    require(filepath);
-  } catch {
-    fs.writeFileSync(filepath, JSON.stringify(replacedata));
-  }
-  return require(filepath);
-};
-
-const getConfigs = () => {
+// Configs
+const { config, profiles } = (() => {
   let config = {
     api: {
       url: "https://api.openai.com",
       key: "placeyourtokenhere",
     },
     prefix: "-",
-    options: { ai_stream: true, logdetails: false, ai_type: "openai" }, // openai | gpt4all
+    options: { ai_stream: true, logdetails: false },
   };
   config = fileimport(path.join(configpath, "./config.json"), config, true);
   let profiles = { channels: [] };
@@ -42,12 +54,11 @@ const getConfigs = () => {
     true
   );
   return { config, profiles };
-};
+})();
 
-// Personalities
-
-const getMods = (config) => {
-  const modTemplate = {
+// Mods
+writeJson(path.join(modsdir, "main.json"),
+  {
     modid: "kotisoff:main",
     prefix: config.prefix,
     name: "main",
@@ -55,39 +66,50 @@ const getMods = (config) => {
     personality:
       "Ты бот помощник пользователя. Всегда отвечай на вопросы максимально точно и подробно.",
     ai_settings: {
-      model: "gpt-3.5-turbo-16k-0613", // -16k-0613
+      model: "gpt-3.5-turbo-16k-0613", // "gpt-4-1106-preview", // "gpt-3.5-turbo-16k-0613",
       temperature: 1.2,
     },
-    filename: "main", // It's not necessary in mod file, if you want to create one. filename parameter is creating in object every reload.
-  };
+  }
+)
 
-  let mods = [modTemplate];
-
-  if (!fs.existsSync(path.join(configpath, "./mods")))
-    fs.mkdirSync(path.join(configpath, "./mods"));
-
-  let files = fs.readdirSync(path.join(configpath, "./mods"));
-  files = files.filter((f) => f.endsWith(".json"));
-  logger.info("Found".gray, files.length, "personalities.".gray);
-  files.forEach((f) => {
-    const tmp = require(path.join(configpath, `./mods/${f}`));
-    tmp.filename = f.replace(".json", "");
-    if (mods.find((mod) => mod.modid === tmp.modid))
-      throw console.error(
-        `Mods with the same modid's found! Please edit one of them.\nThere they are: ${mods
-          .map((mod) => mod.filename)
-          .join(", ")}, ${tmp.filename}`
-      );
-    mods.push(tmp);
+const mods = new Map();
+(() => {
+  const files = fs.readdirSync(modsdir).filter(i => i.endsWith(".json"));
+  files.map(f => {
+    const modid = JSON.parse(fs.readFileSync(path.join(modsdir, f)).toString()).modid
+    if (mods.has(modid)) logger.warn(`Modification conflict found: Identical "${modid}" in "${f}" and "${mods.get(modid)}". The last one will be ignored.`.gray);
+    mods.set(modid, f)
   });
-  return mods;
+})();
+
+const getMod = (id = "kotisoff:main") => (mods.has(id)) ? importJson(path.join(modsdir, mods.get(id))) : undefined;
+const getMods = () => {
+  const tmp = []
+  mods.forEach((mod, key) => {
+    tmp.push(
+      importJson(
+        path.join(modsdir, mod)
+      )
+    );
+  });
+  logger.info("Found".gray, tmp.length, "personalities.".gray);
+  return tmp;
 };
 
 // Ai mem
-const getMemory = (mods) => {
-  if (!fs.existsSync(path.join(configpath, "./memories")))
-    fs.mkdirSync(path.join(configpath, "./memories"));
-
+const getMemory = (modid) => {
+  const filename = mods.get(modid).split(".json")[0];
+  const mod = getMod(modid);
+  const dir = path.join(memdir, `${filename}_memory.json`);
+  return fileimport(dir, {
+    modid,
+    ai_system: [{ role: "system", content: mod.personality }],
+    ai_messages: [],
+  },
+    true
+  )
+}
+const getMemories = () => {
   let memories = [
     {
       modid: "",
@@ -96,22 +118,16 @@ const getMemory = (mods) => {
     },
   ];
   memories = []
-
-  mods.forEach((mod) => {
-    memories.push(
-      fileimport(
-        path.join(configpath, `./memories/${mod.filename}_memory.json`),
-        {
-          modid: mod.modid,
-          ai_system: [{ role: "system", content: mod.personality }],
-          ai_messages: [],
-        },
-        true
-      )
-    );
-  });
+  mods.forEach((_, modid) => {
+    memories.push(getMemory(modid));
+  })
   return memories;
 };
+
+const saveMemory = (modid = "kotisoff:main", memory = {}) => {
+  const filename = mods.get(modid).split(".json")[0];
+  writeJson(path.join(memdir, modname + "_memory.json"), memory);
+}
 
 /**@param {Boolean} showlog*/
 const saveAll = (mods, memories, showlog) => {
@@ -136,8 +152,12 @@ const writeProfiles = (profiles, showlog) => {
 }
 
 module.exports = {
-  getConfigs,
+  getConfig: {
+    config, profiles
+  },
   getMods,
+  getMod,
+  getMemories,
   getMemory,
   saveAll,
   writeProfiles,

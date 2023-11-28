@@ -12,7 +12,7 @@
     "bufferutil": "^4.0.8",
     "colors": "^1.4.0",
     "discord-player": "^6.6.6",
-    "discord-player-yandexmusic": "^0.0.12",
+    "discord-player-yandexmusic": "^0.1.0",
     "discord.js": "^14.13.0",
     "ffmpeg-static": "^5.2.0",
     "libsodium-wrappers": "^0.7.13",
