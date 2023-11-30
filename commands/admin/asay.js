@@ -39,24 +39,6 @@ asay.setCommandType({ prefix: true })
   )
   .prefixCommandInfo.setShortName("as").setDescription("Преобразует ваше сообщение в сообщение бота.")
   .back
-  .slashCommandInfo
-  .setDescription("Преобразует ваше сообщение в сообщение бота.")
-  .setDefaultMemberPermissions(discord.PermissionFlagsBits.Administrator)
-  .addStringOption((option) =>
-    option
-      .setName("message")
-      .setDescription(`Сообщение, которое будет отображено ботом`)
-      .setRequired(true),
-  )
-  .addAttachmentOption((option) =>
-    option
-      .setName("attachment")
-      .setDescription("Вложение (фото, файл, видева)."),
-  )
-  .addBooleanOption((option) =>
-    option
-      .setName("tts")
-      .setDescription(`Будет ли сообщение преобразовано в речь?`),
-  )
+  .slashCommandInfo.setDescription("Преобразует ваше сообщение в сообщение бота.");
 
 module.exports = asay;

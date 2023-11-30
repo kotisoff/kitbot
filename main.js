@@ -3,17 +3,14 @@ const discord = require("discord.js"),
   path = require("node:path");
 
 require("colors");
-
-const utils = require("./utils")
-const { configDeepScan, dirDeepScan } = utils.Scan;
-const { deployCommands } = utils;
+const { configDeepScan, dirDeepScan } = require("./utils").Scan;
 
 const args = (() => {
   const args = process.argv.slice(2);
   return { debug: args.includes("debug") };
 })();
 
-const log = new utils.Logger("Main");
+const log = new (require("./utils").Logger)("Main");
 
 const configVersion = "0.0.1";
 
@@ -27,7 +24,8 @@ const idealConfig = {
   bot: {
     token: "bot's token",
     prefix: "'",
-    devGuildId: "guild id"
+    devGuildId: "guild id",
+    clientId: "bot's client id",
   },
   settings: {
     commandsPath: "commands",
@@ -61,7 +59,7 @@ if (!fs.existsSync(config.settings.commandsPath))
 
 if (!fs.existsSync("configs")) fs.mkdirSync("configs");
 
-// Bot login
+// Логин бота
 
 const bot = new discord.Client({ intents: [3276799] });
 bot.login(token);
@@ -88,8 +86,9 @@ log.info(
 // Init commands
 
 let collected = 0;
-commands.forEach((command, index) => {
-  const commandname = path.basename(commandFiles[index]);
+commands.forEach((command) => {
+  // Set a new item in the Collection with the key as the command name and the value as the exported module
+  const commandname = path.basename(commandFiles[commands.indexOf(command)]);
   if (command.id) {
     if (command.isPrefixCommand) {
       const settings = config.settings;
@@ -115,7 +114,7 @@ commands.forEach((command, index) => {
 });
 log.info(collected, `commands collected... (${Date.now() - loadtimer}ms)`.gray);
 
-// Interactions
+// Интерактивные команды
 
 bot.on(discord.Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -149,7 +148,7 @@ log.info(
   `Interactive commands function loaded. (${Date.now() - loadtimer}ms)`.gray
 );
 
-// Prefix
+// Префикс команды
 
 bot.on("messageCreate", async (msg) => {
   if (msg.author.bot) return;
@@ -164,14 +163,11 @@ bot.on("messageCreate", async (msg) => {
 
 log.info(`Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray);
 
-// On ready
+// По завершении инициализации
 
 bot.once(discord.Events.ClientReady, (bot) => {
   let initialized = 0;
   log.info(`${bot.user.tag} is online.`.yellow);
-
-  if (config.settings.autoDeploy) deployCommands(bot);
-
   commands.forEach((command) => {
     try {
       command.shareThread(bot);
@@ -185,12 +181,10 @@ bot.once(discord.Events.ClientReady, (bot) => {
       args.debug ? log.warn("Debug caught", e) : undefined;
     }
   });
-
   bot.user.setStatus("idle");
   bot.user.setActivity("за " + bot.guilds.cache.size + " серверами ._.", {
     type: discord.ActivityType.Watching,
   });
-
   log.info(initialized, "commands initialized.".green);
   log.info(collected, "commands total.".green);
   log.info(`Bot took ${Date.now() - loadtimer}ms to launch.`.gray);

@@ -1,5 +1,7 @@
 const { Command } = require("../../utils");
 const ymapi = require("ym-api-meowed");
+const fs = require('fs');
+const discord = require("discord.js");
 
 const Api = new ymapi.YMApi();
 const wrapper = new ymapi.WrappedYMApi(Api);
@@ -17,7 +19,7 @@ getmusicurl.setPrefixAction(async (m, b) => {
     else {
         let trackid = parseInt(args[0].split("/track/")[1]);
         if (!trackid) trackid = (parseInt(args[0]).toString() == args[0]) ? parseInt(args[0]) : undefined;
-        if (!trackid) return m.channel.send("Входные данные не соответствуют ссылке/айди песни.");
+        if (!trackid) return m.channel.send("Входные данные не соответствуют ссылке/айди песни.")
         const track = await wrapper.getMp3DownloadUrl(trackid, true);
         m.channel.send(`Вот ваша ссылка: [**_Тык_**](${track})`);
         getmusicurl.logger.info(`TrackID: ${trackid}; Link: ${track}`.gray);
