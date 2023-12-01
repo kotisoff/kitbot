@@ -4,16 +4,16 @@ const discord = require("discord.js"),
 
 require("colors");
 
-const utils = require("./utils")
-const { configDeepScan, dirDeepScan } = utils.Scan;
-const { deployCommands } = utils;
+const { configDeepScan, dirDeepScan } = require("./utils/scanTools");
+const deployCommands = require("./utils/deployCommands");
+const Logger = require("./utils/logger");
 
 const args = (() => {
   const args = process.argv.slice(2);
   return { debug: args.includes("debug") };
 })();
 
-const log = new utils.Logger("Main");
+const log = new Logger("Main");
 
 const configVersion = "0.0.1";
 

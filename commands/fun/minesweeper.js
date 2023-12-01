@@ -1,4 +1,4 @@
-const Command = require("../../utils").Command;
+const Command = require("../../utils/Command");
 const { AttachmentBuilder } = require("discord.js");
 const msclass = require("./libs/Minesweeper");
 
@@ -26,5 +26,6 @@ MS.setPrefixAction(async (msg, bot) => {
     if (message.length > 2000) msg.channel.send({ content: JSON.stringify(ms.getBoardInfo()), files: [new AttachmentBuilder(Buffer.from(ms.getBoard(), "utf-8"), { name: "ms.txt" })] });
     else msg.channel.send(message);
 });
+MS.setGlobal(false);
 
 module.exports = MS;

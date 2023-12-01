@@ -12,7 +12,7 @@ const configDeepScan = (target, ideal) => {
             delete target[p];
         }
     }
-}
+};
 
 const dirDeepScan = (dir = "./", commandFiles = [], config = {}) => {
     const files = fs.readdirSync(dir);

@@ -1,5 +1,5 @@
 const discord = require("discord.js");
-const { Command } = require("../../utils");
+const Command = require("../../utils/Command");
 
 const VoiceMove = new Command("voicemove", "VoiceMove");
 

@@ -1,5 +1,4 @@
-const discord = require("discord.js");
-const { Command } = require("../../utils");
+const Command = require("../../utils/Command");
 
 const Assemble = new Command("assemble", "TextAssemble");
 Assemble.setSlashAction(async (interact, bot) => {

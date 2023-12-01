@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 require("colors");
-const Command = require("../../utils").Command;
+const Command = require("../../utils/Command");
 
 const grole = new Command("role", "GiveRole");
 grole.setSlashAction(async (interact, bot) => {

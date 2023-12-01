@@ -27,17 +27,12 @@ const getStaticAnswer = async (Completion = { choices: [{ message: { content: ""
     return { content: splitByLength(content, 2000), role };
 };
 
-const respondOnStreamPart = async (Object = { choices: [{ index: 0, delta: { content: "" }, finish_reason: null }] }) => {
-
-}
-
-const makeChatRequest = (text = "", { modid = "main" }) => {
+const sendMessage = async (message = "") => {
 
 }
 
 module.exports = {
     chat: {
-        getStaticAnswer,
-        respondOnStreamPart
+        sendMessage
     }
 }

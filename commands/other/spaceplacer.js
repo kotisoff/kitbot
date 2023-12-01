@@ -1,5 +1,4 @@
-const discord = require("discord.js");
-const { Command } = require("../../utils");
+const Command = require("../../utils/Command");
 
 const SpacePlacer = new Command("spaceplacer", "SpacePlacer");
 SpacePlacer.setSlashAction(async (interact, bot) => {

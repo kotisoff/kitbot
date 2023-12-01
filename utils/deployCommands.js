@@ -1,9 +1,9 @@
 const discord = require('discord.js');
-const { devGuildId, token } = require('../config.json').bot;
-let Logger = require("./logger")
-const log = new Logger("Deploy")
+let Logger = require("./logger");
+const log = new Logger("Deploy");
 
 module.exports = (bot = discord.Client.prototype) => {
+    const { devGuildId, token } = require('../config.json').bot;
     const clientId = bot.application.id;
     const interactionCommands = bot.interCmd;
 
@@ -18,11 +18,13 @@ module.exports = (bot = discord.Client.prototype) => {
         }
     })
 
+    const len = globalCommands.length + devCommands.length;
+
     const rest = new discord.REST().setToken(token);
 
     (async () => {
         try {
-            log.info(`Started refreshing ${interactionCommands.length} application (/) commands.`);
+            log.info(`Started refreshing ${len} application (/) commands.`.gray);
 
             const globalData = await rest.put(
                 discord.Routes.applicationCommands(clientId),

@@ -1,4 +1,4 @@
-const { Command } = require("../../utils");
+const Command = require("../../utils/Command");
 const ymapi = require("ym-api-meowed");
 
 const Api = new ymapi.YMApi();

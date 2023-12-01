@@ -1,5 +1,5 @@
 const discord = require("discord.js");
-const Command = require("../../utils").Command;
+const Command = require("../../utils/Command");
 
 const targetVoice = new Command("targetvoice", "TargetVoice")
 targetVoice.setSlashAction(

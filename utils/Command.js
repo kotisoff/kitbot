@@ -33,12 +33,10 @@ class PrefixCommandBuilder {
     }
 }
 
-const getCfgDirFromFldrname = (configFolderName = "kot.test") => path.join(process.cwd(), "configs", configFolderName);
-
-const CommandTypes = { slash: true, prefix: false };
-
-class Command {
-    constructor(id = "example", name = "Example", { slash, prefix } = CommandTypes) {
+module.exports = class {
+    getCfgDirFromFldrname = (configFolderName = "kot.test") => path.join(process.cwd(), "configs", configFolderName);
+    CommandTypes = { slash: true, prefix: false };
+    constructor(id = "example", name = "Example", { slash, prefix } = this.CommandTypes) {
         this.id = id;
         this.name = name;
 
@@ -65,7 +63,7 @@ class Command {
         this.prefixRun = callback;
         return this;
     }
-    setCommandType = (settings = CommandTypes) => {
+    setCommandType = (settings = this.CommandTypes) => {
         this.isPrefixCommand = settings.prefix ?? this.isPrefixCommand;
         this.isSlashCommand = settings.slash ?? this.isSlashCommand;
         return this;
@@ -88,7 +86,7 @@ class Command {
     }
     getConfig = (configFolderName = this.configFolderName) => {
         this.configFolderName = configFolderName;
-        const dir = getCfgDirFromFldrname(configFolderName);
+        const dir = this.getCfgDirFromFldrname(configFolderName);
         const configfile = path.join(dir, this.configName);
         if (!fs.existsSync(configfile)) {
             try {
@@ -100,11 +98,9 @@ class Command {
     };
     writeConfig = (config = {}, configFolderName = this.configFolderName) => {
         this.configFolderName = configFolderName;
-        const dir = getCfgDirFromFldrname(configFolderName);
+        const dir = this.getCfgDirFromFldrname(configFolderName);
         const configfile = path.join(dir, this.configName);
         fs.writeFileSync(configfile, JSON.stringify(config));
         return this;
     };
 }
-
-module.exports = Command

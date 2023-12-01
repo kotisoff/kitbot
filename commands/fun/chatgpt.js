@@ -3,7 +3,7 @@ const discord = require("discord.js"),
 require("colors");
 const { getConfig, getMods, getMemories, saveAll, writeProfiles, setLogger } = require("./ai.lib/datamgr");
 const { chat } = require("./ai.lib/aiUtil");
-const Command = require("../../utils").Command;
+const Command = require("../../utils/Command");
 
 // Additional functions
 const AI = new Command("ai", "AI");
@@ -153,7 +153,6 @@ const onMsg = async (msg) => {
         } catch { }
         target.memory.ai_messages.push(resultmsg);
         AI.logger.info("Printing done.")
-        // AI.logger.info( "Printing done.".gray);
         if (process.argv.slice(2).includes("--printresponse")) AI.logger.info(resultmsg.content.gray);
         if (!isMain()) {
           setTimeout(() => {
@@ -177,7 +176,7 @@ const onMsg = async (msg) => {
 };
 
 setInterval(() => {
-  saveAll(mods, memories, config.options.logdetails);
+  saveAll(memories, config.options.logdetails);
 }, 180000);
 
 AI.setSlashAction(async (interact, bot) => {
@@ -261,7 +260,7 @@ AI.setSlashAction(async (interact, bot) => {
     o.setName("modid").setDescription("Идентификатор мода.")
   )
 AI.setShutdownAction(() => {
-  saveAll(mods, memories, true);
+  saveAll(memories, true);
 })
 AI.setSharedThread(shareThread)
 

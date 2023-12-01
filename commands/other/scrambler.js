@@ -1,5 +1,4 @@
-const discord = require("discord.js");
-const { Command } = require("../../utils");
+const Command = require("../../utils/Command");
 const { Alphabets, encrypt, decrypt } = require("./libs/ScrambleLib");
 
 const Scrambler = new Command("scrambler", "Scrambler");
