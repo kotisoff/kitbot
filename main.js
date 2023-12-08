@@ -5,7 +5,7 @@ const discord = require("discord.js"),
 require("colors");
 
 const { configDeepScan, dirDeepScan } = require("./utils/scanTools");
-const deployCommands = require("./utils/deployCommands");
+const deployCommands = require("./core/deployCommands");
 const Logger = require("./utils/logger");
 
 const args = (() => {

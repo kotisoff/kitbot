@@ -5,11 +5,11 @@ require("colors");
 
 // Init
 
-const configpath = path.join(process.cwd(), "/configs/kot.chatgpt");
-const modsdir = path.join(configpath, "./mods");
-const memdir = path.join(configpath, "./memories")
+const configdir = path.join(process.cwd(), "/configs/kot.chatgpt");
+const modsdir = path.join(configdir, "./mods");
+const memdir = path.join(configdir, "./memories")
 try {
-  fs.mkdirSync(configpath);
+  fs.mkdirSync(configdir);
   fs.mkdirSync(modsdir);
   fs.mkdirSync(memdir);
 } catch { }
@@ -42,9 +42,25 @@ let config = {
   prefix: "-",
   options: { ai_stream: true, logdetails: false },
 };
-config = fileimport(path.join(configpath, "./config.json"), config);
+config = fileimport(path.join(configdir, "./config.json"), config);
+
+// Profiles
+
 let profiles = { channels: [] };
-profiles = fileimport(path.join(configpath, "./data/profiles.json"), profiles);
+profiles = fileimport(path.join(configdir, "./profiles.json"), profiles);
+
+const pushToProfiles = (channelid = "") => {
+  profiles.channels.push(channelid);
+}
+
+const writeProfiles = (showlog = false) => {
+  fs.writeFileSync(
+    path.join(configdir, "./profiles.json"),
+    JSON.stringify(profile),
+    () => { }
+  );
+  if (showlog) logger.info("Profiles are rewritten successfully.")
+}
 
 // Mods
 const main = {
@@ -69,7 +85,14 @@ files.map(f => {
 });
 mods.set(main.modid, main.name);
 
-const getMod = (id = "kotisoff:cold") => (id == main.modid) ? main : (mods.has(id)) ? importJson(path.join(modsdir, mods.get(id))) : undefined;
+const getMod = (id = "kotisoff:cold") => {
+  if (main.modid == id) return main;
+  if (mods.has(id)) {
+    let mod = main;
+    mod = importJson(path.join(modsdir, mods.get(id)))
+    return mod;
+  }
+};
 
 const getMods = () => {
   const tmp = [main];
@@ -81,25 +104,23 @@ const getMods = () => {
 };
 
 // Ai memory
-const getMemory = (modid) => {
+const getMemory = (modid = "kotisoff:main") => {
   const filename = mods.get(modid).split(".json")[0];
   const mod = getMod(modid);
   const dir = path.join(memdir, `${filename}_memory.json`);
-  return fileimport(dir, {
+  let memory = {
     modid,
-    ai_system: [{ role: "system", content: mod.personality }],
-    ai_messages: [],
-  },
-    true
-  )
+    messages: [{ role: "system", content: mod.personality }],
+  };
+  memory = fileimport(dir, memory, true)
+  return memory
 }
 
 const getMemories = () => {
   let memories = [
     {
       modid: "",
-      ai_system: [{ role: "", content: "" }],
-      ai_messages: [{ role: "", content: "" }],
+      messages: [{ role: "", content: "" }],
     },
   ];
   memories = []
@@ -108,6 +129,9 @@ const getMemories = () => {
   })
   return memories;
 };
+
+const resetMemory = (modid = "kotisoff:main") => {
+}
 
 // save data
 const saveMemory = (modid = "kotisoff:main", memory = {}) => {
@@ -124,18 +148,14 @@ const saveAll = (memories, showlog) => {
   if (showlog) logger.info("Data saved!");
 }
 
-const writeProfiles = (profiles, showlog) => {
-  fs.writeFileSync(
-    path.join(configpath, "./data/profiles.json"),
-    JSON.stringify(profiles),
-    () => { }
-  );
-  if (showlog) logger.info("Profiles are rewritten successfully.")
-}
-
 module.exports = {
   getConfig: {
     config, profiles
+  },
+  paths: {
+    configdir,
+    modsdir,
+    memdir
   },
   getMods,
   getMod,
@@ -143,6 +163,7 @@ module.exports = {
   getMemory,
   saveMemory,
   saveAll,
+  pushToProfiles,
   writeProfiles,
   setLogger
 };

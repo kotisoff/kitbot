@@ -1,7 +1,7 @@
 const discord = require("discord.js"),
   { OpenAI } = require("openai")
 require("colors");
-const { getConfig, getMods, getMemories, saveAll, writeProfiles, setLogger } = require("./ai.lib/datamgr");
+const { getConfig, getMods, getMemories, saveAll, writeProfiles, setLogger } = require("./ai.lib/aiDataMgr");
 const { chat } = require("./ai.lib/aiUtil");
 const Command = require("../../utils/Command");
 
@@ -87,7 +87,7 @@ const onMsg = async (msg) => {
     msg.content.slice(target.prefix.length).gray
   );
 
-  target.memory.ai_messages.push({
+  target.memory.messages.push({
     role: "user",
     content: msg.content.slice(target.prefix.length),
     name: msg.author.id,
@@ -107,14 +107,14 @@ const onMsg = async (msg) => {
     .chat.completions.create(
       {
         model: target.ai_settings.model,
-        messages: target.memory.ai_system.concat(target.memory.ai_messages),
+        messages: target.memory.messages,
         temperature: target.ai_settings.temperature,
         n: 1,
         user: msg.author.id,
         stream: config.options.ai_stream,
       }
     ).catch((err) => {
-      target.memory.ai_messages = [];
+      target.memory.messages = [];
       AI.logger.info(err);
       return editmsg(
         streaming,

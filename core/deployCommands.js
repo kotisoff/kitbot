@@ -1,5 +1,5 @@
 const discord = require('discord.js');
-let Logger = require("./logger");
+let Logger = require("../utils/logger");
 const log = new Logger("Deploy");
 
 module.exports = (bot = discord.Client.prototype) => {
@@ -33,11 +33,12 @@ module.exports = (bot = discord.Client.prototype) => {
             const devData = await rest.put(
                 discord.Routes.applicationGuildCommands(clientId, devGuildId),
                 { body: devCommands },
+            ).catch(
+                () => log.warn("Dev guild id is not set, commands are not loaded.")
             )
 
-            log.info(`Reloaded: ${globalData.length} Global, ${devData.length} Dev commands.`.gray);
+            log.info(`Reloaded: ${globalData.length ?? 0} Global, ${devData.length ?? 0} Dev commands.`.gray);
         } catch (error) {
-            // And of course, make sure you catch and log any errors!
             log.error(error);
         }
     })();

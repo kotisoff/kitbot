@@ -40,8 +40,8 @@ module.exports = class {
         this.id = id;
         this.name = name;
 
-        this.isSlashCommand = slash;
-        this.isPrefixCommand = prefix;
+        this.isSlashCommand = slash ?? true;
+        this.isPrefixCommand = prefix ?? false;
         this.isGlobal = true;
 
         this.slashCommandInfo = new SlashCommandBuilder().setName(this.id).setDescription("ExampleDescription")
@@ -50,8 +50,8 @@ module.exports = class {
         this.configFolderName = "kot.test";
         this.configName = "config.json"
 
-        this.slashRun = (interact = CommandInteraction.prototype, bot = Client.prototype) => { interact.channel.send("Example Action!") };
-        this.prefixRun = (message = Message.prototype, bot = Client.prototype) => { message.channel.send("Example Action!") };
+        this.slashRun = (interact = CommandInteraction.prototype, bot = Client.prototype) => { interact.reply("Example Action!") };
+        this.prefixRun = (message = Message.prototype, bot = Client.prototype) => { message.reply("Example Action!") };
         this.shutdown = () => { };
         this.shareThread = (bot = Client.prototype) => { throw Error() };
     }
