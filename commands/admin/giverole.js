@@ -55,7 +55,7 @@ grole.setSlashAction(async (interact, bot) => {
       if (user) {
         grole.logger.info(
           `${("@" + interact.user.username).magenta
-          }: requested to take a role ${("@" + role.name).cyan}: from user ${("@" + user.username).magenta
+          }: requested to take off from them a role ${("@" + role.name).cyan}: from user ${("@" + user.username).magenta
           }`
         );
         await interact.guild.members.cache.get(uid).roles.remove(`${id}`);

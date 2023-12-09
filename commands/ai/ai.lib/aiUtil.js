@@ -25,16 +25,23 @@ const getChatResponse = async (modid) => {
     const memory = getMemory(modid);
     const Response = ai.chat.completions.create({
         model: mod.ai_settings.model,
-        messages: memory.ai_system.concat(memory.ai_messages),
-        temperature: target.ai_settings.temperature,
+        messages: memory.messages,
+        temperature: mod.ai_settings.temperature,
         n: 1,
         user: msg.author.id,
         stream: config.options.ai_stream,
-        stop: ["стой", "стоп", "остановись", "stop"]
+        stop: mod.ai_settings.stop,
+        tools: mod.ai_settings.tools
     })
+    return Response;
 }
 
 const chatSendMessage = async (message = "", modid = "kotisoff:main") => {
+    const message = {
+        role: "user",
+        content: message
+    }
+    getMemory(modid).messages.push()
 }
 
 module.exports = {

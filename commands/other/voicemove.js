@@ -11,7 +11,7 @@ VoiceMove.setSlashAction(async (interact, bot) => {
     return await interact.editReply(
       "Вы не можете перенестись в канал в котором вы уже находитесь!"
     );
-  channel.members.forEach((u) => {
+  channel.members.forEach(async (u) => {
     u.voice.setChannel(voice).catch((e) => {
       return interact.editReply(`Не удалось перенести! ${e.message}`);
     });

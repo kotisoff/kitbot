@@ -23,15 +23,34 @@ const msgObj = [
 ];
 
 const oldAi = {
-  "modid": "kotisoff:nekochan",
-  "prefix": "'neko-",
-  "name": "Неко-тян",
-  "avatar_url": "https://preview.redd.it/anime-cat-girls-v0-l3g1myw120ka1.jpg?width=640&crop=smart&auto=webp&s=aa96ec766066bf89e804d56885de0db15df8e7e4",
-  "personality": "Ты маленькая и наивная аниме девочка-кошка. Любишь аниме и мангу, подражаешь их героям. Пишешь ня в конце каждого сообщения. Когда тебя спрашивают кто ты, отвечай что ты - она.",
-  "ai_settings": {
-    "model": "gpt-3.5-turbo",
-    "temperature": 1.2
+  modid: "",
+  prefix: "",
+  name: "",
+  avatar_url: "",
+  personality: "",
+  ai_settings: {
+    model: "",
+    temperature: 1
   }
+}
+
+const Ai = {
+  modid: "",
+  prefix: "",
+  name: "",
+  avatar_url: "",
+  ai_settings: {
+    model: "",
+    temperature: 1,
+    stop: [""],
+    tools: [{}]
+  },
+  messages: [
+    {
+      role: "",
+      content: ""
+    }
+  ]
 }
 
 class Personality {
@@ -52,7 +71,7 @@ class Personality {
     }
   }
   setName = (name = this.name) => {
-    this.name = name;
+    this.name = name ?? this.name;
     return this;
   }
   setCallPrefix = (prefix = this.prefix, withoutConfigPrefix = false) => {
@@ -61,7 +80,7 @@ class Personality {
     return this;
   }
   setAvatarUrl = (url = this.avatar_url) => {
-    this.avatar_url = url;
+    this.avatar_url = url ?? this.avatar_url;
     return this;
   }
 
@@ -76,12 +95,14 @@ class Personality {
     this.systemMessages.push(message);
     return this;
   }
-  addUserMessage = (content = "") => {
+  addUserMessage = (content = "", name = "") => {
+    if (!content) return this;
     const role = roles.user;
     const message = {
       role: role,
       content
     }
+    if (name) message.name = name;
     this.presetMessages.push(message);
     return this;
   }
@@ -113,12 +134,15 @@ class Personality {
   /**
    * Use carefully!!! 
    * If you want your profile to work, set only models that exist at the moment
-   * @param set Leave blank, if just you want to get ai model.
+   * @param set Leave blank, if you just want to get data.
    */
   aiModel = (set = this.ai_settings.model) => {
     this.ai_settings.model = set;
     return this.ai_settings.model;
   }
+  /**
+   * @param set Leave blank, if you just want to get data. From 0 to 2.
+   */
   aiTemperature = (set = this.ai_settings.temperature) => {
     this.ai_settings.temperature = set;
     return this.ai_settings.temperature;
@@ -157,12 +181,21 @@ class Personality {
 
   // ETC
 
-  portOld = (ai = oldAi) => {
-    this.author = ai.modid.split(":")[0]
-    this.id = ai.modid.split(":")[1]
+  importOld = (ai = oldAi) => {
+    this.author = ai.modid.split(":")[0];
+    this.id = ai.modid.split(":")[1];
     this.modid = ai.modid;
     this.ai_settings = ai.ai_settings;
     this.setName(ai.name).setAvatarUrl(ai.avatar_url).setCallPrefix(ai.prefix, true).addSystemMessage(ai.personality);
+  }
+  import = (ai = Ai) => {
+    this.author = ai.modid.split(":")[0];
+    this.id = ai.modid.split(":")[1];
+    this.modid = ai.modid;
+    this.ai_settings = ai.ai_settings;
+    this.setName(ai.name).setAvatarUrl(ai.avatar_url).setCallPrefix(ai.prefix, true)
+    this.systemMessages = ai.messages.filter(i => i.role == roles.system);
+    this.presetMessages = ai.messages.filter(i => i.role != roles.system);
   }
 }
 

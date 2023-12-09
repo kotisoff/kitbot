@@ -12,7 +12,9 @@ Assemble.setSlashAction(async (interact, bot) => {
     .setDescription("Concats messages in one.")
     .addNumberOption((o) =>
         o.setName("amount")
-            .setDescription("Amount to delete")
+            .setDescription("Amount to concat")
+            .setMaxValue(100)
+            .setMinValue(1)
             .setRequired(true)
     )
 
