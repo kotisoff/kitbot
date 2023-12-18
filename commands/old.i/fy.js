@@ -10,7 +10,7 @@ module.exports = {
   pdata: {
     name: "fuckyou",
     shortname: "fy",
-    runame: "идинахуй",
+    runame: "идинахуй"
   },
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
   async exec(interact, bot) {
@@ -25,5 +25,5 @@ module.exports = {
     msg.delete().catch();
     if (!args[0]) return msg.channel.send("Пошёл нахуй!");
     if (args[0]) return msg.channel.send(`Пошёл нахуй, ${args.join(" ")}!`);
-  },
+  }
 };

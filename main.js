@@ -1,3 +1,9 @@
+console.log("[INFO ??:??:??]", "\x1b[90mImporting modules...\x1b[0m");
+
+const Logger = require("./utils/logger");
+const log = new Logger("Main");
+
+const loadtimer = Date.now();
 const discord = require("discord.js"),
   fs = require("node:fs"),
   path = require("node:path");
@@ -6,18 +12,14 @@ require("colors");
 
 const { configDeepScan, dirDeepScan } = require("./utils/scanTools");
 const deployCommands = require("./core/deployCommands");
-const Logger = require("./utils/logger");
+log.info("All modules imported.".gray);
 
 const args = (() => {
   const args = process.argv.slice(2);
   return { debug: args.includes("debug") };
 })();
 
-const log = new Logger("Main");
-
 const configVersion = "0.0.1";
-
-const loadtimer = Date.now();
 
 // Loading configuration
 
@@ -34,9 +36,9 @@ const idealConfig = {
     allowShortCommands: true,
     allowRussianCommands: true,
     autoDeploy: true,
-    ignoredCommandDirs: [".lib", ".i", "libs"],
+    ignoredCommandDirs: [".lib", ".i", "libs"]
   },
-  latestVersion: configVersion,
+  latestVersion: configVersion
 };
 
 if (!fs.existsSync("./config.json")) {
@@ -53,6 +55,8 @@ if (config.latestVersion != configVersion) {
   config.latestVersion = idealConfig.latestVersion;
   fs.writeFileSync("./config.json", JSON.stringify(config));
 }
+
+log.info(`Main config imported. (${Date.now() - loadtimer}ms)`.gray);
 
 const { token, prefix } = config.bot;
 
@@ -73,16 +77,23 @@ bot.config = config;
 
 const commands = [];
 
+log.info(`Importing commands... (${Date.now() - loadtimer}ms)`.gray);
+
 const commandsPath = path.join(__dirname, config.settings.commandsPath);
 const commandFiles = [];
-dirDeepScan(commandsPath, commandFiles, config);
+dirDeepScan(commandsPath, {
+  collected: commandFiles,
+  ignoredDirs: config.settings.ignoredCommandDirs,
+  fileExtension: ".js"
+});
 
 for (const file of commandFiles) {
   commands.push(require(file));
 }
+
 log.info(
   commands.length,
-  `commands loaded... (${Date.now() - loadtimer}ms)`.gray
+  `commands imported... (${Date.now() - loadtimer}ms)`.gray
 );
 
 // Init commands
@@ -96,10 +107,10 @@ commands.forEach((command, index) => {
       bot.prefCmd.set(command.prefixCommandInfo.name, command);
       if (settings.allowShortCommands)
         bot.prefCmd.set(command.prefixCommandInfo.shortName, command);
-      if (settings.allowRussianCommands)
+      if (settings.allowRussianCommands) {
         bot.prefCmd.set(command.prefixCommandInfo.ruName, command);
-      if (settings.allowRussianCommands && settings.allowShortCommands) {
-        bot.prefCmd.set(command.prefixCommandInfo.shortRuName, command);
+        if (settings.allowShortCommands)
+          bot.prefCmd.set(command.prefixCommandInfo.shortRuName, command);
       }
     }
     if (command.isSlashCommand) {
@@ -123,7 +134,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
   if (!command) {
     interaction.reply({
       content: `Команда ${interaction.commandName} не существует!\nОна была либо удалена, либо перенесена.\nСвяжитесь с @kotisoff для подробностей!`,
-      ephemeral: true,
+      ephemeral: true
     });
     log.error(`No command matching ${interaction.commandName} was found.`.gray);
     return;
@@ -135,7 +146,7 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
     log.error(error);
     let errcontent = {
       content: "Бот съехал с катушек, звоните в дурку бля.",
-      ephemeral: true,
+      ephemeral: true
     };
     if (!interaction.replied) {
       await interaction.reply(errcontent);
@@ -188,13 +199,17 @@ bot.once(discord.Events.ClientReady, (bot) => {
 
   bot.user.setStatus("idle");
   bot.user.setActivity("за " + bot.guilds.cache.size + " серверами ._.", {
-    type: discord.ActivityType.Watching,
+    type: discord.ActivityType.Watching
   });
 
   log.info(initialized, "commands initialized.".green);
   log.info(collected, "commands total.".green);
   log.info(`Bot took ${Date.now() - loadtimer}ms to launch.`.gray);
-  log.info("Bot invite link: ".gray + `https://discord.com/oauth2/authorize?client_id=${bot.application.id}&permissions=8&scope=bot`.blue);
+  log.info(
+    "Bot invite link: ".gray +
+      `https://discord.com/oauth2/authorize?client_id=${bot.application.id}&permissions=8&scope=bot`
+        .blue
+  );
 });
 
 process.on("unhandledRejection", (error) => {
@@ -206,7 +221,7 @@ process.on("SIGINT", () => {
   commands.forEach((command) => {
     try {
       command.shutdown();
-    } catch { }
+    } catch {}
   });
   log.info("Bye!");
   bot.destroy();

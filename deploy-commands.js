@@ -5,7 +5,7 @@ const config = require("./config.json").bot;
 const guildId = process.argv.slice(2)[0] ?? config.guildId;
 const { clientId, token } = config;
 
-const ignoredirs = [".ignore", ".lib", ".i"]
+const ignoredirs = [".ignore", ".lib", ".i"];
 
 const commands = [];
 const commandFiles = [];
@@ -18,7 +18,9 @@ const resolvedir = (dir) => {
     if (stat.isFile() && file.endsWith(".js"))
       return commandFiles.push(filepath);
     else if (stat.isDirectory()) {
-      for (let item of ignoredirs) { if (file.endsWith(item)) return }
+      for (let item of ignoredirs) {
+        if (file.endsWith(item)) return;
+      }
       return resolvedir(filepath);
     }
   });
@@ -26,7 +28,7 @@ const resolvedir = (dir) => {
 resolvedir(path.join(__dirname, "./commands"));
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 // Здесь я проебался и решил: Ну его нахуй этот отдельный скрипт, пойду лучше утилиту напишу к основному скрипту для этого
-console.log(commandFiles)
+console.log(commandFiles);
 for (const file of commandFiles) {
   const command = require(file);
   if (!command.data || !command.slashCommandInfo) return;
