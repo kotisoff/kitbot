@@ -19,6 +19,7 @@ ai.setSlashAction(async (i, b) => {
   const builder = new aiBuilder(id, i.user.username);
   builder.setName(name).setAvatarUrl(avatarurl);
   await i.reply(`\`\`\`json\n${JSON.stringify(builder.build())}\`\`\``);
+  b.data["ai.refresh"] = true;
 });
 
 ai.setGlobal(false);

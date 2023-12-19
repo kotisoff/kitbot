@@ -1,6 +1,7 @@
 const fs = require("node:fs"),
   path = require("node:path");
 const Logger = require("../../../utils/logger");
+const Mod = require("./aiMod");
 require("colors");
 
 // Init
@@ -65,44 +66,36 @@ const writeProfiles = (showlog = false) => {
 };
 
 // Mods
-const main = {
-  modid: "kotisoff:main",
-  prefix: config.prefix,
-  name: "main",
-  avatar_url: "",
-  personality:
-    "Ты бот помощник пользователя. Всегда отвечай на вопросы максимально точно и подробно.",
-  ai_settings: {
-    model: "gpt-3.5-turbo-16k-0613", // "gpt-4-1106-preview", // "gpt-3.5-turbo-16k-0613",
-    temperature: 1.2,
-    stop: ["стой", "стоп", "остановись", "stop"],
-    tools: []
-  }
-};
+const main = new Mod().setPrefix(config.prefix);
 
 const mods = new Map();
-const files = fs.readdirSync(modsdir).filter((i) => i.endsWith(".json"));
-files.map((f) => {
-  const modid = JSON.parse(
-    fs.readFileSync(path.join(modsdir, f)).toString()
-  ).modid;
-  if (mods.has(modid))
-    logger.warn(
-      `Modification conflict found: Identical "${modid}" in "${f}" and "${mods.get(
-        modid
-      )}". The last one will be ignored.`.gray
-    );
-  mods.set(modid, f);
-});
-mods.set(main.modid, main.name);
-logger.info("Found".gray, mods.size, "personalities.".gray);
+
+const refreshMods = () => {
+  mods.clear();
+  const files = fs.readdirSync(modsdir).filter((i) => i.endsWith(".json"));
+  files.map((f) => {
+    const modid = JSON.parse(
+      fs.readFileSync(path.join(modsdir, f)).toString()
+    ).modid;
+    if (mods.has(modid))
+      logger.warn(
+        `Modification conflict found: Identical "${modid}" in "${f}" and "${mods.get(
+          modid
+        )}". The last one will be ignored.`.gray
+      );
+    mods.set(modid, f);
+  });
+  mods.set(main.modid, main.name);
+  logger.info("Found".gray, mods.size, "personalities.".gray);
+};
+
+refreshMods();
 
 const getMod = (id = "kotisoff:cold") => {
   if (main.modid == id) return main;
   if (mods.has(id)) {
-    let mod = main;
-    mod = importJson(path.join(modsdir, mods.get(id)));
-    return mod;
+    const moddata = importJson(path.join(modsdir, mods.get(id)));
+    return new Mod(moddata);
   }
 };
 
@@ -115,6 +108,8 @@ const getMods = () => {
   return tmp;
 };
 
+const isMain = (modid = "kotisoff:main") => modid == "kotisoff:main";
+
 // Ai memory
 const getMemory = (modid = "kotisoff:main") => {
   const filename = mods.get(modid).split(".json")[0];
@@ -122,7 +117,7 @@ const getMemory = (modid = "kotisoff:main") => {
   const dir = path.join(memdir, `${filename}_memory.json`);
   let memory = {
     modid,
-    messages: [{ role: "system", content: mod.personality }]
+    messages: mod.messages
   };
   memory = fileimport(dir, memory, true);
   return memory;
@@ -171,7 +166,8 @@ module.exports = {
     mods: getMods,
     mod: getMod,
     memories: getMemories,
-    memory: getMemory
+    memory: getMemory,
+    isMain
   },
   save: {
     saveMemory,
@@ -181,5 +177,6 @@ module.exports = {
     push: pushToProfiles,
     write: writeProfiles
   },
-  setLogger
+  setLogger,
+  refreshMods
 };

@@ -1,19 +1,16 @@
 const openai = require("openai");
 const { Stream } = require("openai/streaming");
-const { get, save, profile } = require("./aiDataMgr");
+const aiDataMgr = require("./aiDataMgr");
+const Mod = require("./aiMod");
 const discord = require("discord.js");
 
-const config = get.config;
+const config = aiDataMgr.get.config;
+const isMain = aiDataMgr.get.isMain;
 
 const ai = new openai.OpenAI({
   apiKey: config.api.key,
   baseURL: config.api.url
 });
-
-const isMain = (modid = "kotisoff:main") => {
-  if (modid == "kotisoff:main") return true;
-  return false;
-};
 
 // Functions
 
@@ -29,30 +26,24 @@ const splitByLength = (string = "", len = 1) => {
   return temp;
 };
 
-const getWebHook = async (
-  message = discord.Message.prototype,
-  mod = get.mod()
-) => {
-  const webhooks = (await message.guild.fetchWebhooks()).map((i) => i);
-  let webhook = webhooks.find((i) => i.name == mod.name);
+/** @param { discord.Message } message */
+const getAiWebHook = async (message) => {
+  const webhooks = await message.guild.fetchWebhooks();
+  let webhook = webhooks.find((i) => i.name == "ai");
   if (webhook) {
-    webhook.edit({
-      avatar: mod.avatar_url,
-      name: mod.name,
-      channel: message.channel
-    });
+    if (webhook.channelId != message.channelId)
+      webhook.edit({ channel: message.channel, reason: "Ai response." });
     return webhook;
   }
-  webhook = await message.channel.createWebhook({
-    avatar: mod.avatar_url,
-    name: mod.name
+  webhook = message.channel.createWebhook({
+    name: "ai"
   });
   return webhook;
 };
 
 const getChatResponse = async (message = "", modid = "kotisoff:main") => {
-  const mod = get.mod(modid);
-  const memory = get.memory(modid);
+  const mod = aiDataMgr.get.mod(modid);
+  const memory = aiDataMgr.get.memory(modid);
 
   const messageTmp = {
     role: "user",
@@ -60,18 +51,20 @@ const getChatResponse = async (message = "", modid = "kotisoff:main") => {
   };
   memory.messages.push(messageTmp);
 
-  save.saveMemory(modid, memory);
+  aiDataMgr.save.saveMemory(modid, memory);
 
-  const Response = ai.chat.completions.create({
+  const requestBody = {
     model: mod.ai_settings.model,
     messages: memory.messages,
     temperature: mod.ai_settings.temperature,
     n: 1,
     stream: config.options.ai_stream,
-    stop: mod.ai_settings.stop,
     tools: mod.ai_settings.tools
-  });
-  return await Response;
+  };
+  if (!requestBody.tools?.length) delete requestBody.tools;
+
+  const Response = ai.chat.completions.create(requestBody);
+  return Response;
 };
 
 /**
@@ -79,23 +72,29 @@ const getChatResponse = async (message = "", modid = "kotisoff:main") => {
  */
 const handleStreamResponse = async function* (
   response,
-  modid = "kotisoff:main"
+  modid = "kotisoff:main",
+  skipRate = 10
 ) {
   const data = response;
-  let full;
-  let myId;
+  let full,
+    myId,
+    cycle = skipRate - 1;
   for await (let part of data) {
     myId ??= part.id;
     if (myId != part.id) continue;
     const temp = part.choices[0].delta;
     full ??= temp;
     if (temp.content) full.content += temp.content;
-    console.log(temp);
-    yield temp;
+    if (cycle % skipRate == 0) {
+      yield full;
+    }
+    cycle++;
   }
-  const memory = get.memory(modid);
+  const memory = aiDataMgr.get.memory(modid);
   memory.messages.push(full);
-  save.saveMemory(modid, memory);
+  aiDataMgr.save.saveMemory(modid, memory);
+  full.done = true;
+  yield full;
   return true;
 };
 
@@ -104,19 +103,16 @@ const handleStreamResponse = async function* (
  * @returns { Promise<Record<"content", Array<string>> & Omit<openai.default.ChatCompletionMessage, "content">> }
  */
 const handleStaticResponse = async (response, modid = "kotisoff:main") => {
-  console.log("waiting for response...");
   const data = response.choices[0].message;
-  console.log(data.content);
-  const memory = get.memory(modid);
+  const memory = aiDataMgr.get.memory(modid);
   memory.messages.push(data);
   data.content = splitByLength(data.content, 2000);
   save.saveMemory(modid, memory);
-  console.log("done.");
   return data;
 };
 
 const getModFromPrefixMsg = (message = "") => {
-  const mods = get.mods();
+  const mods = aiDataMgr.get.mods();
   const prefixes = mods.map((i) => i.prefix);
   const prefix = prefixes.find((prefix) => {
     const messageCut = message.substring(0, prefix.length);
@@ -125,26 +121,27 @@ const getModFromPrefixMsg = (message = "") => {
   return mods.find((mod) => mod.prefix == prefix);
 };
 
-const appendMessage = async (
+const editMessageContent = async (
   message = discord.Message.prototype,
-  appendString = ""
+  content = "",
+  mod = Mod.prototype
 ) => {
-  if ((message.content + appendString).length > 2000)
-    return await message.channel.send(appendString);
-  else return await message.edit(message.content + appendString);
+  if (!content.length) return;
+  if ((message.content + content).length > 2000)
+    return await mod.send(message, splitByLength(content, 2000).pop());
+  else {
+    return isMain(mod.modid)
+      ? await message.edit(content)
+      : await mod.webhookEditMsg(message, content);
+  }
 };
 
 module.exports = {
   getModFromPrefixMsg,
   getChatResponse,
-  getWebHook,
+  getAiWebHook,
   handleStaticResponse,
   handleStreamResponse,
-  isMain,
-  appendMessage,
-  aiDataMgr: {
-    get,
-    save,
-    profile
-  }
+  editMessageContent,
+  aiDataMgr
 };

@@ -88,6 +88,7 @@ command.setSlashAction(async (i, b) => {
     files
   });
   command.logger.info("Copied user:".gray, `@${user.username}`.blue);
+  b.data["ai.refresh"] = true;
 });
 
 module.exports = command;
