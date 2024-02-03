@@ -1,10 +1,9 @@
 const aiChat = require("./ai.lib/aiChatLib");
 const config = aiChat.aiDataMgr.get.config;
 
-const printresponse = process.argv.splice(2).includes("--printresponse");
+const printresponse = process.argv.includes("--printresponse");
 
 const Command = require("../../utils/Command");
-const { FsReadStream } = require("openai/_shims/auto/types");
 
 const chatgpt = new Command("ai", "AI");
 
@@ -12,6 +11,8 @@ chatgpt.slashCommandInfo.setDescription("Show ai profile list.");
 
 chatgpt.setSharedThread(async (bot) => {
   bot.on("messageCreate", async (message) => {
+    if (!aiChat.aiDataMgr.get.profiles.channels.includes(message.channelId))
+      return;
     const mod = aiChat.getModFromPrefixMsg(message.content);
     if (!mod) return;
     mod.setWebhook(await aiChat.getAiWebHook(message));
@@ -22,7 +23,9 @@ chatgpt.setSharedThread(async (bot) => {
     const msg = await mod.send(message, "_Думоет..._", {
       threadId: message.thread?.id
     });
-    const response = await aiChat.getChatResponse(message.content, mod.modid);
+    const response = await aiChat
+      .getChatResponse(message.content, mod.modid)
+      .catch(chatgpt.logger.error);
     if (config.options.ai_stream) {
       const cycle = aiChat.handleStreamResponse(response, mod.modid, 15);
       for await (let part of cycle) {
@@ -34,9 +37,7 @@ chatgpt.setSharedThread(async (bot) => {
       const data = await aiChat.handleStaticResponse(response, mod.modid);
       chatgpt.logger.info(`Answer from ${mod.modid}:`, data.content.join(""));
       msg.edit(data.content.shift());
-      data.content.forEach(
-        async (data) => await aiChat.editMessageContent(msg, data, mod)
-      );
+      data.content.forEach(async (data) => await mod.send(message, data));
     }
     mod.destroy();
   });

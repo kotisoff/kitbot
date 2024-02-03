@@ -8,6 +8,8 @@ const path = require("path"),
   fs = require("fs");
 require("colors");
 
+const Command = this;
+
 class PrefixCommandBuilder {
   constructor(CommandConstructor = Command.prototype) {
     this.name = "thisHappensIfYouDoNotSetCommandName";
@@ -42,7 +44,12 @@ class PrefixCommandBuilder {
 module.exports = class {
   getCfgDirFromFldrname = (configFolderName = "kot.test") =>
     path.join(process.cwd(), "configs", configFolderName);
+
+  getDataDir = (folderName = "kot.test") =>
+    path.join(process.cwd(), "data", folderName);
+
   CommandTypes = { slash: true, prefix: false };
+
   constructor(
     id = "example",
     name = "Example",
@@ -55,7 +62,7 @@ module.exports = class {
     this.isPrefixCommand = prefix ?? false;
     this.isGlobal = true;
 
-    this.slashCommandInfo = new SlashCommandBuilder()
+    this.slashCommandInfo = new SlashCommandBuilder(this)
       .setName(this.id)
       .setDescription("ExampleDescription");
     this.prefixCommandInfo = new PrefixCommandBuilder(this)
