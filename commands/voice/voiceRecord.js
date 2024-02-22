@@ -74,7 +74,7 @@ voiceRecord.setSlashAction(async (interact, client) => {
       return interact.reply("You are not in voice channel!");
     toggleUserBan(uid);
     return interact.reply(
-      `Bot ${isUserBanned(uid) ? "is" : "is not"} recording you.`
+      `Bot ${isUserBanned(uid) ? "is **NOT**" : "**is**"} recording you.` //небольшая поправочка. если пользователь находится в бане, его НЕ записывают.
     );
   }
 
