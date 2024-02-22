@@ -85,6 +85,7 @@ module.exports = class {
     this.shareThread = (bot = Client.prototype) => {
       throw Error();
     };
+    this.tempData = {};
   }
   setSlashAction = (callback = this.slashRun) => {
     this.slashRun = callback;

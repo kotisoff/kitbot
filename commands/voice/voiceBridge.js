@@ -77,7 +77,7 @@ const handleChunk = async (chunk, room, channel) => {
       JSON.stringify({ channelid: channel.id, data: room.busyData })
     );
     room.busyData = "";
-  }, 1);
+  }, 2);
 };
 
 // Хандле коннектион собсна
@@ -126,7 +126,11 @@ voiceBridge.setSlashAction(async (interact, client) => {
   const channelData = await channel.fetch();
   const membersCount = channelData.members.size;
   const voiceNotEmpty = membersCount > 0;
-  await interact.reply("In voice channel: " + membersCount);
+  try {
+    await interact.reply("In voice channel: " + membersCount);
+  } catch {
+    return voiceBridge.logger.warn("Unknown interaction error.");
+  }
   if (!voiceNotEmpty) return interact.followUp("Nobody is in voice channel!"); // проверка на наличие пользователей в канале
 
   // функция для присоединения к голосовому каналу
@@ -151,8 +155,12 @@ voiceBridge.setSlashAction(async (interact, client) => {
     // делаем функцию для генерации кода с 4 рандомными байтами и переводим в хекс (8 символов)
     const generateCode = () => randomBytes(4).toString("hex");
     // проверяем на повтор кода, если да, то ~~пизда~~ генерируем новый
-    let tempCode = generateCode();
+    let tempCode = code ? code : generateCode();
     while (rooms.filter((r) => r.code == tempCode).length) {
+      if (code)
+        await interact.followUp(
+          "Room with this code already exists, generating new one."
+        );
       tempCode = generateCode();
     }
 

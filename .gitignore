@@ -5,3 +5,4 @@ configs/
 configs/kot.chatgpt/data
 configs/kot.chatgpt/memories
 configs/kot.chatgpt/config.json
+data/*

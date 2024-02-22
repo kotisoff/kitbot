@@ -6,6 +6,9 @@ const fs = require("fs"),
 const Command = require("../../utils/Command");
 
 const voiceRecord = new Command("voicerecord", "voiceRecord");
+
+const logger = voiceRecord.logger;
+
 voiceRecord.slashCommandInfo
   .setDescription("Records Voice Channel.")
   .addChannelOption((o) =>
@@ -17,14 +20,65 @@ voiceRecord.slashCommandInfo
         discord.ChannelType.GuildStageVoice
       )
       .setRequired(true)
+  )
+  .addStringOption((o) =>
+    o
+      .setName("option")
+      .setDescription("Additional option.")
+      .setChoices(
+        { name: "Leave", value: "leave" },
+        { name: "Toggle recording of yourself", value: "toggleuser" }
+      )
   );
 
-voiceRecord.setSlashAction(async (interact, client) => {
-  const channel = interact.options.getChannel("targetchannel");
-  const testchannel = discord.BaseGuildVoiceChannel.prototype;
+/** @param { discord.VoiceChannel } channel @param { string } uid */
+const getUser = async (uid, channel) =>
+  (await channel.fetch()).members.get(uid)?.user;
 
-  const channelData = await channel.fetch();
-  const membersCount = channelData.members.size;
+class userMap extends Map {
+  constructor() {
+    super();
+  }
+  /** @returns { fs.WriteStream } @param { string } key */
+  get = (key) => super.get(key);
+  /** @param { string } key @param { fs.WriteStream } value */
+  set = (key, value) => super.set(key, value);
+}
+
+const dataDir = voiceRecord.getDataDir("kot.voiceRecord");
+
+voiceRecord.tempData.bannedUsers = [];
+const bannedUsers = voiceRecord.tempData.bannedUsers;
+const isUserBanned = (uid) => bannedUsers.filter((v) => v == uid).length > 0;
+const banUser = (uid) => bannedUsers.push(uid);
+const unbanUser = (uid) => bannedUsers.splice(bannedUsers.indexOf(uid), 1);
+const toggleUserBan = (uid) =>
+  isUserBanned(uid) ? unbanUser(uid) : banUser(uid);
+
+voiceRecord.setSlashAction(async (interact, client) => {
+  let channel = discord.VoiceChannel.prototype;
+  channel = interact.options.getChannel("targetchannel");
+  const option = interact.options.getString("option");
+
+  if (option == "leave") {
+    const connection = dvoice.getVoiceConnection(channel.guildId);
+    if (!connection) return interact.reply("Bot is not in voice channel!");
+    connection.destroy();
+    return interact.reply("Disconnected from voice channel.");
+  }
+  if (option == "toggleuser") {
+    const connection = dvoice.getVoiceConnection(channel.guildId);
+    if (!connection) return interact.reply("Bot is not in voice channel!");
+    const uid = interact.user.id;
+    if (!(await channel.fetch()).members.has(uid))
+      return interact.reply("You are not in voice channel!");
+    toggleUserBan(uid);
+    return interact.reply(
+      `Bot ${isUserBanned(uid) ? "is" : "is not"} recording you.`
+    );
+  }
+
+  const membersCount = (await channel.fetch()).members.size;
   const voiceNotEmpty = membersCount > 0;
   await interact.reply("In voice channel: " + membersCount);
   if (!voiceNotEmpty) return;
@@ -36,7 +90,7 @@ voiceRecord.setSlashAction(async (interact, client) => {
     adapterCreator: channel.guild.voiceAdapterCreator
   });
 
-  voiceRecord.logger.info(
+  logger.info(
     "Connected to",
     `"${channel.name}" (${channel.id}).`,
     "Bitrate:",
@@ -45,28 +99,43 @@ voiceRecord.setSlashAction(async (interact, client) => {
     membersCount
   );
 
+  const users = new userMap();
+
   const receiver = connection.receiver;
 
-  const users = [];
-
   receiver.speaking.on("start", async (uid) => {
-    if (users.includes(uid)) return;
+    const user = (await getUser(uid, channel))?.username;
+    if (!user) return;
 
-    const user = channel.guild.members.cache.get(uid).user.username;
-    const dir = voiceRecord.getDataDir("kot.voiceRecord");
-
-    const userpath = path.join(dir, user);
-    if (!fs.existsSync(userpath)) fs.mkdirSync(userpath, { recursive: true });
-    const file = fs.createWriteStream(
-      path.join(userpath, `audio_${Date.now()}_48000.pcm`)
+    const currentDate = new Date();
+    const date = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+    const userpath = path.join(
+      dataDir,
+      channel.guildId,
+      channel.id,
+      date,
+      user
     );
+
+    if (!fs.existsSync(userpath)) fs.mkdirSync(userpath, { recursive: true });
+    users.get(uid)?.close();
+    users.set(
+      uid,
+      fs.createWriteStream(path.join(userpath, `voice_${Date.now()}.pcm`))
+    );
+
+    if (receiver.subscriptions.has(uid)) return;
+
     const encoder = new OpusEncoder(48000, 1);
 
-    const stream = receiver.subscribe(uid, { autoDestroy: false });
+    const stream = receiver.subscribe(uid);
+
     stream.on("data", (chunk) => {
-      file.write(encoder.decode(chunk));
+      if (isUserBanned(uid)) return;
+      const file = users.get(uid);
+      const data = encoder.decode(chunk);
+      file.write(data);
     });
-    users.push(uid);
   });
 });
 

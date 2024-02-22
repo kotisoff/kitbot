@@ -6,6 +6,7 @@ const ms = new msclass();
 
 const MS = new Command("minesweeper", "MS");
 MS.setCommandType({ prefix: true, slash: true });
+
 MS.setPrefixAction(async (msg, bot) => {
   msg.channel.sendTyping();
   msg.delete().catch();
