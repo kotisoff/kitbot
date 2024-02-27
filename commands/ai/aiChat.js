@@ -3,7 +3,7 @@ const config = aiChat.aiDataMgr.get.config;
 
 const printresponse = process.argv.includes("--printresponse");
 
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 
 const chatgpt = new Command("ai", "AI");
 

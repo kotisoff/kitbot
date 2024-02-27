@@ -1,4 +1,4 @@
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 
 const discord = require("discord.js"),
   axios = require("axios").default;

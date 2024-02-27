@@ -1,4 +1,4 @@
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 const { AttachmentBuilder } = require("discord.js");
 const msclass = require("./libs/Minesweeper");
 

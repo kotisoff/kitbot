@@ -1,5 +1,5 @@
 const discord = require("discord.js");
-const Command = require("../utils/Command");
+const Command = require("../core/Command");
 
 const Example = new Command("ping", "PING");
 

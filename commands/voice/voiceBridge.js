@@ -1,7 +1,7 @@
 const discord = require("discord.js");
 const dvoice = require("@discordjs/voice");
 const Stream = require("stream");
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 const { randomBytes } = require("crypto");
 
 // Эта хуйня тебе не очень сука нужна

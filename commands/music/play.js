@@ -4,7 +4,7 @@ const extractor = require("@discord-player/extractor"),
   { YandexMusicExtractor } = require("discord-player-yandexmusic");
 const fs = require("fs"),
   path = require("path");
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 const ymext = `ext:${YandexMusicExtractor.identifier}`;
 
 const Play = new Command("play", "MusicPlayer");

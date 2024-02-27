@@ -1,5 +1,5 @@
 const discord = require("discord.js");
-let Logger = require("../utils/logger");
+let Logger = require("./logger");
 const log = new Logger("Deploy");
 
 module.exports = (bot = discord.Client.prototype) => {

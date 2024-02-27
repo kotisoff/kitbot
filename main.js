@@ -1,7 +1,7 @@
-console.log("[INFO ??:??:??]", "\x1b[90mImporting modules...\x1b[0m");
-
-const Logger = require("./utils/logger");
+// console.clear();
+const Logger = require("./core/logger");
 const log = new Logger("Main");
+log.info("\x1b[90mImporting modules...\x1b[0m");
 
 const loadtimer = Date.now();
 const discord = require("discord.js"),

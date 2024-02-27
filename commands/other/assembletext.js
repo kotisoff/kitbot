@@ -1,4 +1,4 @@
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 
 const Assemble = new Command("assemble", "TextAssemble");
 Assemble.setSlashAction(async (interact, bot) => {

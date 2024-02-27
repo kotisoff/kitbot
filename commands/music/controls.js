@@ -1,6 +1,6 @@
 const discord = require("discord.js"),
   discordp = require("discord-player");
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 
 const Music = new Command("music", "MusicControls");
 Music.setSlashAction(async (interact, bot) => {

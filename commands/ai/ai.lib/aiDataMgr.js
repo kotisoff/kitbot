@@ -1,6 +1,6 @@
 const fs = require("node:fs"),
   path = require("node:path");
-const Logger = require("../../../utils/logger");
+const Logger = require("../../../core/logger");
 const Mod = require("./aiMod");
 require("colors");
 

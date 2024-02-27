@@ -1,4 +1,4 @@
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 const { AttachmentBuilder } = require("discord.js");
 
 const urigen = new Command("urigen", "URIGen");

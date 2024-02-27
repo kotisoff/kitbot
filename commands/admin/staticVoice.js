@@ -1,5 +1,5 @@
 const { ChannelType, PermissionFlagsBits } = require("discord.js");
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 
 const voice = new Command("staticvoice", "SV");
 

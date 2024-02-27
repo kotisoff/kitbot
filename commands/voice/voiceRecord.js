@@ -3,7 +3,7 @@ const dvoice = require("@discordjs/voice");
 const { OpusEncoder } = require("@discordjs/opus");
 const fs = require("fs"),
   path = require("path");
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 
 const voiceRecord = new Command("voicerecord", "voiceRecord");
 
@@ -119,6 +119,7 @@ voiceRecord.setSlashAction(async (interact, client) => {
 
     if (!fs.existsSync(userpath)) fs.mkdirSync(userpath, { recursive: true });
     users.get(uid)?.close();
+    if (isUserBanned(uid)) return;
     users.set(
       uid,
       fs.createWriteStream(path.join(userpath, `voice_${Date.now()}.pcm`))

@@ -17,6 +17,7 @@ class PrefixCommandBuilder {
     this.ruName;
     this.shortRuName;
     this.description;
+    this.prefix;
     this.back = CommandConstructor;
   }
   setName = (name = this.name) => {
@@ -37,6 +38,10 @@ class PrefixCommandBuilder {
   };
   setDescription = (description = this.description) => {
     this.description = description;
+    return this;
+  };
+  setCustomPrefix = (prefix = this.prefix) => {
+    this.prefix = prefix;
     return this;
   };
 }
@@ -121,9 +126,7 @@ module.exports = class {
     const dir = this.getCfgDirFromFldrname(configFolderName);
     const configfile = path.join(dir, this.configName);
     if (!fs.existsSync(configfile)) {
-      try {
-        fs.mkdirSync(dir);
-      } catch {}
+      fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(configfile, "{}");
     }
     return { dir, config: JSON.parse(fs.readFileSync(configfile)) };

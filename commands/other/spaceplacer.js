@@ -1,4 +1,4 @@
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 
 const SpacePlacer = new Command("spaceplacer", "SpacePlacer");
 SpacePlacer.setSlashAction(async (interact, bot) => {

@@ -1,4 +1,4 @@
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 const aiBuilder = require("./ai.lib/aiBuilderLib");
 const discord = require("discord.js");
 

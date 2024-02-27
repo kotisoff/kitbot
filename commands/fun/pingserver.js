@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const net = require("net");
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 require("colors");
 
 /**@param {String} hexx*/

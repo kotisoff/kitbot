@@ -1,4 +1,4 @@
-const Command = require("../../utils/Command");
+const Command = require("../../core/Command");
 const { Alphabets, encrypt, decrypt } = require("./libs/ScrambleLib");
 
 const Scrambler = new Command("scrambler", "Scrambler");
