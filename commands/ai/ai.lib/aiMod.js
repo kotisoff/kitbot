@@ -8,10 +8,11 @@ const modExample = {
   name: "main",
   avatar_url: "",
   ai_settings: {
-    model: "gpt-3.5-turbo-16k-0613", // "gpt-4-1106-preview", // "gpt-3.5-turbo-16k-0613",
+    model: "gpt-3.5-turbo-0125", // "gpt-3.5-turbo-0125", // "gpt-4-1106-preview", // "gpt-3.5-turbo-16k-0613",
     temperature: 1.2,
     stop: ["стой", "стоп", "остановись", "stop"],
-    tools: []
+    tools: [],
+    max_tokens: 2000
   },
   messages: [{ content: "", role: "" }]
 };
@@ -44,13 +45,15 @@ module.exports = class {
     // tts = false
   ) => {
     const channel = isMain(this.modid) ? message.channel : this.webhook;
-    return channel.send({
-      content,
-      // tts: tts,
-      avatarURL: this.avatar_url,
-      username: this.name,
-      threadId: message.thread?.id
-    });
+    return channel
+      .send({
+        content,
+        // tts: tts,
+        avatarURL: this.avatar_url,
+        username: this.name,
+        threadId: message.thread?.id
+      })
+      .catch(console.error);
   };
 
   webhookEditMsg = async (

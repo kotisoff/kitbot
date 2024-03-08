@@ -59,7 +59,8 @@ const getChatResponse = async (message = "", modid = "kotisoff:main") => {
     temperature: mod.ai_settings.temperature,
     n: 1,
     stream: config.options.ai_stream,
-    tools: mod.ai_settings.tools
+    tools: mod.ai_settings.tools,
+    max_tokens: mod.ai_settings.max_tokens
   };
   if (!requestBody.tools?.length) delete requestBody.tools;
 
@@ -75,11 +76,11 @@ const handleStreamResponse = async function* (
   modid = "kotisoff:main",
   skipRate = 10
 ) {
-  const data = response;
+  if (!response.controller) return;
   let full,
     myId,
     cycle = skipRate - 1;
-  for await (let part of data) {
+  for await (let part of response) {
     myId ??= part.id;
     if (myId != part.id) continue;
     const temp = part.choices[0].delta;
@@ -126,10 +127,12 @@ const editMessageContent = async (
   content = "",
   mod = Mod.prototype
 ) => {
-  if (!content.length) return;
-  if ((message.content + content).length > 2000)
-    return await mod.send(message, splitByLength(content, 2000).pop());
-  else {
+  if (!content.length) return message;
+  if (content.length > 2000) {
+    const message = await mod.send(message, splitByLength(content, 2000).pop());
+    content = splitByLength(content, 2000).splice(0, 1).join("");
+    return message;
+  } else {
     return isMain(mod.modid)
       ? await message.edit(content)
       : await mod.webhookEditMsg(message, content);
