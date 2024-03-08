@@ -1,7 +1,7 @@
 const discord = require("discord.js");
 
 module.exports = {
-  idata: new discord.SlashCommandBuilder()
+  data: new discord.SlashCommandBuilder()
     .setName("fy")
     .setDescription("Послать нахуй")
     .addUserOption((option) =>
@@ -10,10 +10,10 @@ module.exports = {
   pdata: {
     name: "fuckyou",
     shortname: "fy",
-    runame: "идинахуй",
+    runame: "идинахуй"
   },
   /**@param {discord.Interaction} interact @param {discord.Client} bot*/
-  async iexec(interact, bot) {
+  async exec(interact, bot) {
     let args = interact.options.getUser("user");
     if (!args) await interact.channel.send("Пошёл нахуй!");
     if (args) await interact.channel.send(`Пошёл нахуй, ${args}!`);
@@ -25,5 +25,5 @@ module.exports = {
     msg.delete().catch();
     if (!args[0]) return msg.channel.send("Пошёл нахуй!");
     if (args[0]) return msg.channel.send(`Пошёл нахуй, ${args.join(" ")}!`);
-  },
+  }
 };

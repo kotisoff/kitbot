@@ -2,7 +2,7 @@ config.json
 node_modules
 .vscode
 configs/
-!configs/kot.chatgpt
 configs/kot.chatgpt/data
 configs/kot.chatgpt/memories
 configs/kot.chatgpt/config.json
+data/*

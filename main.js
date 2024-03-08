@@ -1,127 +1,152 @@
+// console.clear();
+const Logger = require("./core/logger");
+const log = new Logger("Main");
+log.info("\x1b[90mImporting modules...\x1b[0m");
+
+const loadtimer = Date.now();
 const discord = require("discord.js"),
   fs = require("node:fs"),
   path = require("node:path");
+
 require("colors");
 
-const ignoredirs = [".ignore", ".lib", ".i"]
+const { configDeepScan, dirDeepScan } = require("./utils/scanTools");
+const deployCommands = require("./core/deployCommands");
+log.info("All modules imported.".gray);
 
-const loadtimer = Date.now();
+const args = (() => {
+  const args = process.argv.slice(2);
+  return { debug: args.includes("debug") };
+})();
+
+const configVersion = "0.0.1";
 
 // Loading configuration
 
-console.log("[Main]", `Importing config...`.gray);
-if (!fs.existsSync("./config.json"))
-  fs.writeFileSync(
-    "./config.json",
-    JSON.stringify({
-      bot: {
-        token: "bots_token",
-        clientId: "bot_client_id",
-        guildId: "guild_id",
-        prefix: "'",
-      },
-      settings: {
-        commandsPath: "commands",
-        allowShortCommands: true,
-        allowRussianCommands: true,
-      },
-    })
-  );
+log.info(`Importing config...`.gray);
+
+const idealConfig = {
+  bot: {
+    token: "bot's token",
+    prefix: "'",
+    devGuildId: "guild id"
+  },
+  settings: {
+    commandsPath: "commands",
+    allowShortCommands: true,
+    allowRussianCommands: true,
+    autoDeploy: true,
+    ignoredCommandDirs: [".lib", ".i", "libs"]
+  },
+  latestVersion: configVersion
+};
+
+if (!fs.existsSync("./config.json")) {
+  log.warn("Isn't it a first run of the bot?".gray);
+  fs.writeFileSync("./config.json", JSON.stringify(idealConfig));
+  log.info("Created new config file!".green);
+  process.exit(0);
+}
+
 const config = require("./config.json");
+
+if (config.latestVersion != configVersion) {
+  configDeepScan(config, idealConfig);
+  config.latestVersion = idealConfig.latestVersion;
+  fs.writeFileSync("./config.json", JSON.stringify(config));
+}
+
+log.info(`Main config imported. (${Date.now() - loadtimer}ms)`.gray);
+
 const { token, prefix } = config.bot;
 
 if (!fs.existsSync(config.settings.commandsPath))
   fs.mkdirSync(config.settings.commandsPath);
+
 if (!fs.existsSync("configs")) fs.mkdirSync("configs");
 
-// Логин бота
+// Bot login
 
 const bot = new discord.Client({ intents: [3276799] });
 bot.login(token);
 
-bot.icommands = new discord.Collection();
-bot.pcommands = new discord.Collection();
+bot.interCmd = new discord.Collection();
+bot.prefCmd = new discord.Collection();
+bot.data = {};
+bot.config = config;
+
 const commands = [];
+
+log.info(`Importing commands... (${Date.now() - loadtimer}ms)`.gray);
 
 const commandsPath = path.join(__dirname, config.settings.commandsPath);
 const commandFiles = [];
-const resolvedir = (dir) => {
-  const files = fs.readdirSync(dir);
-  files.forEach((file) => {
-    const filepath = path.join(dir, file);
-    const stat = fs.lstatSync(filepath);
-    if (stat.isFile() && file.endsWith(".js"))
-      return commandFiles.push(filepath);
-    else if (stat.isDirectory()) {
-      for (let item of ignoredirs) { if (file.endsWith(item)) return }
-      return resolvedir(filepath);
-    }
-  });
-};
-resolvedir(commandsPath);
+dirDeepScan(commandsPath, {
+  collected: commandFiles,
+  ignoredDirs: config.settings.ignoredCommandDirs,
+  fileExtension: ".js"
+});
 
 for (const file of commandFiles) {
   commands.push(require(file));
 }
-console.log(
-  "[Main]",
+
+log.info(
   commands.length,
-  `commands loaded... (${Date.now() - loadtimer}ms)`.gray
+  `commands imported... (${Date.now() - loadtimer}ms)`.gray
 );
 
 // Init commands
 
-commands.forEach((command) => {
-  // Set a new item in the Collection with the key as the command name and the value as the exported module
-  const commandname = path.basename(commandFiles[commands.indexOf(command)]);
-  if (command.idata) {
-    bot.icommands.set(command.idata.name, command);
+let collected = 0;
+commands.forEach((command, index) => {
+  const commandname = path.basename(commandFiles[index]);
+  if (command.id) {
+    if (command.isPrefixCommand) {
+      const settings = config.settings;
+      bot.prefCmd.set(command.prefixCommandInfo.name, command);
+      if (settings.allowShortCommands)
+        bot.prefCmd.set(command.prefixCommandInfo.shortName, command);
+      if (settings.allowRussianCommands) {
+        bot.prefCmd.set(command.prefixCommandInfo.ruName, command);
+        if (settings.allowShortCommands)
+          bot.prefCmd.set(command.prefixCommandInfo.shortRuName, command);
+      }
+    }
+    if (command.isSlashCommand) {
+      bot.interCmd.set(command.slashCommandInfo.name, command);
+    }
+    collected++;
   }
-  if (command.pdata) {
-    bot.pcommands.set(command.pdata.name, command);
-    if (config.settings.allowShortCommands)
-      bot.pcommands.set(command.pdata.shortname, command);
-    if (config.settings.allowRussianCommands)
-      bot.pcommands.set(command.pdata.runame, command);
-  }
-  if (!command.pdata & !command.idata) {
-    console.log(
-      "[Main]",
-      "[WARNING]".red +
-      ` The command (${commandname}) is missing required properties.`.yellow
+  if (!command.id) {
+    log.warn(
+      `The command (${commandname}) is missing required properties.`.yellow
     );
   }
 });
-console.log(
-  "[Main]",
-  commands.length,
-  `commands collected... (${Date.now() - loadtimer}ms)`.gray
-);
+log.info(collected, `commands collected... (${Date.now() - loadtimer}ms)`.gray);
 
-// Интерактивные команды
+// Interactions
 
 bot.on(discord.Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
-  const command = bot.icommands.get(interaction.commandName);
+  const command = bot.interCmd.get(interaction.commandName);
   if (!command) {
     interaction.reply({
       content: `Команда ${interaction.commandName} не существует!\nОна была либо удалена, либо перенесена.\nСвяжитесь с @kotisoff для подробностей!`,
-      ephemeral: true,
+      ephemeral: true
     });
-    console.error(
-      "[Main]",
-      `No command matching ${interaction.commandName} was found.`.gray
-    );
+    log.error(`No command matching ${interaction.commandName} was found.`.gray);
     return;
   }
   try {
-    await command.iexec(interaction, bot);
+    if (command.name) await command.slashRun(interaction, bot);
+    else await command.exec(interaction, bot);
   } catch (error) {
-    console.error(error);
+    log.error(error);
     let errcontent = {
-      content:
-        "Произошёл пиздец при обработке функции! Сходите к врачу, а лучше к санитару!",
-      ephemeral: true,
+      content: "Бот съехал с катушек, звоните в дурку бля.",
+      ephemeral: true
     };
     if (!interaction.replied) {
       await interaction.reply(errcontent);
@@ -131,67 +156,79 @@ bot.on(discord.Events.InteractionCreate, async (interaction) => {
   }
 });
 
-console.log(
-  "[Main]",
+log.info(
   `Interactive commands function loaded. (${Date.now() - loadtimer}ms)`.gray
 );
 
-// Префикс команды
+// Prefix
 
 bot.on("messageCreate", async (msg) => {
   if (msg.author.bot) return;
   if (!msg.content.startsWith(prefix)) return;
   let commandBody = msg.content.split(" ");
   let command = commandBody[0].toLowerCase();
-  let args = commandBody.slice(1);
-  let name = bot.pcommands.get(command.slice(prefix.length));
+  let name = bot.prefCmd.get(command.slice(prefix.length));
   if (name) {
-    name.pexec(bot, msg, args);
+    name.prefixRun(msg, bot);
   }
 });
 
-console.log(
-  "[Main]",
-  `Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray
-);
+log.info(`Prefix commands function loaded. (${Date.now() - loadtimer}ms)`.gray);
 
-// По завершении инициализации
+// On ready
 
 bot.once(discord.Events.ClientReady, (bot) => {
-  console.log("[Main] " + `${bot.user.tag} is online.`.yellow);
-  commands
-    .filter((cmd) => cmd.shareThread)
-    .forEach((command) => {
-      try {
-        command.shareThread(bot);
-        console.log(
-          "[Main]",
-          `${path.basename(
-            commandFiles[commands.indexOf(command)]
-          )} initialized... (${Date.now() - loadtimer}ms)`.gray
-        );
-      } catch { }
-    });
+  let initialized = 0;
+  log.info(`${bot.user.tag} is online.`.yellow);
+
+  if (config.settings.autoDeploy) deployCommands(bot);
+
+  commands.forEach((command) => {
+    try {
+      command.shareThread(bot);
+      log.info(
+        `${path.basename(
+          commandFiles[commands.indexOf(command)]
+        )} initialized... (${Date.now() - loadtimer}ms)`.gray
+      );
+      initialized++;
+    } catch (e) {
+      args.debug ? log.warn("Debug caught", e) : undefined;
+    }
+  });
+
   bot.user.setStatus("idle");
   bot.user.setActivity("за " + bot.guilds.cache.size + " серверами ._.", {
-    type: discord.ActivityType.Watching,
+    type: discord.ActivityType.Watching
   });
-  console.log("[Main]", commands.length, "commands initialized.".green);
-  console.log("[Main]", `Bot took ${Date.now() - loadtimer}ms to launch.`.gray);
+
+  log.info(initialized, "commands initialized.".green);
+  log.info(collected, "commands total.".green);
+  log.info(`Bot took ${Date.now() - loadtimer}ms to launch.`.gray);
+  log.info(
+    "Bot invite link: ".gray +
+      `https://discord.com/oauth2/authorize?client_id=${bot.application.id}&permissions=8&scope=bot`
+        .blue
+  );
 });
 
 process.on("unhandledRejection", (error) => {
-  console.log("Unhandled promise rejection:", error);
+  log.error("Unhandled promise rejection:", error);
 });
 
 process.on("SIGINT", () => {
-  console.log("[Main] Shutting down...");
+  log.info("Shutting down...");
   commands.forEach((command) => {
     try {
       command.shutdown();
-    } catch { }
+    } catch {}
   });
-  console.log("[Main] Bye!");
+  log.info("Bye!");
   bot.destroy();
   process.exit();
 });
+
+let cycle = 0;
+setInterval(() => {
+  cycle++;
+}, 1000);
