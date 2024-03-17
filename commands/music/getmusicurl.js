@@ -1,8 +1,8 @@
 const Command = require("../../core/Command");
-const ymapi = require("ym-api-meowed");
+const getMusicUrl = require("./getMusicUrl.lib")
+const providers = require("./getMusicUrl.lib/providers/index")
 
-const Api = new ymapi.YMApi();
-const wrapper = new ymapi.WrappedYMApi(Api);
+const api = new getMusicUrl();
 
 const getmusicurl = new Command("getmusicurl", "GMU", {
   prefix: true,
@@ -34,7 +34,7 @@ if (!config.user) {
   );
 }
 const user = config.user;
-Api.init(user);
+api.addProviders(new providers.YMProvider(user));
 
 const action = async (msg, argument) => {
   msg.channel.sendTyping();
@@ -43,17 +43,15 @@ const action = async (msg, argument) => {
       "Введите название айди/ссылку на неё!\nПример: 'gmu https://music.yandex.ru/album/xxxxxx/track/xxxxxxx"
     );
   else {
-    let trackid = parseInt(argument.split("/track/")[1]);
-    if (!trackid)
-      trackid =
-        parseInt(argument).toString() == argument
-          ? parseInt(argument)
-          : undefined;
-    if (!trackid)
-      return msg.reply("Входные данные не соответствуют ссылке/айди песни.");
-    const track = await wrapper.getMp3DownloadUrl(trackid, true);
-    msg.reply(`Вот ваша ссылка: [**_Тык_**](${track})`);
-    getmusicurl.logger.info(`TrackID: ${trackid}; Link: ${track}`.gray);
+    let url;
+    try{
+      url = await api.getDirectLink(argument);
+    }
+    catch(e){
+      return msg.reply(e);
+    }
+    msg.reply(`Вот ваша ссылка: [**_Тык_**](<${url}>)`);
+    getmusicurl.logger.info(`Query: "${argument}";, URL: ${url}`.gray);
   }
 };
 
