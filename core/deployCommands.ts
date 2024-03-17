@@ -1,17 +1,19 @@
-const discord = require("discord.js");
-let Logger = require("./logger");
+import discord from "discord.js";
+import Logger from "./Logger";
+import Command from "./Command";
 const log = new Logger("Deploy");
 
-module.exports = (bot = discord.Client.prototype) => {
+export default (bot: discord.Client<true>) => {
   const { devGuildId, token } = require("../config.json").bot;
   const clientId = bot.application.id;
-  const interactionCommands = bot.interCmd;
+  // @ts-ignore
+  const interactionCommands: Command[] = bot.interCmd;
 
-  const globalCommands = [];
-  const devCommands = [];
+  const globalCommands: any[] = [];
+  const devCommands: any[] = [];
 
-  interactionCommands.forEach((v) => {
-    if (v.isSlashCommand) {
+  interactionCommands.forEach((v: Command) => {
+    if (v.type.slash) {
       const data = v.slashCommandInfo.toJSON();
       if (v.isGlobal) globalCommands.push(data);
       else devCommands.push(data);
@@ -26,11 +28,11 @@ module.exports = (bot = discord.Client.prototype) => {
     try {
       log.info(`Started refreshing ${len} application (/) commands.`.gray);
 
-      const globalData = await rest.put(
+      const globalData: any | { length: number } = await rest.put(
         discord.Routes.applicationCommands(clientId),
         { body: globalCommands }
       );
-      const devData = await rest
+      const devData: any | { length: number } = await rest
         .put(discord.Routes.applicationGuildCommands(clientId, devGuildId), {
           body: devCommands
         })

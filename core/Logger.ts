@@ -1,4 +1,9 @@
-module.exports = class {
+import "colors";
+
+export default class Logger {
+  name: string;
+  time: string;
+
   constructor(name = "") {
     this.name = name;
     this.time = "";
@@ -14,19 +19,19 @@ module.exports = class {
       .join(":");
     return this;
   };
-  info = (...data) => {
+  info = (...data: any) => {
     this.resetTime();
     console.log(`[INFO ${this.time}]`, `[${this.name}]`, ...data);
     return this;
   };
-  warn = (...data) => {
+  warn = (...data: any) => {
     this.resetTime();
     console.log(`[WARN ${this.time}]`.yellow, `[${this.name}]`, ...data);
     return this;
   };
-  error = (...data) => {
+  error = (...data: any) => {
     this.resetTime();
     console.log(`[ERROR ${this.time}]`.red, `[${this.name}]`, ...data);
     return this;
   };
-};
+}
