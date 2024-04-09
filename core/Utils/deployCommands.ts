@@ -1,21 +1,22 @@
 import discord from "discord.js";
-import Logger from "./Logger";
-import Command from "./Command";
+import Logger from "../Logger";
+import Command from "../Command";
+import CustomClient from "../CustomClient";
+import config from "../../config.json";
 const log = new Logger("Deploy");
 
-export default (bot: discord.Client<true>) => {
-  const { devGuildId, token } = require("../config.json").bot;
+export default (bot: CustomClient) => {
+  const { devGuildId, token } = config.bot;
   const clientId = bot.application.id;
-  // @ts-ignore
-  const interactionCommands: Command[] = bot.interCmd;
+  const interactionCommands: discord.Collection<string, Command> = bot.interCmd;
 
-  const globalCommands: any[] = [];
-  const devCommands: any[] = [];
+  const globalCommands: discord.RESTPostAPIApplicationCommandsJSONBody[] = [];
+  const devCommands: discord.RESTPostAPIApplicationCommandsJSONBody[] = [];
 
   interactionCommands.forEach((v: Command) => {
     if (v.type.slash) {
       const data = v.slashCommandInfo.toJSON();
-      if (v.isGlobal) globalCommands.push(data);
+      if (v.type.global) globalCommands.push(data);
       else devCommands.push(data);
     }
   });
@@ -36,8 +37,8 @@ export default (bot: discord.Client<true>) => {
         .put(discord.Routes.applicationGuildCommands(clientId, devGuildId), {
           body: devCommands
         })
-        .catch(() =>
-          log.warn("Dev guild id is not set, commands are not loaded.")
+        .catch((e) =>
+          log.warn("Dev guild id is not set, commands are not loaded.", e)
         );
 
       log.info(

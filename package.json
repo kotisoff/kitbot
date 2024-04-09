@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "dev": "npm run build && node --no-warnings ./",
-    "start": "node --no-warnings ./"
+    "start": "node --no-warnings ./",
+    "dev": "npm run build && npm run start"
   },
   "dependencies": {
     "colors": "^1.4.0",
