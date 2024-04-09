@@ -9,7 +9,7 @@ const timer = Date.now();
 import fs from "fs";
 import "colors";
 
-import { Events } from "discord.js";
+import { ActivityType, Events } from "discord.js";
 import scanCommandFiles from "./core/Command/commandScanner";
 import Client from "./core/CustomClient";
 import CommandRuntime from "./core/Command/CommandRuntime";
@@ -26,7 +26,7 @@ if (!fs.existsSync("./config.json")) {
 }
 
 import config from "./config.json";
-const { token, prefix, intents } = config.bot;
+const { token, intents } = config.bot;
 
 if (!fs.existsSync(config.settings.commandPath))
   fs.mkdirSync(config.settings.commandPath);
@@ -70,6 +70,8 @@ const commandRuntime = new CommandRuntime(client, config);
 commandRuntime.listenPrefixCommands();
 commandRuntime.listenSlashCommands();
 
+log.info("Command runtime started.".gray);
+
 // Ready
 
 client.once(Events.ClientReady, () => {
@@ -80,4 +82,30 @@ client.once(Events.ClientReady, () => {
   commands.forEach((command) => {
     command.onInit();
   });
+
+  client.user.setStatus("idle");
+  client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
+    type: ActivityType.Watching
+  });
+
+  log.info(`Bot took ${Date.now() - timer}ms to launch.`.gray);
+  log.info(
+    "Bot invite link:".gray,
+    `https://discord.com/oauth2/authorize?client_id=${client.application.id}&permissions=8&scope=bot`
+      .blue
+  );
 });
+
+process
+  .on("unhandledRejection", (error) => {
+    log.error("Unhandled rejection:", error);
+  })
+  .on("uncaughtException", (error) => {
+    log.error("Uncaught exception:", error);
+  })
+  .on("SIGINT", () => {
+    log.info("Shutting down...");
+    commands.forEach((command) => command.shutdown());
+    log.info("Bye!");
+    client.destroy();
+  });

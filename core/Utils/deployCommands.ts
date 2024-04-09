@@ -2,13 +2,13 @@ import discord from "discord.js";
 import Logger from "../Logger";
 import Command from "../Command";
 import CustomClient from "../CustomClient";
-import config from "../../config.json";
 const log = new Logger("Deploy");
 
-export default (bot: CustomClient) => {
-  const { devGuildId, token } = config.bot;
-  const clientId = bot.application.id;
-  const interactionCommands: discord.Collection<string, Command> = bot.interCmd;
+export default (client: CustomClient) => {
+  const { devGuildId, token } = client.config.bot;
+  const clientId = client.application.id;
+  const interactionCommands: discord.Collection<string, Command> =
+    client.interCmd;
 
   const globalCommands: discord.RESTPostAPIApplicationCommandsJSONBody[] = [];
   const devCommands: discord.RESTPostAPIApplicationCommandsJSONBody[] = [];
