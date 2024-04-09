@@ -13,9 +13,7 @@ export default function scanCommandFiles(
     .map((file) => {
       try {
         return new (require(file).default)();
-      } catch (e) {
-        console.log(e, file);
-      }
+      } catch {}
     })
     .filter((v) => v);
   return commands;

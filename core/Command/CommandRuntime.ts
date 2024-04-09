@@ -28,7 +28,6 @@ export default class CommandRuntime {
       }
       try {
         if (command.runSlash) command.runSlash(interaction, this.client);
-        console.log("global run");
         if (command.run) {
           const args = interaction.options.data.map((v) =>
             v.value?.toString()
