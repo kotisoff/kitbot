@@ -42,12 +42,16 @@ export default class MinesweeperCommand extends Command {
     client: CustomClient
   ): Promise<any> {
     const ms = new Minesweeper();
-    ms.generateGame({
-      rows: parseInt(args[0]) ?? 10,
-      columns: parseInt(args[1]) ?? 10,
-      bombs: parseInt(args[2]) ?? 20,
-      seed: args[3]
-    });
+    try {
+      ms.generateGame({
+        rows: parseInt(args[0]) ?? 10,
+        columns: parseInt(args[1]) ?? 10,
+        bombs: parseInt(args[2]) ?? 20,
+        seed: args[3]
+      });
+    } catch (e) {
+      this.logger.error(e);
+    }
 
     const msg = JSON.stringify(ms.getBoardInfo()) + "\n" + ms.getBoard();
     if (msg.length > 2000)

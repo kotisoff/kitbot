@@ -163,9 +163,11 @@ export default class Minesweeper {
 
   generateGame = (settings?: Partial<Settings>, openFirstCells = true) => {
     this.settings = this.resetSettings();
-    if (settings?.rows) this.settings.rows = settings.rows;
-    if (settings?.columns) this.settings.columns = settings.columns;
-    if (settings?.bombs) this.settings.bombs = settings.bombs;
+    if (settings?.rows && settings.rows > 0) this.settings.rows = settings.rows;
+    if (settings?.columns && settings.columns > 0)
+      this.settings.columns = settings.columns;
+    if (settings?.bombs && settings?.bombs > 0)
+      this.settings.bombs = settings.bombs;
     if (settings?.seed) this.settings.seed = settings.seed;
 
     if (debug) {

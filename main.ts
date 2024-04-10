@@ -80,7 +80,7 @@ client.once(Events.ClientReady, () => {
   if (config.settings.autoDeploy) deployCommands(client);
 
   commands.forEach((command) => {
-    command.onInit();
+    command.onInit(client);
   });
 
   client.user.setStatus("idle");
@@ -94,6 +94,19 @@ client.once(Events.ClientReady, () => {
     `https://discord.com/oauth2/authorize?client_id=${client.application.id}&permissions=8&scope=bot`
       .blue
   );
+});
+
+client.on(Events.GuildCreate, (guild) => {
+  log.info(`Joined new guild: "${guild.name}"(${guild.id})`);
+  client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
+    type: ActivityType.Watching
+  });
+});
+client.on(Events.GuildDelete, (guild) => {
+  log.info(`Left from guild: "${guild.name}"(${guild.id})`);
+  client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
+    type: ActivityType.Watching
+  });
 });
 
 process

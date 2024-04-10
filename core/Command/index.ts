@@ -1,4 +1,9 @@
-import { CommandInteraction, Message, SlashCommandBuilder } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  CommandInteraction,
+  Message,
+  SlashCommandBuilder
+} from "discord.js";
 import fs from "fs";
 import path from "path";
 import PrefixCommandBuilder from "./PrefixCommandBuilder";
@@ -80,7 +85,7 @@ export default abstract class Command {
     client: CustomClient
   ): Promise<any>;
 
-  async onInit(): Promise<void> {}
+  async onInit(client: CustomClient): Promise<void> {}
 
   async shutdown(): Promise<void> {}
 
