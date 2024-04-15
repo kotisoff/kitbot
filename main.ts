@@ -97,13 +97,13 @@ client.once(Events.ClientReady, () => {
 });
 
 client.on(Events.GuildCreate, (guild) => {
-  log.info(`Joined new guild: "${guild.name}"(${guild.id})`);
+  log.info(`Joined new guild: "${guild.name}" (${guild.id})`.gray);
   client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
     type: ActivityType.Watching
   });
 });
 client.on(Events.GuildDelete, (guild) => {
-  log.info(`Left from guild: "${guild.name}"(${guild.id})`);
+  log.info(`Left from guild: "${guild.name}" (${guild.id})`.gray);
   client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
     type: ActivityType.Watching
   });

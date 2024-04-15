@@ -19,14 +19,12 @@ export default class Minesweeper {
   board: string[][];
 
   private resetSettings() {
-    const settings = {
+    return {
       rows: 10,
       columns: 10,
       bombs: 20,
-      seed: ""
+      seed: crypto.randomBytes(10).toString("hex")
     };
-    settings.seed = crypto.randomBytes(10).toString("hex");
-    return settings;
   }
 
   constructor(settings?: Settings) {
@@ -179,6 +177,9 @@ export default class Minesweeper {
         ` - Seed: ${this.settings.seed}`
       );
     }
+
+    this.generator = seedrandom(this.settings.seed);
+
     this.board = this.newBoard();
     this.genBombs();
     this.genCellBombRange();

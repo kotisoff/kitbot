@@ -1,19 +1,14 @@
 export default class PrefixCommandBuilder {
   names: {
-    [index: string]: string | undefined;
     name: string;
-    shortName: string;
-    ruName: string;
-    shortRuName: string;
+    aliases: string[];
   };
   description: string | undefined;
 
   constructor() {
     this.names = {
       name: "",
-      shortName: "",
-      ruName: "",
-      shortRuName: ""
+      aliases: []
     };
   }
 
@@ -26,16 +21,11 @@ export default class PrefixCommandBuilder {
     return this;
   }
 
-  setShortName(name: string) {
-    this.names.shortName = name;
-    return this;
+  addAlias(alias: string) {
+    this.names.aliases.push(alias);
   }
-  setRuName(name: string) {
-    this.names.ruName = name;
-    return this;
-  }
-  setShortRuName(name: string) {
-    this.names.shortRuName = name;
-    return this;
+  removeAlias(alias: string) {
+    if (!this.names.aliases.find((v) => v == alias)) return;
+    this.names.aliases.splice(this.names.aliases.indexOf(alias), 1);
   }
 }

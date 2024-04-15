@@ -25,14 +25,9 @@ export default class CommandRegistry {
       this.interaction.set(command.slashCommandInfo.name, command);
 
     if (command.type.prefix) {
-      const configEntries = Object.entries(
-        this.config.settings.allowPrefixCommands
-      );
-      configEntries.push(["name", true]);
-      configEntries.forEach((entry) => {
-        const commandEntry = command.prefixCommandInfo.names[entry[0]];
-        if (commandEntry && entry[1]) this.prefix.set(commandEntry, command);
-      });
+      const commandNames = command.prefixCommandInfo.names;
+      const aliases = [commandNames.name, ...commandNames.aliases];
+      aliases.forEach((v) => this.prefix.set(v, command));
     }
 
     this.length++;

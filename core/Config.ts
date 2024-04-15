@@ -8,11 +8,6 @@ export default interface Config {
   settings: {
     autoDeploy: boolean;
     commandPath: string;
-    allowPrefixCommands: {
-      shortName: boolean;
-      ruName: boolean;
-      shortRuName: boolean;
-    };
     ignoredCommandDirs: string[];
   };
 }
@@ -28,11 +23,6 @@ export default class Config {
     this.settings = {
       autoDeploy: true,
       commandPath: "commands",
-      allowPrefixCommands: {
-        shortName: true,
-        ruName: true,
-        shortRuName: true
-      },
       ignoredCommandDirs: [".lib", ".i", ".libs"]
     };
   }

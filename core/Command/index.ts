@@ -113,6 +113,14 @@ export default abstract class Command {
     const cfg = this.getCfgPath();
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(cfg, JSON.stringify(data));
+    return true;
+  }
+
+  deleteConfig() {
+    const cfg = this.getCfgPath();
+    if (!fs.existsSync(cfg)) return false;
+    fs.rmSync(cfg, { force: true });
+    return true;
   }
 
   private getCfgDir = () =>

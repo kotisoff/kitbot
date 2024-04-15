@@ -1,3 +1,4 @@
+import { ApplicationCommandOptionType } from "discord.js";
 import Config from "../Config";
 import CustomClient from "../CustomClient";
 import Logger from "../Logger";
@@ -27,12 +28,22 @@ export default class CommandRuntime {
         return;
       }
       try {
-        if (command.runSlash) command.runSlash(interaction, this.client);
+        if (command.runSlash)
+          command.runSlash(interaction, this.client).catch(log.error);
         if (command.run) {
-          const args = interaction.options.data.map((v) =>
-            v.value?.toString()
-          ) as string[];
-          command.run(interaction, args, this.client);
+          const args = interaction.options.data
+            .filter(
+              (a) =>
+                a.type ==
+                (ApplicationCommandOptionType.String ||
+                  ApplicationCommandOptionType.Number ||
+                  ApplicationCommandOptionType.Boolean ||
+                  ApplicationCommandOptionType.Integer ||
+                  ApplicationCommandOptionType.User ||
+                  ApplicationCommandOptionType.Channel)
+            )
+            .map((v) => v.value?.toString()) as string[];
+          command.run(interaction, args, this.client).catch(log.error);
         }
       } catch (err) {
         log.error(interaction.commandName.red, "throwed exception".red, err);
@@ -61,8 +72,9 @@ export default class CommandRuntime {
       args.shift();
 
       try {
-        if (command.runPrefix) command.runPrefix(msg, args, this.client);
-        if (command.run) command.run(msg, args, this.client);
+        if (command.runPrefix)
+          command.runPrefix(msg, args, this.client).catch(log.error);
+        if (command.run) command.run(msg, args, this.client).catch(log.error);
       } catch (err) {
         log.error(commandName.red, "throwed exception".red, err);
         msg.reply("This command is not working...");

@@ -15,7 +15,7 @@ export default class ShutdownCommand extends Command {
     interaction: CommandInteraction<CacheType>,
     client: CustomClient
   ): Promise<any> {
-    if (interaction.user.id != owner.ownerId)
+    if (owner.ownerIds.includes(interaction.user.id))
       return interaction.reply({
         content: "This command is only avalible for bot owner.",
         ephemeral: true

@@ -2,13 +2,13 @@ import "colors";
 
 export default class Logger {
   name: string;
-  time: string;
+  private time: string;
 
   constructor(name = "") {
     this.name = name;
     this.time = "";
   }
-  resetTime = () => {
+  private resetTime = () => {
     const dat = new Date();
     const time = [dat.getHours(), dat.getMinutes(), dat.getSeconds()];
     this.time = time
@@ -22,16 +22,16 @@ export default class Logger {
   info = (...data: any) => {
     this.resetTime();
     console.log(`[INFO ${this.time}]`, `[${this.name}]`, ...data);
-    return this;
+    return data.join(" ").toString();
   };
   warn = (...data: any) => {
     this.resetTime();
     console.log(`[WARN ${this.time}]`.yellow, `[${this.name}]`, ...data);
-    return this;
+    return data.join(" ").toString();
   };
   error = (...data: any) => {
     this.resetTime();
     console.log(`[ERROR ${this.time}]`.red, `[${this.name}]`, ...data);
-    return this;
+    return data.join(" ").toString();
   };
 }

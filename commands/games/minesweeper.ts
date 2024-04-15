@@ -34,6 +34,8 @@ export default class MinesweeperCommand extends Command {
       .addStringOption((o) =>
         o.setName("seed").setDescription("Board seed.").setRequired(true)
       );
+
+    this.prefixCommandInfo.addAlias("ms");
   }
 
   async run(
@@ -44,21 +46,26 @@ export default class MinesweeperCommand extends Command {
     const ms = new Minesweeper();
     try {
       ms.generateGame({
-        rows: parseInt(args[0]) ?? 10,
-        columns: parseInt(args[1]) ?? 10,
-        bombs: parseInt(args[2]) ?? 20,
-        seed: args[3]
+        rows: parseInt(args.shift() as string) ?? 10,
+        columns: parseInt(args.shift() as string) ?? 10,
+        bombs: parseInt(args.shift() as string) ?? 20,
+        seed: args.join(" ")
       });
     } catch (e) {
       this.logger.error(e);
     }
 
-    const msg = JSON.stringify(ms.getBoardInfo()) + "\n" + ms.getBoard();
+    const boardInfo = Object.entries(ms.getBoardInfo())
+      .map((v) => v.join(": "))
+      .join("\n");
+    const board = ms.getBoard();
+
+    const msg = boardInfo + "\n" + board;
     if (msg.length > 2000)
       message.reply({
-        content: JSON.stringify(ms.getBoardInfo()),
+        content: boardInfo,
         files: [
-          new AttachmentBuilder(Buffer.from(ms.getBoard(), "utf-8"), {
+          new AttachmentBuilder(Buffer.from(board, "utf-8"), {
             name: "ms.txt"
           })
         ]
