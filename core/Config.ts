@@ -26,8 +26,4 @@ export default class Config {
       ignoredCommandDirs: [".lib", ".i", ".libs"]
     };
   }
-
-  toString() {
-    return JSON.stringify(this);
-  }
 }

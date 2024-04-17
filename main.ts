@@ -21,12 +21,12 @@ log.info("All modules loaded".gray);
 
 if (!fs.existsSync("./config.json")) {
   log.warn("Config is not found.".gray);
-  fs.writeFileSync("../config.json", new Config().toString());
+  fs.writeFileSync("../config.json", JSON.stringify(new Config()));
   log.info("Created a new config!".green);
   process.exit(0);
 }
 
-import config from "./config.json";
+const config = require("./config.json") as Config;
 const { token, intents } = config.bot;
 
 if (!fs.existsSync(config.settings.commandPath))
