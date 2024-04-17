@@ -67,7 +67,6 @@ rooms.length = 0;
 /** @param { rooms[0] } room @param { discord.VoiceChannel } channel */
 const handleChunk = async (chunk, room, channel) => {
   if (room.busyData) {
-    voiceBridge.logger.info("Append busy data");
     room.busyData = Buffer.concat([room.busyData, chunk]);
     return;
   }

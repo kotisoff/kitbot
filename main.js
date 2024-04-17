@@ -117,8 +117,7 @@ commands.forEach((command, index) => {
       bot.interCmd.set(command.slashCommandInfo.name, command);
     }
     collected++;
-  }
-  if (!command.id) {
+  } else {
     log.warn(
       `The command (${commandname}) is missing required properties.`.yellow
     );

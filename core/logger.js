@@ -17,16 +17,16 @@ module.exports = class {
   info = (...data) => {
     this.resetTime();
     console.log(`[INFO ${this.time}]`, `[${this.name}]`, ...data);
-    return this;
+    return data.join(" ").toString();
   };
   warn = (...data) => {
     this.resetTime();
     console.log(`[WARN ${this.time}]`.yellow, `[${this.name}]`, ...data);
-    return this;
+    return data.join(" ").toString();
   };
   error = (...data) => {
     this.resetTime();
     console.log(`[ERROR ${this.time}]`.red, `[${this.name}]`, ...data);
-    return this;
+    return data.join(" ").toString();
   };
 };
