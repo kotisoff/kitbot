@@ -4,4 +4,6 @@ Made for OUR(TMKSpace) servers.
 
 ## Usage
 
-`yarn dev`
+Build and run: `yarn dev`
+Build: `yarn build`
+Run: `yarn start`

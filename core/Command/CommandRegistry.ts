@@ -20,7 +20,7 @@ export default class CommandRegistry {
     this.length = 0;
   }
 
-  register(command: Command) {
+  registerCommand(command: Command) {
     if (command.type.slash)
       this.interaction.set(command.slashCommandInfo.name, command);
 
@@ -31,5 +31,17 @@ export default class CommandRegistry {
     }
 
     this.length++;
+  }
+
+  registerCommands(commands: Command[]) {
+    for (let command of commands) {
+      this.registerCommand(command);
+    }
+  }
+
+  clearRegistry() {
+    this.prefix.clear();
+    this.interaction.clear();
+    this.length = 0;
   }
 }

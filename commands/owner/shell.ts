@@ -1,8 +1,8 @@
 import {
   Message,
+  AttachmentBuilder,
   CommandInteraction,
-  CacheType,
-  AttachmentBuilder
+  CacheType
 } from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
@@ -23,6 +23,22 @@ export default class ShellCommand extends Command {
       );
   }
 
+  private checkLength(text: string, filename: string, evalOutput: string) {
+    const tempText = text + "\n```" + evalOutput + "```";
+    if (tempText.length > 2000)
+      return {
+        content: text,
+        files: [new AttachmentBuilder(Buffer.from(text), { name: filename })],
+        ephemeral: true
+      };
+    else {
+      return {
+        content: tempText,
+        ephemeral: true
+      };
+    }
+  }
+
   async run(
     message: CommandInteraction<CacheType> | Message<boolean>,
     args: string[],
@@ -35,14 +51,9 @@ export default class ShellCommand extends Command {
       return message.reply("You are not owner of this bot.");
 
     ChildProcess.exec(args.join(" ") ?? "help", (e, out, err) => {
-      message.reply({
-        content: `Error: ${e ?? 0}`,
-        files: [
-          new AttachmentBuilder(Buffer.from(out + "\n" + err), {
-            name: "out.txt"
-          })
-        ]
-      });
+      message.reply(
+        this.checkLength("Error: " + e ?? 0, "output.txt", out + "\n" + err)
+      );
     });
   }
 }

@@ -10,17 +10,18 @@ import fs from "fs";
 import "colors";
 
 import { ActivityType, Events } from "discord.js";
-import scanCommandFiles from "./core/Command/commandScanner";
+import CommandScanner from "./core/Command/CommandScanner";
 import Client from "./core/CustomClient";
 import CommandRuntime from "./core/Command/CommandRuntime";
 import deployCommands from "./core/Utils/deployCommands";
 import CommandRegistry from "./core/Command/CommandRegistry";
+import Config from "./core/Config";
 
 log.info("All modules loaded".gray);
 
 if (!fs.existsSync("./config.json")) {
   log.warn("Config is not found.".gray);
-  fs.writeFileSync("../config.json", "");
+  fs.writeFileSync("../config.json", new Config().toString());
   log.info("Created a new config!".green);
   process.exit(0);
 }
@@ -42,10 +43,8 @@ client.login(token);
 
 log.info(`Importing commands. (${Date.now() - timer}ms)`.gray);
 
-const commands = scanCommandFiles(
-  config.settings.commandPath,
-  config.settings.ignoredCommandDirs
-);
+const commandScanner = new CommandScanner(config);
+const commands = commandScanner.importCommands();
 
 log.info(
   commands.length,
@@ -55,9 +54,7 @@ log.info(
 // Registering commands
 
 const commandRegistry = new CommandRegistry(client);
-for (let command of commands) {
-  commandRegistry.register(command);
-}
+commandRegistry.registerCommands(commands);
 
 log.info(
   commandRegistry.length,
@@ -118,7 +115,7 @@ process
   })
   .on("SIGINT", () => {
     log.info("Shutting down...");
-    commands.forEach((command) => command.shutdown());
+    commandScanner.commands.forEach((command) => command.shutdown());
     log.info("Bye!");
     client.destroy();
   });

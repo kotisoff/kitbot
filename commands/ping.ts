@@ -1,4 +1,9 @@
-import { Message, SlashCommandBuilder } from "discord.js";
+import {
+  CacheType,
+  CommandInteraction,
+  Message,
+  SlashCommandBuilder
+} from "discord.js";
 import Command from "../core/Command";
 import CommandOptions from "../core/Command/CommandOptions";
 import CustomClient from "../core/CustomClient";
@@ -11,7 +16,7 @@ export default class PingCommand extends Command {
   }
 
   async run(
-    message: Message<boolean>,
+    message: Message<boolean> | CommandInteraction<CacheType>,
     args: string[],
     client: CustomClient
   ): Promise<any> {

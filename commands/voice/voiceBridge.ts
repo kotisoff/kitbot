@@ -11,7 +11,6 @@ import CustomClient from "../../core/CustomClient";
 import owner from "../owner/owner";
 import { Room, Rooms } from "./libs/voiceBridge/Rooms";
 import { randomBytes } from "crypto";
-import { joinVoiceChannel } from "@discordjs/voice";
 
 export default class VoiceBridgeCommand extends Command {
   rooms: Rooms;
