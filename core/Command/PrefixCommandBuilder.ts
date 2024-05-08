@@ -1,31 +1,16 @@
 export default class PrefixCommandBuilder {
-  names: {
-    name: string;
-    aliases: string[];
-  };
-  description: string | undefined;
+  names: string[];
 
   constructor() {
-    this.names = {
-      name: "",
-      aliases: []
-    };
-  }
-
-  setName(name: string) {
-    this.names.name = name;
-    return this;
-  }
-  setDescription(description: string) {
-    this.description = description;
-    return this;
+    this.names = [];
   }
 
   addAlias(alias: string) {
-    this.names.aliases.push(alias);
+    this.names.push(alias);
+    return this;
   }
   removeAlias(alias: string) {
-    if (!this.names.aliases.find((v) => v == alias)) return;
-    this.names.aliases.splice(this.names.aliases.indexOf(alias), 1);
+    if (!this.names.find((v) => v == alias)) return;
+    this.names.splice(this.names.indexOf(alias), 1);
   }
 }

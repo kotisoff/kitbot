@@ -1,7 +1,8 @@
-import { ApplicationCommandOptionType } from "discord.js";
+import { ApplicationCommandOptionType, messageLink } from "discord.js";
 import Config from "../Config";
 import CustomClient from "../CustomClient";
 import Logger from "../Logger";
+import Command from ".";
 const log = new Logger("CommandRuntime");
 
 export default class CommandRuntime {
@@ -31,18 +32,7 @@ export default class CommandRuntime {
         if (command.runSlash)
           command.runSlash(interaction, this.client).catch(log.error);
         if (command.run) {
-          const args = interaction.options.data
-            .filter(
-              (a) =>
-                a.type ==
-                (ApplicationCommandOptionType.String ||
-                  ApplicationCommandOptionType.Number ||
-                  ApplicationCommandOptionType.Boolean ||
-                  ApplicationCommandOptionType.Integer ||
-                  ApplicationCommandOptionType.User ||
-                  ApplicationCommandOptionType.Channel)
-            )
-            .map((v) => v.value?.toString()) as string[];
+          const args = Command.interactionToArgs(interaction);
           command.run(interaction, args, this.client).catch(log.error);
         }
       } catch (err) {
@@ -63,11 +53,14 @@ export default class CommandRuntime {
     const prefix = this.config.bot.prefix;
 
     this.client.on("messageCreate", async (msg) => {
-      if (msg.author.bot || !msg.content.startsWith(prefix)) return;
+      if (msg.author.bot || !msg.content.startsWith(prefix) || msg.webhookId)
+        return;
 
       const args = msg.content.split(" ");
       const commandName = args[0].toLowerCase().slice(prefix.length);
-      const command = this.client.prefCmd.get(commandName);
+      const command = this.client.prefCmd.find((c) =>
+        c.prefixCommandInfo.names.includes(commandName)
+      );
       if (!command) return;
       args.shift();
 

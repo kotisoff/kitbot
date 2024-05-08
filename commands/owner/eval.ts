@@ -27,7 +27,9 @@ export default class EvalCommand extends Command {
     if (tempText.length > 2000)
       return {
         content: text,
-        files: [new AttachmentBuilder(Buffer.from(text), { name: filename })],
+        files: [
+          new AttachmentBuilder(Buffer.from(evalOutput), { name: filename })
+        ],
         ephemeral: true
       };
     else {
@@ -49,13 +51,13 @@ export default class EvalCommand extends Command {
 
     try {
       const data = eval(command);
-      message.reply(this.checkLength("Done:", "output.txt", data.toString()));
+      message.reply(this.checkLength("Done:", "output.txt", data?.toString()));
     } catch (err: any) {
       message.reply(
         this.checkLength(
           "Error while running command:",
           "error.txt",
-          err.toString()
+          err?.toString()
         )
       );
       this.logger.error(err);

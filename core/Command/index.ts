@@ -1,6 +1,8 @@
 import {
+  ApplicationCommandOptionType,
   ChatInputCommandInteraction,
   CommandInteraction,
+  GuildBasedChannel,
   Message,
   SlashCommandBuilder
 } from "discord.js";
@@ -21,13 +23,6 @@ export default abstract class Command {
    * Global - Can you use this command in other servers */
   type: { slash: boolean; prefix: boolean; global: boolean };
 
-  /** @deprecated use type.global instead */
-  isGlobal: boolean;
-  /** @deprecated use type.slash instead */
-  isSlashCommand: boolean;
-  /** @deprecated use type.prefix instead */
-  isPrefixCommand: boolean;
-
   slashCommandInfo: SlashCommandBuilder;
   prefixCommandInfo: PrefixCommandBuilder;
 
@@ -44,16 +39,12 @@ export default abstract class Command {
     this.name = options.name;
     this.type = options.type;
 
-    this.isGlobal = this.type.global;
-    this.isSlashCommand = this.type.slash;
-    this.isPrefixCommand = this.type.prefix;
-
     // Command Builders
     this.slashCommandInfo = new SlashCommandBuilder()
       .setName(this.id)
       .setDescription(this.name);
 
-    this.prefixCommandInfo = new PrefixCommandBuilder().setName(this.id);
+    this.prefixCommandInfo = new PrefixCommandBuilder().addAlias(this.id);
 
     // Config and data.
     this.configFolder = this.id;
@@ -62,6 +53,10 @@ export default abstract class Command {
 
     // Logger
     this.logger = new Logger(this.name);
+  }
+
+  setDescription(description: string) {
+    this.slashCommandInfo.setDescription(description);
   }
 
   runSlash?(
@@ -133,13 +128,47 @@ export default abstract class Command {
     this.dataFolder = name;
   }
 
-  getDataDirPath() {
-    const dataDir = this.getDataDir();
+  getDataDir() {
+    const dataDir = this.getDataDirPath();
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     return dataDir;
   }
 
-  private getDataDir = () => {
+  private getDataDirPath = () => {
     return path.join(process.cwd(), "data", this.dataFolder);
   };
+
+  static interactionToArgs(interaction: CommandInteraction) {
+    const args = interaction.options.data
+      .filter(
+        (a) =>
+          a.type ==
+          (ApplicationCommandOptionType.String ||
+            ApplicationCommandOptionType.Number ||
+            ApplicationCommandOptionType.Boolean ||
+            ApplicationCommandOptionType.Integer)
+      )
+      .map((v) => v.value?.toString()) as string[];
+
+    args.push(
+      ...interaction.options.data
+        .filter((a) => a.type == ApplicationCommandOptionType.Channel)
+        .map((v) => v.channel?.id as string)
+    );
+
+    args.push(
+      ...interaction.options.data
+        .filter((a) => a.type == ApplicationCommandOptionType.User)
+        .map((v) => v.user?.id as string)
+    );
+
+    return args;
+  }
+
+  static getCommandByClass(client: CustomClient, Class: Command) {
+    const commands = client.prefCmd.concat(client.interCmd);
+    return commands.find(
+      (v) => v.constructor.name == Class.constructor.name
+    ) as Command;
+  }
 }

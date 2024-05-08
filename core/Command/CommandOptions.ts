@@ -3,19 +3,28 @@ export default class CommandOptions {
   name: string;
   type: { slash: boolean; prefix: boolean; global: boolean };
 
-  constructor(id: string) {
+  constructor(
+    id: string,
+    type?: { slash?: boolean; prefix?: boolean; global?: boolean }
+  ) {
     this.id = id;
     this.name = id;
-    this.type = { slash: true, prefix: false, global: true };
+    this.type = {
+      slash: type?.slash ?? true,
+      prefix: type?.prefix ?? false,
+      global: type?.global ?? true
+    };
   }
   setName(name: string) {
     this.name = name;
     return this;
   }
   setType(type: Partial<typeof this.type> = this.type) {
-    if (type.slash) this.type.slash = type.slash;
-    if (type.prefix) this.type.prefix = type.prefix;
-    if (type.global) this.type.global = type.global;
+    this.type = {
+      slash: type?.slash ?? true,
+      prefix: type?.prefix ?? false,
+      global: type?.global ?? true
+    };
     return this;
   }
 }

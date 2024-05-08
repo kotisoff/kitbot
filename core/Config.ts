@@ -23,7 +23,7 @@ export default class Config {
     this.settings = {
       autoDeploy: true,
       commandPath: "commands",
-      ignoredCommandDirs: [".lib", ".i", ".libs"]
+      ignoredCommandDirs: [".lib", ".i", "libs"]
     };
   }
 }

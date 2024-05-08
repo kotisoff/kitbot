@@ -1,13 +1,9 @@
-import {
-  Message,
-  CommandInteraction,
-  CacheType,
-  EmbedBuilder
-} from "discord.js";
+import { Message, CommandInteraction, CacheType } from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
 import axios from "axios";
+import CommandEmbed from "../../core/Command/CommandEmbed";
 
 const replyMessages = [
   "~~А, вы любите пидоров?~~",
@@ -21,7 +17,8 @@ const replyMessages = [
   "_Вы чувствуете тяжесть своих грехов_",
   "_Кто-то злобно за вами наблюдает_",
   "Я же всё вижу, сын мой...",
-  "Кароче: мама сказала, что если ещё раз увидит трапиков на моём мониторе то размажет моё лицо по клавиырпыпдлрцщуыфпщрщшмирлРЩШрщшпрщшшОЫРОПЩЫОРПЩШЛЫРПШЩЫРЩШПЦУЦПЫЦУ54П65У65)"
+  "Кароче: мама сказала, что если ещё раз увидит трапиков на моём мониторе то размажет моё лицо по клавиырпыпдлрцщуыфпщрщшмирлРЩШрщшпрщшшОЫРОПЩЫОРПЩШЛЫРПШЩЫРЩШПЦУЦПЫЦУ54П65У65)",
+  "Ну это пиздец какой то, ну сколько можно?!"
 ];
 
 export default class AstolfoCommand extends Command {
@@ -49,15 +46,13 @@ export default class AstolfoCommand extends Command {
       message.reply("No picture source found. Please try again later");
     }
 
-    const Embed = new EmbedBuilder()
-      .setColor(0xf7bfd7)
-      .setImage(regexData[0])
-      .setDescription(
-        `${replyMessages[Math.floor(Math.random() * replyMessages.length)]}`
-      )
-      .setTimestamp()
-      .setFooter({ text: "Все права обмяуканы 2023-2024" });
-
+    const Embed = CommandEmbed.embed({
+      color: 0xf7bfd7,
+      content: `${
+        replyMessages[Math.floor(Math.random() * replyMessages.length)]
+      }`,
+      image: regexData[0]
+    });
     message.reply({ embeds: [Embed] });
   }
 }

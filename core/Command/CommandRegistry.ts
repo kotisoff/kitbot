@@ -26,8 +26,7 @@ export default class CommandRegistry {
 
     if (command.type.prefix) {
       const commandNames = command.prefixCommandInfo.names;
-      const aliases = [commandNames.name, ...commandNames.aliases];
-      aliases.forEach((v) => this.prefix.set(v, command));
+      this.prefix.set(commandNames[0], command);
     }
 
     this.length++;

@@ -19,10 +19,12 @@ export default class CommandScanner {
     this.commands = files
       .map((file) => {
         try {
-          return new (require(file).default)();
+          const command = new (require(file).default)() as Command;
+          if (!command.id) return;
+          return command;
         } catch {}
       })
-      .filter((v) => v);
+      .filter((v) => v) as Command[];
     return this.commands;
   }
 
