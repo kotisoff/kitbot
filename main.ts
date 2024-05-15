@@ -117,5 +117,9 @@ process
     log.info("Shutting down...");
     commandScanner.commands.forEach((command) => command.shutdown());
     log.info("Bye!");
+    log.info("Process will stop in 5 seconds.".gray);
     client.destroy();
+    setTimeout(() => {
+      process.exit(0);
+    }, 5000);
   });

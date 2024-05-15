@@ -1,13 +1,9 @@
-import {
-  CommandInteraction,
-  CacheType,
-  Message,
-  AttachmentBuilder
-} from "discord.js";
+import { CommandInteraction, CacheType, Message } from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
 import owner from "./owner";
+import textCompress from "./textCompress";
 
 export default class EvalCommand extends Command {
   constructor() {
@@ -22,24 +18,6 @@ export default class EvalCommand extends Command {
       );
   }
 
-  private checkLength(text: string, filename: string, evalOutput: string) {
-    const tempText = text + "\n```" + evalOutput + "```";
-    if (tempText.length > 2000)
-      return {
-        content: text,
-        files: [
-          new AttachmentBuilder(Buffer.from(evalOutput), { name: filename })
-        ],
-        ephemeral: true
-      };
-    else {
-      return {
-        content: tempText,
-        ephemeral: true
-      };
-    }
-  }
-
   private async evalTry(
     command: string,
     message: Message | CommandInteraction
@@ -51,10 +29,10 @@ export default class EvalCommand extends Command {
 
     try {
       const data = eval(command);
-      message.reply(this.checkLength("Done:", "output.txt", data?.toString()));
+      message.reply(textCompress("Done:", "output.txt", data?.toString()));
     } catch (err: any) {
       message.reply(
-        this.checkLength(
+        textCompress(
           "Error while running command:",
           "error.txt",
           err?.toString()

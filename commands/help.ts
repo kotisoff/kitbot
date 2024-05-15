@@ -4,6 +4,9 @@ import CommandOptions from "../core/Command/CommandOptions";
 import CustomClient from "../core/CustomClient";
 import CommandEmbed from "../core/Command/CommandEmbed";
 
+// Options
+const color = "#d18400";
+
 type commandHelp = {
   aliases: {
     prefix?: string[];
@@ -49,7 +52,8 @@ export default class HelpCommand extends Command {
     message.reply({
       embeds: [
         CommandEmbed.info({
-          title: "Help"
+          title: "Help",
+          color
         }).addFields(
           [...this.help.entries()].map(([key, cmd]) => ({
             name: key,
