@@ -9,6 +9,7 @@ import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
 import ChildProcess from "child_process";
 import path from "path";
+import owner from "./owner";
 
 export default class RebootCommand extends Command {
   constructor() {
@@ -27,7 +28,13 @@ export default class RebootCommand extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
-    ChildProcess.exec(`start cmd /k ${path.resolve("../startbot")}`).unref();
+    if (
+      !owner.ownerIds.includes(
+        message instanceof Message ? message.author.id : message.user.id
+      )
+    )
+      return message.reply("You are not owner of this bot.");
+    ChildProcess.exec(`start cmd /C ${path.resolve("../startbot")}`).unref();
     await message.reply("Bot is rebooting...");
     process.emit("SIGINT");
   }
