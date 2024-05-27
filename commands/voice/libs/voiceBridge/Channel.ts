@@ -5,24 +5,39 @@ import {
   VoiceConnection,
   joinVoiceChannel
 } from "@discordjs/voice";
-import UserStream from "./UserStream";
+import opus from "opusscript";
 import Logger from "../../../../core/Logger";
+import { Mixer } from "audio-mixer";
+import { Room } from "./Rooms";
 const log = new Logger("VoiceBridge:Channel");
 
 export class Channel {
   private users: Map<string, roomUser>;
   channel: VoiceChannel;
   connection: VoiceConnection;
-  private stream: UserStream;
+  inputStream: Mixer;
+  outputStream: Mixer;
+  room: Room;
 
-  constructor(channel: VoiceChannel) {
+  constructor(channel: VoiceChannel, room: Room) {
     this.channel = channel;
+    this.room = room;
     this.users = new Map();
     this.connection = this.connect();
-    this.stream = new UserStream();
+    this.inputStream = new Mixer({
+      bitDepth: 16,
+      channels: 1,
+      sampleRate: 48000
+    });
+    this.outputStream = new Mixer({
+      bitDepth: 16,
+      channels: 1,
+      sampleRate: 48000
+    });
     this.listenConnection();
   }
 
+  // Присоединяемся к каналу
   private connect() {
     return joinVoiceChannel({
       selfDeaf: false,
@@ -33,6 +48,7 @@ export class Channel {
     });
   }
 
+  // Прослушиваем пользователей.
   private listenConnection() {
     const receiver = this.connection.receiver;
     receiver.speaking.on("start", (userid) => {
@@ -42,11 +58,30 @@ export class Channel {
     });
   }
 
+  public newChannelConnected(channel: Channel) {
+    // this.outputStream
+  }
+
+  // Добавляем пользователя в канал
   private addUser(user: string, stream: AudioReceiveStream) {
     this.users.set(user, new roomUser(user, stream));
+
+    const userStream = this.inputStream.input(
+      {
+        bitDepth: 16,
+        sampleRate: 48000
+      },
+      1
+    );
+    const Opus = new opus(48000, 1);
+    stream.on("data", (buffer) => {
+      userStream.write(Opus.decode(buffer));
+    });
+
     log.info("Added user to channel:", this.channel.id, "user:", user);
   }
 
+  // Удаляем пользователя из канала
   removeUser(user: User | string) {
     let uid: string;
     if (user instanceof User) uid = user.id;

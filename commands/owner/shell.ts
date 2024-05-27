@@ -3,8 +3,8 @@ import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
 import ChildProcess from "child_process";
-import owner from "./owner";
 import textCompress from "./textCompress";
+import RebootCommand from "./reboot";
 
 export default class ShellCommand extends Command {
   constructor() {
@@ -24,10 +24,16 @@ export default class ShellCommand extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
+    const Reboot = Command.getCommandByClass<RebootCommand>(
+      client,
+      RebootCommand.prototype
+    );
+
     let uid: string;
     if (message instanceof Message) uid = message.author.id;
     else uid = message.user.id;
-    if (!owner.ownerIds.includes(uid))
+
+    if (!Reboot.ownerIds.includes(uid))
       return message.reply("You are not owner of this bot.");
 
     ChildProcess.exec(args.join(" ") ?? "help", (e, out, err) => {

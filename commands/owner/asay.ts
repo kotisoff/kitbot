@@ -1,13 +1,9 @@
-import {
-  CacheType,
-  CommandInteraction,
-  Message,
-  PermissionFlagsBits,
-  SlashCommandBuilder
-} from "discord.js";
+import { CacheType, CommandInteraction, Message } from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
+import RebootCommand from "./reboot";
+import CommandEmbed from "../../core/Command/CommandEmbed";
 
 export default class Asay extends Command {
   constructor() {
@@ -15,7 +11,6 @@ export default class Asay extends Command {
 
     this.slashCommandInfo
       .setDescription("Sends your message from bot.")
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
       .addStringOption((o) =>
         o.setName("message").setDescription("Your message").setRequired(true)
       );
@@ -26,18 +21,26 @@ export default class Asay extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
-    if (message instanceof Message) {
-      if (!message.member?.permissions.has(PermissionFlagsBits.Administrator))
-        return message.channel.send(
-          "You haven't permissions to use that command!"
-        );
-      message.delete().catch();
-    } else {
+    const reboot = Command.getCommandByClass(
+      client,
+      RebootCommand.prototype
+    ) as RebootCommand;
+    if (
+      !reboot.ownerIds.includes(
+        message instanceof Message ? message.author.id : message.user.id
+      )
+    )
+      return message.reply({
+        embeds: [
+          CommandEmbed.error("You haven't permissions to use that command!")
+        ]
+      });
+    if (message instanceof Message) message.delete().catch();
+    else
       message
         .reply({ content: "_ _", ephemeral: true })
         .then(() => message.deleteReply());
-    }
     if (args.length) message.channel?.send(args.join(" "));
-    else message.channel?.send("* Треск сверчков *");
+    else message.channel?.send("\\* Треск сверчков *");
   }
 }

@@ -1,8 +1,13 @@
-import { Message, CommandInteraction, CacheType } from "discord.js";
+import {
+  Message,
+  CommandInteraction,
+  CacheType,
+  TextChannel
+} from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
-import axios from "axios";
+import { Axios } from "axios";
 import CommandEmbed from "../../core/Command/CommandEmbed";
 
 const replyMessages = [
@@ -21,13 +26,40 @@ const replyMessages = [
   "Ну это пиздец какой то, ну сколько можно?!"
 ];
 
+type AstolfoRocksResponse = {
+  id: number;
+  rating: "explicit" | "safe" | "unknown" | "questionable";
+  created_at: string;
+  updated_at: string;
+  views: number;
+  source: null | "string";
+  file_extension: "jpg" | "png" | "jpeg";
+  mimetype: "image/jpeg" | "image/png";
+  file_size: number;
+  width: number;
+  height: number;
+};
+
 export default class AstolfoCommand extends Command {
+  wrapper: Axios;
   constructor() {
     super(
       new CommandOptions("astolfo").setName("Astolfo").setType({ prefix: true })
     );
 
-    this.slashCommandInfo.setDescription("Replies with random Astolfo image!");
+    this.slashCommandInfo
+      .setDescription("Replies with random Astolfo image!")
+      .addStringOption((o) =>
+        o
+          .setName("rating")
+          .setDescription("Rating of picture")
+          .addChoices(
+            { name: "Safe", value: "safe" },
+            { name: "Questionable", value: "questionable" },
+            { name: "Explicit", value: "explicit" }
+          )
+      );
+    this.wrapper = new Axios({ headers: { Accept: "application/json" } });
   }
 
   async run(
@@ -35,24 +67,38 @@ export default class AstolfoCommand extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
-    const data = (await axios.get("https://astolfo.rocks/")).data;
-    const regexData =
-      /https:\/\/astolfo\.rocks\/astolfo\/[0-9]+\.[A-Za-z]+/i.exec(
-        data
-      ) as RegExpExecArray;
+    const rating = args[0] ?? null;
+    const channel = message.channel as TextChannel;
+    const data: AstolfoRocksResponse = JSON.parse(
+      (
+        await this.wrapper.get("https://astolfo.rocks/api/images/random", {
+          params: { rating }
+        })
+      ).data
+    );
 
-    if (!regexData) {
+    if (!data.id) {
       this.logger.error("No picture source found.");
-      message.reply("No picture source found. Please try again later");
+      message.reply({
+        embeds: [
+          CommandEmbed.error("No picture source found. Please try again later")
+        ]
+      });
     }
+    if (!channel.nsfw && data.rating != "safe")
+      return message.reply({
+        embeds: [
+          CommandEmbed.error("This picture is not allowed in sfw channels.")
+        ]
+      });
 
     const Embed = CommandEmbed.embed({
       color: 0xf7bfd7,
       content: `${
         replyMessages[Math.floor(Math.random() * replyMessages.length)]
       }`,
-      image: regexData[0]
-    });
+      image: `https://astolfo.rocks/astolfo/${data.id}.${data.file_extension}`
+    }).setAuthor({ name: `Views: ${data.views}` });
     message.reply({ embeds: [Embed] });
   }
 }

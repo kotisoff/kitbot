@@ -2,8 +2,8 @@ import { CommandInteraction, CacheType, Message } from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
-import owner from "./owner";
 import textCompress from "./textCompress";
+import RebootCommand from "./reboot";
 
 export default class EvalCommand extends Command {
   constructor() {
@@ -47,7 +47,12 @@ export default class EvalCommand extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
-    if (!owner.ownerIds.includes(message.author.id))
+    const Reboot = Command.getCommandByClass<RebootCommand>(
+      client,
+      RebootCommand.prototype
+    );
+
+    if (!Reboot.ownerIds.includes(message.author.id))
       return message.reply("Хуй ты чё сделаешь, моя команда.");
 
     let command = args.join(" ");
@@ -63,7 +68,12 @@ export default class EvalCommand extends Command {
     interaction: CommandInteraction<CacheType>,
     client: CustomClient
   ): Promise<any> {
-    if (!owner.ownerIds.includes(interaction.user.id))
+    const Reboot = Command.getCommandByClass<RebootCommand>(
+      client,
+      RebootCommand.prototype
+    );
+
+    if (!Reboot.ownerIds.includes(interaction.user.id))
       return interaction.reply({
         content: "Хуй ты чё сделаешь, моя команда.",
         ephemeral: true

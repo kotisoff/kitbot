@@ -1,9 +1,4 @@
-import {
-  CacheType,
-  CommandInteraction,
-  Message,
-  SlashCommandBuilder
-} from "discord.js";
+import { CacheType, CommandInteraction, Message } from "discord.js";
 import Command from "../core/Command";
 import CommandOptions from "../core/Command/CommandOptions";
 import CustomClient from "../core/CustomClient";
