@@ -1,4 +1,5 @@
 process.chdir(__dirname);
+process.title = "KitBot";
 import Logger from "./core/Logger";
 const log = new Logger("Main");
 
@@ -9,7 +10,7 @@ const timer = Date.now();
 import fs from "fs";
 import "colors";
 
-import { ActivityType, Events } from "discord.js";
+import { ActivityType, Events, OAuth2Scopes } from "discord.js";
 import CommandScanner from "./core/Command/CommandScanner";
 import Client from "./core/CustomClient";
 import CommandRuntime from "./core/Command/CommandRuntime";
@@ -86,11 +87,11 @@ client.once(Events.ClientReady, () => {
   });
 
   log.info(`Bot took ${Date.now() - timer}ms to launch.`.gray);
-  log.info(
-    "Bot invite link:".gray,
-    `https://discord.com/oauth2/authorize?client_id=${client.application.id}&permissions=8&scope=bot`
-      .blue
-  );
+  const link = client.generateInvite({
+    permissions: ["Administrator"],
+    scopes: [OAuth2Scopes.Bot]
+  });
+  log.info("Bot invite link:".gray, link.blue);
 });
 
 client.on(Events.GuildCreate, (guild) => {

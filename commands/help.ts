@@ -1,4 +1,10 @@
-import { Message, CommandInteraction, CacheType } from "discord.js";
+import {
+  Message,
+  CommandInteraction,
+  CacheType,
+  ApplicationCommand,
+  Routes
+} from "discord.js";
 import Command from "../core/Command";
 import CommandOptions from "../core/Command/CommandOptions";
 import CustomClient from "../core/CustomClient";
@@ -21,7 +27,11 @@ export default class HelpCommand extends Command {
   constructor() {
     super(new CommandOptions("help").setType({ prefix: true }));
 
-    this.slashCommandInfo.setDescription("Shows help.");
+    this.slashCommandInfo
+      .setDescription("Shows help.")
+      .addStringOption((o) =>
+        o.setName("commandname").setDescription("Command name")
+      );
     this.prefixCommandInfo.addAlias("хелп");
 
     this.help = new Map();
@@ -49,28 +59,80 @@ export default class HelpCommand extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
-    message.reply({
+    // Получение команды из аргументов
+    const commandName = args[0];
+    const command = commandName
+      ? [...this.help.values()].find(
+          (v) =>
+            v.aliases.prefix?.includes(commandName) ||
+            v.aliases.slash == commandName
+        )
+      : undefined;
+
+    // Получение всех команд бота
+    const commands = (await client.rest.get(
+      Routes.applicationCommands(client.user.id)
+    )) as ApplicationCommand[];
+
+    // Если есть аргумент
+    if (command) {
+      return message.reply({
+        embeds: [
+          CommandEmbed.info({
+            color,
+            title: command.aliases.slash ?? command.aliases.prefix?.[0],
+            content: this.generateCommandDescription(command, message, commands)
+          })
+        ]
+      });
+    } else if (commandName) {
+      return message.reply({
+        embeds: [CommandEmbed.error("Command not found.")]
+      });
+    }
+
+    // Иначе показываем все команды
+    // В перспективе добавить menus action и перелистывать категории. Но их ещё как то нужно добавить
+    return message.reply({
       embeds: [
         CommandEmbed.info({
-          title: "Help",
-          color
+          color,
+          title: "Help - All commands"
         }).addFields(
           [...this.help.entries()].map(([key, cmd]) => ({
             name: key,
-            value:
-              cmd.description +
-              "\n" +
-              (cmd.aliases.prefix
-                ? "Prefix: `" +
-                  cmd.aliases.prefix
-                    .map((v) => client.config.bot.prefix + v)
-                    .join(", ") +
-                  "`\n"
-                : "") +
-              (cmd.aliases.slash ? "Slash: `/" + cmd.aliases.slash + "`" : "")
+            value: this.generateCommandDescription(cmd, message, commands),
+            inline: true
           }))
         )
       ]
     });
+  }
+
+  // Генерируем описание команды с использованиями
+  private generateCommandDescription(
+    cmd: commandHelp,
+    message: Message | CommandInteraction,
+    commands: ApplicationCommand[]
+  ) {
+    return (
+      // Описание
+      cmd.description +
+      "\n" +
+      // Если есть, префиксы
+      (cmd.aliases.prefix
+        ? "Prefix: `" +
+          cmd.aliases.prefix
+            .map((v) => (message.client as CustomClient).config.bot.prefix + v)
+            .join(", ") +
+          "`\n"
+        : "") +
+      // Если есть, слеш
+      (cmd.aliases.slash
+        ? `Slash: </${cmd.aliases.slash}:${
+            commands.find((v) => v.name == cmd.aliases.slash)?.id
+          }>`
+        : "")
+    );
   }
 }
