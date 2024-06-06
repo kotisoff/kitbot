@@ -12,10 +12,13 @@ import { Rooms } from "./libs/voiceBridge/Rooms";
 import { randomBytes } from "crypto";
 import RebootCommand from "../owner/reboot";
 import CommandEmbed from "../../core/Command/CommandEmbed";
-import { Channel } from "./libs/voiceBridge/Channel";
+import Channel from "./libs/voiceBridge/Channel";
+// import fs from "fs";
+// import path from "path";
 
 export default class VoiceBridgeCommand extends Command {
   rooms: Rooms;
+  //sounds: { connected: string[]; disconnected: string[] };
 
   constructor() {
     super(new CommandOptions("voicebridge").setName("VoiceBridge"));
@@ -48,6 +51,9 @@ export default class VoiceBridgeCommand extends Command {
       );
 
     this.rooms = new Rooms();
+    //this.sounds = { connected: [], disconnected: [] };
+
+    //this.preloadSounds();
   }
 
   async runSlash(
@@ -111,8 +117,23 @@ export default class VoiceBridgeCommand extends Command {
         embeds: [CommandEmbed.error("Комната с таким кодом уже существует.")]
       });
 
+    const guildRoom = this.rooms.find((room) =>
+      room.guilds.includes(channel.guildId)
+    );
+    if (guildRoom)
+      return interaction.reply({
+        embeds: [
+          CommandEmbed.error(
+            "Этот сервер уже подключён к комнате.\n" +
+              "Покиньте комнату или отключите бота от канала.\n" +
+              `Код комнаты: ${guildRoom.code}`
+          )
+        ]
+      });
+
     const room = this.rooms.addRoom(code ?? this.generateCode(6));
-    room.addChannel(channel);
+    room.addOwners(interaction.user.id);
+    room.addChannel(channel, this);
 
     interaction.reply({
       embeds: [
@@ -135,6 +156,20 @@ export default class VoiceBridgeCommand extends Command {
         embeds: [CommandEmbed.error("Для подключения необходим код.")]
       });
 
+    const guildRoom = this.rooms.find((room) =>
+      room.guilds.includes(channel.guildId)
+    );
+    if (guildRoom)
+      return interaction.reply({
+        embeds: [
+          CommandEmbed.error(
+            "На этом сервере уже создана комната.\n" +
+              "Покиньте комнату или отключите бота от канала.\n" +
+              `Код комнаты: ${guildRoom.code}`
+          )
+        ]
+      });
+
     const room = this.rooms.get(code);
     if (!room)
       return interaction.reply({
@@ -145,7 +180,7 @@ export default class VoiceBridgeCommand extends Command {
           })
         ]
       });
-    room.addChannel(channel);
+    room.addChannel(channel, this);
 
     const totalUsersCount = [...room.channels.values()]
       .map((c) => c.getUsersCount())
@@ -164,6 +199,7 @@ export default class VoiceBridgeCommand extends Command {
     });
   }
 
+  // Покидание комнаты
   async handleLeave(channel: VoiceChannel, interaction: CommandInteraction) {
     const room = this.rooms.findChannelRoom(channel);
     if (!room)
@@ -177,4 +213,20 @@ export default class VoiceBridgeCommand extends Command {
 
     await interaction.reply({ embeds: [CommandEmbed.error("Отключено.")] });
   }
+
+  // // Reading sounds
+  // preloadSounds() {
+  //   const dataDir = this.getDataDir();
+  //   const soundsPath = path.join(dataDir, "sounds");
+
+  //   if (!fs.existsSync(soundsPath)) fs.mkdirSync(soundsPath);
+
+  //   fs.readdirSync(soundsPath, { recursive: true }).forEach((file) => {
+  //     const splitPath = file.toString().split(path.sep);
+  //     if (splitPath[0] == "user_connected" && splitPath[1])
+  //       this.sounds.connected.push(path.join(soundsPath, file.toString()));
+  //     else if (splitPath[0] == "user_disconnected" && splitPath[1])
+  //       this.sounds.disconnected.push(path.join(soundsPath, file.toString()));
+  //   });
+  // }
 }

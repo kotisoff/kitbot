@@ -1,27 +1,48 @@
 import { VoiceChannel } from "discord.js";
-import { Channel } from "./Channel";
+import Channel from "./Channel";
 import Logger from "../../../../core/Logger";
+import VoiceBridgeCommand from "../../voiceBridge";
 const log = new Logger("VoiceBridge:Rooms");
 
 export class Room {
   code: string;
+
   channels: Map<string, Channel>;
+  guilds: string[];
   private rooms: Rooms;
+
+  owners: string[];
 
   constructor(code: string, rooms: Rooms) {
     this.code = code;
-    this.channels = new Map();
 
+    this.channels = new Map();
+    this.guilds = [];
     this.rooms = rooms;
+
+    this.owners = [];
   }
 
-  // Добавляем канал в комнату
-  addChannel(voiceChannel: VoiceChannel) {
-    const newChannel = new Channel(voiceChannel, this);
+  /** Добавляем канал в комнату */
+  addChannel(voiceChannel: VoiceChannel, command: VoiceBridgeCommand) {
+    const newChannel = new Channel(voiceChannel, this, command);
     this.channels.set(voiceChannel.id, newChannel);
+    if (!this.guilds.includes(voiceChannel.guildId))
+      this.guilds.push(voiceChannel.guildId);
     log.info("Added channel:", voiceChannel.id, "to room:", this.code);
     this.reconfigureChannels();
     return this.channels.get(voiceChannel.id) as Channel;
+  }
+
+  /** Удаляем канал из комнаты */
+  removeChannel(voiceChannel: VoiceChannel) {
+    if (!this.channels.delete(voiceChannel.id)) return;
+    this.guilds.splice(this.guilds.indexOf(voiceChannel.guildId), 1);
+  }
+
+  /** Добавляем владельца комнаты */
+  addOwners(...uid: string[]) {
+    this.owners.push(...uid);
   }
 
   reconfigureChannels() {

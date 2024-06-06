@@ -11,24 +11,28 @@ import Logger from "../../../../core/Logger";
 import { Mixer } from "audio-mixer";
 import { Room } from "./Rooms";
 import fs from "fs";
+import VoiceBridgeCommand from "../../voiceBridge";
 
 const log = new Logger("VoiceBridge:Channel");
 
-const mixerOptions = {
+export const mixerOptions = {
   bitDepth: 16,
   channels: 1,
   sampleRate: 48000
 };
 
-export class Channel {
-  private users: Map<string, roomUser>;
+export default class Channel {
   channel: VoiceChannel;
+  room: Room;
+  private users: Map<string, roomUser>;
   connection: VoiceConnection;
+
   inputStream: Mixer;
   outputStream: Mixer;
-  room: Room;
 
-  constructor(channel: VoiceChannel, room: Room) {
+  command: VoiceBridgeCommand;
+
+  constructor(channel: VoiceChannel, room: Room, command: VoiceBridgeCommand) {
     this.channel = channel;
     this.room = room;
     this.users = new Map();
@@ -37,6 +41,8 @@ export class Channel {
     this.inputStream = new Mixer(mixerOptions); // Other channel users speech => this channel
     this.outputStream = new Mixer(mixerOptions); // This channel users speech => other channels
 
+    this.command = command;
+
     this.listenConnection();
 
     this.connection.on("stateChange", (_, ns) => {
@@ -44,7 +50,7 @@ export class Channel {
         ns.status == VoiceConnectionStatus.Destroyed ||
         ns.status == VoiceConnectionStatus.Disconnected
       ) {
-        room.channels.delete(channel.id);
+        room.removeChannel(channel);
         if (!this.room.channels.size) room.destroy();
       }
     });
@@ -85,7 +91,7 @@ export class Channel {
     });
   }
 
-  public reconfigureInputChannels(channels: Map<string, Channel>) {
+  reconfigureInputChannels(channels: Map<string, Channel>) {
     const filteredChannels = [...channels.entries()].filter(
       ([chid, _]) => chid != this.channel.id
     );
@@ -99,7 +105,7 @@ export class Channel {
 
   // Добавляем пользователя в канал
   private addUser(user: string, stream: AudioReceiveStream) {
-    this.users.set(user, new roomUser(user, stream));
+    this.users.set(user, new roomUser(user, stream, this));
 
     const userStream = this.outputStream.input(mixerOptions);
     const opus = new OpusScript(48000, 1, OpusScript.Application.VOIP);

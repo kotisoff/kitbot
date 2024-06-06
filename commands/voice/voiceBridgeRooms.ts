@@ -23,7 +23,11 @@ export default class VoiceBridgeRoomsCommand extends Command {
     const embed = CommandEmbed.info({ title: "Комнаты" }).addFields(
       [...VoiceBridge.rooms.values()].map((r) => ({
         name: r.code,
-        value: `Подключено каналов: ${r.channels.size}`,
+        value:
+          `Подключено каналов: ${r.channels.size}\n` +
+          `Подключено пользователей: ${[...r.channels.values()]
+            .map((c) => c.getUsersCount())
+            .reduce((a, b) => a + b, 0)}\n`,
         inline: true
       }))
     );
