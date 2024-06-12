@@ -5,14 +5,14 @@ import {
   VoiceChannel,
   EmbedBuilder
 } from "discord.js";
-import Command from "../../core/Command";
-import CommandOptions from "../../core/Command/CommandOptions";
-import CustomClient from "../../core/CustomClient";
-import { Rooms } from "./libs/voiceBridge/Rooms";
+import Command from "../../../core/Command";
+import CommandOptions from "../../../core/Command/CommandOptions";
+import CustomClient from "../../../core/CustomClient";
+import { Rooms } from "./libs/Rooms";
 import { randomBytes } from "crypto";
-import RebootCommand from "../owner/reboot";
-import CommandEmbed from "../../core/Command/CommandEmbed";
-import Channel from "./libs/voiceBridge/Channel";
+import RebootCommand from "../../owner/reboot";
+import CommandEmbed from "../../../core/Command/CommandEmbed";
+import Channel from "./libs/Channel";
 // import fs from "fs";
 // import path from "path";
 
@@ -73,15 +73,6 @@ export default class VoiceBridgeCommand extends Command {
       | "leave";
     const channel = interaction.options.get("channel")?.channel as VoiceChannel;
     const code = interaction.options.get("code")?.value as string | undefined;
-
-    // WIP ошибка
-    const ErrEmbed = new EmbedBuilder()
-      .setTitle("Ошибка: Пошёл нахуй")
-      .setDescription("Команда в данный момент в разработке")
-      .setColor(0xff0000);
-
-    if (!Reboot.ownerIds.includes(interaction.user.id))
-      interaction.reply({ embeds: [ErrEmbed] });
 
     // Свитч между вариантами
     switch (option) {

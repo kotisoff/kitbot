@@ -6,12 +6,11 @@ import {
   VoiceConnectionStatus,
   joinVoiceChannel
 } from "@discordjs/voice";
-import OpusScript from "opusscript";
+import { OpusEncoder } from "mediaplex";
 import Logger from "../../../../core/Logger";
 import { Mixer } from "audio-mixer";
 import { Room } from "./Rooms";
-import fs from "fs";
-import VoiceBridgeCommand from "../../voiceBridge";
+import VoiceBridgeCommand from "../voiceBridge";
 
 const log = new Logger("VoiceBridge:Channel");
 
@@ -81,11 +80,10 @@ export default class Channel {
 
   // Прослушивает другие каналы в комнате
   private listenOutputStream() {
-    const frameSize = (mixerOptions.sampleRate * 20) / 1000;
-    const opus = new OpusScript(48000, 1, OpusScript.Application.VOIP);
+    const opus = new OpusEncoder(48000, 1);
     this.inputStream.on("data", (buffer) => {
       try {
-        const encoded = opus.encode(buffer, frameSize);
+        const encoded = opus.encode(buffer);
         this.connection.playOpusPacket(encoded);
       } catch (e) {}
     });
@@ -108,7 +106,7 @@ export default class Channel {
     this.users.set(user, new roomUser(user, stream, this));
 
     const userStream = this.outputStream.input(mixerOptions);
-    const opus = new OpusScript(48000, 1, OpusScript.Application.VOIP);
+    const opus = new OpusEncoder(48000, 1);
     stream.on("data", (buffer) => userStream.write(opus.decode(buffer)));
 
     log.info("Added user to channel:", this.channel.id, "user:", user);

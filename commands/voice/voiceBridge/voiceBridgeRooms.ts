@@ -1,9 +1,9 @@
 import { CommandInteraction, CacheType } from "discord.js";
-import Command from "../../core/Command";
-import CommandOptions from "../../core/Command/CommandOptions";
-import CustomClient from "../../core/CustomClient";
+import Command from "../../../core/Command";
+import CommandOptions from "../../../core/Command/CommandOptions";
+import CustomClient from "../../../core/CustomClient";
 import VoiceBridgeCommand from "./voiceBridge";
-import CommandEmbed from "../../core/Command/CommandEmbed";
+import CommandEmbed from "../../../core/Command/CommandEmbed";
 
 export default class VoiceBridgeRoomsCommand extends Command {
   constructor() {

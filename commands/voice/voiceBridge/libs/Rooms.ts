@@ -1,7 +1,7 @@
 import { VoiceChannel } from "discord.js";
 import Channel from "./Channel";
 import Logger from "../../../../core/Logger";
-import VoiceBridgeCommand from "../../voiceBridge";
+import VoiceBridgeCommand from "../voiceBridge";
 const log = new Logger("VoiceBridge:Rooms");
 
 export class Room {
