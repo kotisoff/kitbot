@@ -7,15 +7,16 @@ import {
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
-import { YandexMusicExtractor } from "discord-player-yandexmusic";
-import { Player, useMainPlayer, usePlayer, useQueue } from "discord-player";
+import { Player, useMainPlayer, useQueue } from "discord-player";
 import {
-  AttachmentExtractor,
-  YoutubeExtractor
+  YoutubeExtractor,
+  SoundCloudExtractor,
+  SpotifyExtractor
 } from "@discord-player/extractor";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
+import { YandexMusicExtractor } from "discord-player-yandexmusic";
 
-class YMConfig {
+export class YMConfig {
   access_token: string;
   uid: number;
   constructor() {
@@ -25,7 +26,7 @@ class YMConfig {
 
 export default class PlayCommand extends Command {
   constructor() {
-    super(new CommandOptions("play", { prefix: true }).setName("MusicPlay"));
+    super(new CommandOptions("play").setName("MusicPlay"));
 
     this.slashCommandInfo
       .setDescription("Play music")
@@ -39,9 +40,9 @@ export default class PlayCommand extends Command {
       this.readConfig<YMConfig>() ?? this.writeConfig(new YMConfig());
 
     const player = new Player(client);
-    player.extractors.register(AttachmentExtractor, {});
-    player.extractors.register(YandexMusicExtractor, config);
     player.extractors.register(YoutubeExtractor, {});
+    player.extractors.register(SoundCloudExtractor, {});
+    player.extractors.register(YandexMusicExtractor, config);
     this.logger.info("Player created.".gray);
   }
 
@@ -78,7 +79,7 @@ export default class PlayCommand extends Command {
       });
     }
 
-    interaction.deferReply();
+    await interaction.deferReply();
 
     const player = useMainPlayer();
     const search = await player.search(query, {

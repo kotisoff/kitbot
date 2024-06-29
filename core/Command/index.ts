@@ -32,6 +32,9 @@ export default abstract class Command {
   // Logger
   logger: Logger;
 
+  // User permissions
+  private users: string[] | undefined;
+
   constructor(options: CommandOptions) {
     this.id = options.id;
     this.name = options.name;
@@ -92,8 +95,8 @@ export default abstract class Command {
     this.configFolder = configFolder;
   }
 
-  readConfig<config = any>(): config | undefined {
-    const cfg = this.getCfgPath();
+  readConfig<config = any>(configName = this.configName): config | undefined {
+    const cfg = this.getCfgPath(configName);
     try {
       return JSON.parse(fs.readFileSync(cfg, { encoding: "utf-8" }));
     } catch {
@@ -101,9 +104,12 @@ export default abstract class Command {
     }
   }
 
-  writeConfig<config = any>(data: config): config {
+  writeConfig<config = any>(
+    data: config,
+    configName = this.configName
+  ): config {
     const dir = this.getCfgDir();
-    const cfg = this.getCfgPath();
+    const cfg = this.getCfgPath(configName);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(cfg, JSON.stringify(data));
     return data;
@@ -118,7 +124,8 @@ export default abstract class Command {
 
   private getCfgDir = () =>
     path.join(process.cwd(), "configs", this.configFolder);
-  private getCfgPath = () => path.join(this.getCfgDir(), this.configName);
+  private getCfgPath = (configName = this.configName) =>
+    path.join(this.getCfgDir(), configName);
 
   // Data
 
@@ -135,6 +142,29 @@ export default abstract class Command {
   private getDataDirPath = () => {
     return path.join(process.cwd(), "data", this.dataFolder);
   };
+
+  /**
+   * Set users who can use that command. If not set, everyone can use.
+   */
+  setUsers(...ids: string[]) {
+    this.users = ids;
+    return this;
+  }
+
+  /**
+   * Push users into users array.
+   */
+  pushUsers(...ids: string[]) {
+    this.users = this.users ? [...this.users, ...ids] : ids;
+    return this;
+  }
+
+  /**
+   * Get users who can use that command.
+   */
+  getUsers() {
+    return this.users;
+  }
 
   static interactionToArgs(interaction: CommandInteraction) {
     const args = interaction.options.data
@@ -163,7 +193,7 @@ export default abstract class Command {
     return args;
   }
 
-  static getCommandByClass<CommandType>(
+  static getCommandByClass<CommandType = Command>(
     client: CustomClient,
     Class: Command
   ): CommandType {

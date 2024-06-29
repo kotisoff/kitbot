@@ -2,8 +2,7 @@ import {
   CommandInteraction,
   CacheType,
   ChannelType,
-  VoiceChannel,
-  EmbedBuilder
+  VoiceChannel
 } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
@@ -13,8 +12,6 @@ import { randomBytes } from "crypto";
 import RebootCommand from "../../owner/reboot";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 import Channel from "./libs/Channel";
-// import fs from "fs";
-// import path from "path";
 
 export default class VoiceBridgeCommand extends Command {
   rooms: Rooms;

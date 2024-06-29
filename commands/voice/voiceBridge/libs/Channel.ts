@@ -6,7 +6,7 @@ import {
   VoiceConnectionStatus,
   joinVoiceChannel
 } from "@discordjs/voice";
-import { OpusEncoder } from "mediaplex";
+import { Encoder, Decoder } from "@evan/opus";
 import Logger from "../../../../core/Logger";
 import { Mixer } from "audio-mixer";
 import { Room } from "./Rooms";
@@ -80,11 +80,14 @@ export default class Channel {
 
   // Прослушивает другие каналы в комнате
   private listenOutputStream() {
-    const opus = new OpusEncoder(48000, 1);
+    const opus = new Encoder({
+      channels: 1,
+      sample_rate: 48000
+    });
     this.inputStream.on("data", (buffer) => {
       try {
         const encoded = opus.encode(buffer);
-        this.connection.playOpusPacket(encoded);
+        this.connection.playOpusPacket(Buffer.from(encoded));
       } catch (e) {}
     });
   }
@@ -106,7 +109,7 @@ export default class Channel {
     this.users.set(user, new roomUser(user, stream, this));
 
     const userStream = this.outputStream.input(mixerOptions);
-    const opus = new OpusEncoder(48000, 1);
+    const opus = new Decoder({ channels: 1, sample_rate: 48000 });
     stream.on("data", (buffer) => userStream.write(opus.decode(buffer)));
 
     log.info("Added user to channel:", this.channel.id, "user:", user);

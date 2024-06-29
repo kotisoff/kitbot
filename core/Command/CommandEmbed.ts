@@ -15,7 +15,9 @@ export default class CommandEmbed {
       .setDescription(options.content ?? null)
       .setImage(options.image ?? null)
       .setTimestamp()
-      .setFooter({ text: "Все права обмяуканы 2023-2024" });
+      .setFooter({
+        text: "Все права обмяуканы 2023-" + new Date().getFullYear()
+      });
   }
 
   private static embedcolored(
