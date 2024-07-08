@@ -2,16 +2,23 @@ import {
   CommandInteraction,
   CacheType,
   GuildMember,
-  AttachmentBuilder
+  AttachmentBuilder,
+  User
 } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
-import { Player, useMainPlayer, useQueue } from "discord-player";
+import {
+  Player,
+  Playlist,
+  Track,
+  useMainPlayer,
+  useQueue
+} from "discord-player";
 import {
   YoutubeExtractor,
   SoundCloudExtractor,
-  SpotifyExtractor
+  AttachmentExtractor
 } from "@discord-player/extractor";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 import { YandexMusicExtractor } from "discord-player-yandexmusic";
@@ -42,6 +49,7 @@ export default class PlayCommand extends Command {
     const player = new Player(client);
     player.extractors.register(YoutubeExtractor, {});
     player.extractors.register(SoundCloudExtractor, {});
+    player.extractors.register(AttachmentExtractor, {});
     player.extractors.register(YandexMusicExtractor, config);
     this.logger.info("Player created.".gray);
   }
@@ -92,16 +100,16 @@ export default class PlayCommand extends Command {
       });
     }
 
-    const reply = search.playlist
-      ? `Добавлен плейлист: \`${search.playlist.title} - ${search.playlist.author.name}\` с ${search.tracks.length} песнями.`
-      : `Добавлено в очередь: \`${search.tracks[0].title} - ${search.tracks[0].author}\` (${search.tracks[0].duration})`;
+    const embed = search.playlist
+      ? this.buildEmbedPlaylist(search.playlist, search.requestedBy)
+      : this.buildEmbedTrack(search.tracks[0], search.requestedBy);
 
     player
       .play(channel, search.playlist ? search.playlist : search.tracks[0], {
         nodeOptions: { metadata: interaction }
       })
       .then(() => {
-        interaction.followUp({ embeds: [CommandEmbed.info(reply)] });
+        interaction.followUp({ embeds: [embed] });
       })
       .catch((e) => {
         interaction.followUp({
@@ -113,5 +121,65 @@ export default class PlayCommand extends Command {
           ]
         });
       });
+
+    if (search.playlist) {
+      queue?.tracks.shuffle();
+      interaction.followUp({
+        embeds: [CommandEmbed.info("Плейлист автоматически перемешан.")]
+      });
+    }
+  }
+
+  private buildEmbedPlaylist(playlist: Playlist, requested_by?: User | null) {
+    return CommandEmbed.blankEmbed()
+      .setTitle(playlist.title)
+      .setURL(playlist.url)
+      .setThumbnail(playlist.thumbnail)
+      .setAuthor({
+        name: playlist.author.name,
+        url: playlist.author.url
+      })
+      .addFields(
+        {
+          name: "Количество треков",
+          value: `${playlist.tracks.length} треков`,
+          inline: true
+        },
+        {
+          name: "Длительность",
+          value: playlist.durationFormatted,
+          inline: true
+        },
+        {
+          name: "Добавлено",
+          value: requested_by?.username ?? "Неизвестно",
+          inline: true
+        },
+        { name: "Описание", value: playlist.description }
+      )
+      .setColor("Random");
+  }
+
+  private buildEmbedTrack(track: Track, requested_by?: User | null) {
+    return CommandEmbed.blankEmbed()
+      .setTitle(track.title)
+      .setURL(track.url)
+      .setThumbnail(track.thumbnail)
+      .setAuthor({
+        name: track.author
+      })
+      .addFields(
+        {
+          name: "Длительность",
+          value: track.duration,
+          inline: true
+        },
+        {
+          name: "Добавлено",
+          value: requested_by?.username ?? "Неизвестно",
+          inline: true
+        }
+      )
+      .setColor("Random");
   }
 }

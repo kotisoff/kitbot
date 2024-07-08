@@ -20,6 +20,10 @@ export default class CommandEmbed {
       });
   }
 
+  static blankEmbed() {
+    return this.embed({});
+  }
+
   private static embedcolored(
     options: EmbedOptions | string,
     defaultColor: ColorResolvable | null

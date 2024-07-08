@@ -1,5 +1,4 @@
 process.chdir(__dirname);
-process.title = "KitBot";
 import Logger from "./core/Logger";
 const log = new Logger("Main");
 
@@ -74,6 +73,8 @@ log.info("Command runtime started.".gray);
 
 client.once(Events.ClientReady, () => {
   log.info(`${client.user.tag} is online.`.yellow);
+
+  process.title = client.user.username;
 
   if (config.settings.autoDeploy) deployCommands(client);
 

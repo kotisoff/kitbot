@@ -313,10 +313,10 @@ discord-api-types@^0.37.50:
   resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.88.tgz#39344663acb890d3390e1d49c3fd21d99911bf16"
   integrity sha512-Yrj5S3JXzouPc6WLA8svgXCw3Q7IkNdW/Y/IfkJF+CsgUBsgECQ8qVoOaseJJ8Atj2TEvabut4rGmzq6PRi1/Q==
 
-discord-player-yandexmusic@^0.1.0:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/discord-player-yandexmusic/-/discord-player-yandexmusic-0.1.2.tgz#68baf24c66011d241d52adcdc22f263ad90cfa2a"
-  integrity sha512-x2PIde46jXu1FcZ9COmb/07K06gPP2XymfAsO/wL2yJ02Y6m/u7PC6wZK+7lUVCTfLwkQaB0lnNdHsTmt2AsOw==
+discord-player-yandexmusic@^0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/discord-player-yandexmusic/-/discord-player-yandexmusic-0.1.6.tgz#8c7141770cc4df223db4145cd0af9e43e4ffb383"
+  integrity sha512-8ZjusccgEsCFOw1uDLxN0ks/m+VY7IH0qGacUPMUhDvFAZOIDqRENpEQ6laYcdszgCVZzjpPrDbT0b352a0DkQ==
   dependencies:
     discord-player "^6.6.10"
     tslint-config-prettier "^1.18.0"

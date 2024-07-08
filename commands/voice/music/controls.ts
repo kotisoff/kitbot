@@ -1,8 +1,8 @@
-import { CommandInteraction, CacheType } from "discord.js";
+import { CommandInteraction, CacheType, GuildMember } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
-import { useQueue } from "discord-player";
+import { Track, useQueue } from "discord-player";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 
 export default class MusicControlsCommand extends Command {
@@ -39,6 +39,18 @@ export default class MusicControlsCommand extends Command {
         embeds: [CommandEmbed.error("В данный момент ничего воспроизводится.")]
       });
 
+    const channel =
+      interaction.member instanceof GuildMember
+        ? interaction.member.voice.channel
+        : undefined;
+
+    if (!channel)
+      return interaction.reply({
+        embeds: [
+          CommandEmbed.error("Сначала подключитесь к голосовому каналу!")
+        ]
+      });
+
     if (param == "skip") {
       const track = queue.currentTrack;
       queue.node.skip();
@@ -62,17 +74,31 @@ export default class MusicControlsCommand extends Command {
         ]
       });
     } else if (param == "current") {
-      const track = queue.currentTrack;
-      return await interaction.reply(
-        `Текущий трек: \`${track?.title} - ${
-          track?.author
-        }\` ${queue.node.createProgressBar()}`
-      );
+      const track = queue.currentTrack as Track;
+      return await interaction.reply({
+        embeds: [
+          CommandEmbed.blankEmbed()
+            .setTitle(track.title)
+            .setURL(track.url)
+            .setAuthor({ name: track.author })
+            .addFields(
+              {
+                name: "Длительность",
+                value: queue.node.createProgressBar() ?? track.duration
+              },
+              {
+                name: "Добавлено",
+                value: track.requestedBy?.username ?? "Неизвестно"
+              }
+            )
+        ]
+      });
     } else if (param == "list") {
       const tracks = [queue.currentTrack, ...queue.tracks.data];
 
       const embed = CommandEmbed.info({
-        title: `Список воспроизведения (Всего: ${tracks.length})`
+        title: `Список воспроизведения (Всего: ${tracks.length})`,
+        content: `Длительность: ${queue.durationFormatted}`
       }).addFields(
         ...tracks.slice(0, 25).map((track) => ({
           name: `${track?.title} - ${track?.author}`,

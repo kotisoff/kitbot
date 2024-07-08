@@ -17,17 +17,28 @@ export default class CommandRuntime {
 
   async listenSlashCommands() {
     return this.client.on("interactionCreate", async (interaction) => {
-      if (!interaction.isCommand()) return;
+      if (!interaction.isCommand() && !interaction.isAutocomplete()) return;
+
       const command = this.client.interCmd.get(interaction.commandName);
+
       if (!command) {
-        interaction.reply({
-          content: `Command ${interaction.commandName} doesn't exist!`,
-          ephemeral: true
-        });
+        if (!interaction.isAutocomplete())
+          interaction.reply({
+            embeds: [
+              CommandEmbed.error(
+                `Command ${interaction.commandName} doesn't exist!`
+              )
+            ],
+            ephemeral: true
+          });
         log.error(
           `No command matching "${interaction.commandName}" was found.`.gray
         );
         return;
+      }
+
+      if (interaction.isAutocomplete()) {
+        return command.autocomplete(interaction, this.client).catch(log.error);
       }
 
       if (!this.checkIfUserCanUse(command, interaction.user)) {
