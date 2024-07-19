@@ -3,7 +3,10 @@ import {
   CacheType,
   GuildMember,
   AttachmentBuilder,
-  User
+  User,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
 } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
@@ -22,6 +25,7 @@ import {
 } from "@discord-player/extractor";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 import { YandexMusicExtractor } from "discord-player-yandexmusic";
+import LyricsCommand from "./lyrics";
 
 export class YMConfig {
   access_token: string;
@@ -38,7 +42,17 @@ export default class PlayCommand extends Command {
     this.slashCommandInfo
       .setDescription("Play music")
       .addStringOption((o) =>
-        o.setName("query").setDescription("query").setRequired(true)
+        o
+          .setName("query")
+          .setDescription("Ссылка/название песни")
+          .setRequired(true)
+      )
+      .addBooleanOption((o) =>
+        o
+          .setName("shuffle")
+          .setDescription(
+            "Перемешать если плейлист/альбом. По умолчанию: false"
+          )
       );
   }
 
@@ -64,6 +78,9 @@ export default class PlayCommand extends Command {
         embeds: [CommandEmbed.error("Введите промпт.")]
       });
     }
+
+    const shuffle =
+      (interaction.options.get("shuffle")?.value as boolean) ?? false;
 
     const channel =
       interaction.member instanceof GuildMember
@@ -100,16 +117,68 @@ export default class PlayCommand extends Command {
       });
     }
 
+    if (search.playlist && shuffle) this.sufflePlaylist(search.playlist);
+
     const embed = search.playlist
       ? this.buildEmbedPlaylist(search.playlist, search.requestedBy)
       : this.buildEmbedTrack(search.tracks[0], search.requestedBy);
+
+    const track = search.tracks[0];
+    const stream = track.extractor?.stream(track);
+
+    const actionRow = new ActionRowBuilder<ButtonBuilder>();
+    if (search.playlist) {
+      actionRow.addComponents(
+        new ButtonBuilder()
+          .setCustomId("shuffle")
+          .setLabel("Перемешать")
+          .setEmoji("🔀")
+          .setStyle(ButtonStyle.Primary)
+      );
+    } else {
+      actionRow.addComponents(
+        new ButtonBuilder()
+          .setCustomId("lyrics")
+          .setLabel("Текст")
+          .setEmoji("📜")
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setLabel(typeof stream == "string" ? "Скачать" : "Ссылка на трек")
+          .setStyle(ButtonStyle.Link)
+          .setURL(typeof stream == "string" ? stream : track.url)
+      );
+    }
 
     player
       .play(channel, search.playlist ? search.playlist : search.tracks[0], {
         nodeOptions: { metadata: interaction }
       })
-      .then(() => {
-        interaction.followUp({ embeds: [embed] });
+      .then(async () => {
+        const reply = await interaction.reply({
+          embeds: [embed],
+          components: [actionRow]
+        });
+        try {
+          const button = await reply.awaitMessageComponent({
+            time: 60_000,
+            filter: (i) => i.user.id == interaction.user.id
+          });
+
+          if (button.customId == "lyrics") {
+            const lyricsCommand = client.getCommandByClass<LyricsCommand>(
+              LyricsCommand.prototype
+            );
+            const trackName = track.title + " - " + track.author;
+            lyricsCommand.run(await reply.fetch(), [trackName], client);
+            button.update({});
+          } else if (button.customId == "shuffle") {
+            queue?.tracks.shuffle();
+            button.followUp({
+              embeds: [CommandEmbed.success("Перемешано успешно (вроде)")],
+              ephemeral: true
+            });
+          }
+        } catch {}
       })
       .catch((e) => {
         interaction.followUp({
@@ -121,13 +190,6 @@ export default class PlayCommand extends Command {
           ]
         });
       });
-
-    if (search.playlist) {
-      queue?.tracks.shuffle();
-      interaction.followUp({
-        embeds: [CommandEmbed.info("Плейлист автоматически перемешан.")]
-      });
-    }
   }
 
   private buildEmbedPlaylist(playlist: Playlist, requested_by?: User | null) {
@@ -181,5 +243,12 @@ export default class PlayCommand extends Command {
         }
       )
       .setColor("Random");
+  }
+
+  private sufflePlaylist(playlist: Playlist) {
+    playlist.tracks = playlist.tracks
+      .map((track) => ({ track, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ track }) => track);
   }
 }

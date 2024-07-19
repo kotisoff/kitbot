@@ -2,7 +2,7 @@ import { CommandInteraction, CacheType, GuildMember } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
-import { Track, useQueue } from "discord-player";
+import { useQueue, Util } from "discord-player";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 
 export default class MusicControlsCommand extends Command {
@@ -18,7 +18,6 @@ export default class MusicControlsCommand extends Command {
           .addChoices(
             { name: "Пропустить", value: "skip" },
             { name: "Пауза", value: "pause" },
-            { name: "Текущий трек", value: "current" },
             { name: "Список воспроизведения", value: "list" },
             { name: "Перемешать", value: "shuffle" },
             { name: "Остановить", value: "stop" }
@@ -73,36 +72,18 @@ export default class MusicControlsCommand extends Command {
           )
         ]
       });
-    } else if (param == "current") {
-      const track = queue.currentTrack as Track;
-      return await interaction.reply({
-        embeds: [
-          CommandEmbed.blankEmbed()
-            .setTitle(track.title)
-            .setURL(track.url)
-            .setAuthor({ name: track.author })
-            .addFields(
-              {
-                name: "Длительность",
-                value: queue.node.createProgressBar() ?? track.duration
-              },
-              {
-                name: "Добавлено",
-                value: track.requestedBy?.username ?? "Неизвестно"
-              }
-            )
-        ]
-      });
     } else if (param == "list") {
       const tracks = [queue.currentTrack, ...queue.tracks.data];
 
       const embed = CommandEmbed.info({
         title: `Список воспроизведения (Всего: ${tracks.length})`,
-        content: `Длительность: ${queue.durationFormatted}`
+        content: `Длительность: ${Util.formatDuration(
+          queue.estimatedDuration + (queue.currentTrack?.durationMS ?? 0)
+        )}`
       }).addFields(
         ...tracks.slice(0, 25).map((track) => ({
           name: `${track?.title} - ${track?.author}`,
-          value: `Добавлено ${track?.requestedBy?.username}`
+          value: `Добавлено ${track?.requestedBy?.username ?? "Неизвестно"}`
         }))
       );
 

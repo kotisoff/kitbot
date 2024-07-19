@@ -20,7 +20,8 @@ export default class PlaylistSaveloadCommand extends Command {
           .setDescription("Parameter")
           .addChoices(
             { name: "Save", value: "save" },
-            { name: "Load", value: "load" }
+            { name: "Load", value: "load" },
+            { name: "List", value: "list" }
           )
           .setRequired(true)
       )
@@ -69,12 +70,22 @@ export default class PlaylistSaveloadCommand extends Command {
         });
       }
 
-      const tracks = queue.tracks.map((track) => track.url);
-      const newcode = randomBytes(6).toString("hex");
+      const tracks: string[] = [];
+      tracks.push(queue.currentTrack?.url as string);
+      tracks.push(...queue.tracks.map((track) => track.url));
+
+      let newcode = code ?? this.generateCode();
+      while (this.playlists[newcode]) {
+        newcode = this.generateCode();
+      }
 
       const expireTime = 259200000; // 3 days
 
-      this.playlists[newcode] = { tracks, expires: Date.now() + expireTime };
+      this.playlists[newcode] = {
+        tracks,
+        expires: Date.now() + expireTime,
+        author: interaction.user.id
+      };
 
       interaction.reply({
         embeds: [
@@ -93,9 +104,18 @@ export default class PlaylistSaveloadCommand extends Command {
           embeds: [CommandEmbed.error("Не найдено плейлистов с таким кодом!")]
         });
 
+      const queue = useQueue(interaction.guildId as string);
+
+      if (queue && queue.channel?.id != channel.id) {
+        return interaction.reply({
+          embeds: [
+            CommandEmbed.error("Музыка уже проигрывается в другом канале.")
+          ]
+        });
+      }
+
       const playlist = this.playlists[code];
       const player = useMainPlayer();
-      const queue = useQueue(interaction.guildId as string);
 
       const embed = CommandEmbed.blankEmbed()
         .setTitle("Плейлист загружается")
@@ -112,12 +132,33 @@ export default class PlaylistSaveloadCommand extends Command {
       interaction.reply({ embeds: [embed] });
 
       for (const url of playlist.tracks) {
-        await player.play(channel, url);
+        await player.play(channel, url, { requestedBy: interaction.user });
       }
 
       delete this.playlists[code];
       this.removeExpiredOnes();
       this.writeData(this.playlists);
+    } else if (parameter == "list") {
+      const playlists = Object.entries(this.playlists).filter(
+        ([_k, v]) => v.author == interaction.user.id
+      );
+      const embed = CommandEmbed.info({ title: "Ваши плейлисты" }).addFields(
+        playlists.map(([key, playlist]) => ({
+          name: key,
+          value: `Количество треков: ${
+            playlist.tracks.length
+          }\nИсчезает: ${new Date(playlist.expires).toLocaleDateString()}`
+        }))
+      );
+
+      if (!embed.data.fields?.length) {
+        embed.addFields({
+          name: "Нет плейлистов.",
+          value: "Добавьте с помощью данной команды!"
+        });
+      }
+
+      interaction.reply({ embeds: [embed], ephemeral: true });
     }
   }
 
@@ -126,8 +167,12 @@ export default class PlaylistSaveloadCommand extends Command {
       if (value.expires < Date.now()) delete this.playlists[key];
     }
   }
+
+  private generateCode() {
+    return randomBytes(6).toString("hex");
+  }
 }
 
 class Playlists {
-  [index: string]: { tracks: string[]; expires: number };
+  [index: string]: { tracks: string[]; expires: number; author: string };
 }

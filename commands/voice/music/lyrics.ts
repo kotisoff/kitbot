@@ -1,4 +1,4 @@
-import { CommandInteraction, CacheType } from "discord.js";
+import { CommandInteraction, CacheType, Message } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
@@ -21,24 +21,25 @@ export default class LyricsCommand extends Command {
     this.lyricsApi = lyricsExtractor();
   }
 
-  async runSlash(
-    interaction: CommandInteraction<CacheType>,
+  async run(
+    message: Message | CommandInteraction,
+    args: string[],
     client: CustomClient
   ): Promise<any> {
-    const query = interaction.options.get("query")?.value as string | undefined;
+    const query = args[0] as string | undefined;
 
     const trackName = query
       ? query
       : (() => {
           const currentTrack = useQueue(
-            interaction.guildId as string
+            message.guildId as string
           )?.currentTrack;
           if (!currentTrack) return;
           return currentTrack.title + " - " + currentTrack.author;
         })();
 
     if (!trackName)
-      return interaction.reply({
+      return message.reply({
         embeds: [
           CommandEmbed.error("В данный момент ничего не воспроизводится.")
         ]
@@ -46,7 +47,7 @@ export default class LyricsCommand extends Command {
 
     const lyrics = await this.lyricsApi.search(trackName).catch(() => null);
     if (!lyrics)
-      return interaction.reply({
+      return message.reply({
         embeds: [CommandEmbed.error("No lyrics found")],
         ephemeral: true
       });
@@ -67,6 +68,6 @@ export default class LyricsCommand extends Command {
       })
       .setColor("Random");
 
-    return interaction.reply({ embeds: [embed] });
+    return message.reply({ embeds: [embed] });
   }
 }
