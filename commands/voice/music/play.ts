@@ -154,10 +154,11 @@ export default class PlayCommand extends Command {
         nodeOptions: { metadata: interaction }
       })
       .then(async () => {
-        const reply = await interaction.reply({
+        const reply = await interaction.followUp({
           embeds: [embed],
           components: [actionRow]
         });
+
         try {
           const button = await reply.awaitMessageComponent({
             time: 60_000,
