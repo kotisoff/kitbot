@@ -9,38 +9,38 @@ const log = new Logger("CommandRegistry");
 export default class CommandRegistry {
   interaction: Collection<string, Command>;
   prefix: Collection<string, Command>;
+  all: Collection<string, Command>;
   config: Config;
-  length: number;
+
+  get length(): number {
+    return this.interaction.concat(this.prefix).size;
+  }
 
   constructor(client: CustomClient) {
     // Command registries
     this.interaction = client.interCmd;
     this.prefix = client.prefCmd;
+    this.all = client.allCmd;
     this.config = client.config;
-    this.length = 0;
   }
 
   registerCommand(command: Command) {
+    this.all.set(
+      command.slashCommandInfo.name ?? command.prefixCommandInfo.names[0],
+      command
+    );
+
     if (command.type.slash)
       this.interaction.set(command.slashCommandInfo.name, command);
 
     if (command.type.prefix) {
-      const commandNames = command.prefixCommandInfo.names;
-      this.prefix.set(commandNames[0], command);
+      this.prefix.set(command.prefixCommandInfo.names[0], command);
     }
-
-    this.length++;
   }
 
   registerCommands(commands: Command[]) {
     for (let command of commands) {
       this.registerCommand(command);
     }
-  }
-
-  clearRegistry() {
-    this.prefix.clear();
-    this.interaction.clear();
-    this.length = 0;
   }
 }

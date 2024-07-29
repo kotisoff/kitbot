@@ -1,34 +1,34 @@
-import Command from ".";
 import Config from "../Config";
 import { scanDirectory } from "../Utils/scannerUtils";
 import Logger from "../Logger";
 import { basename } from "discord.js";
+import Event from ".";
 
 const args = process.argv.slice(2);
 
-export default class CommandScanner {
+export default class EventScanner {
   config: Config;
-  commands: Command[];
+  events: Event[];
   logger: Logger;
 
   constructor(config: Config) {
     this.config = config;
-    this.commands = [];
-    this.logger = new Logger("CommandScanner");
+    this.events = [];
+    this.logger = new Logger("EventScanner");
   }
 
-  importCommands(extensionFilters = ["js"]) {
-    const files = scanDirectory(this.config.settings.commandPath, {
+  importEvents(extensionFilters = ["js"]) {
+    const files = scanDirectory("events", {
       ignoreFilters: this.config.settings.ignoredCommandDirs,
       extensionFilters
     });
-    this.commands = files
+    this.events = files
       .map((file) => {
         try {
-          const command = new (require(file).default)() as Command;
-          if (!command.id) return;
-          command.path = file;
-          return command;
+          const event = new (require(file).default)() as Event;
+          if (!event) return;
+          event.path = file;
+          return event;
         } catch (error) {
           this.logger.error(
             `Error loading ${basename(file)}`.red,
@@ -39,7 +39,7 @@ export default class CommandScanner {
           this.logger.info("Skipping...".magenta);
         }
       })
-      .filter((v) => v) as Command[];
-    return this.commands;
+      .filter((v) => v) as Event[];
+    return this.events;
   }
 }

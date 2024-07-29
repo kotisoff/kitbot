@@ -48,8 +48,7 @@ export default class LyricsCommand extends Command {
     const lyrics = await this.lyricsApi.search(trackName).catch(() => null);
     if (!lyrics)
       return message.reply({
-        embeds: [CommandEmbed.error("No lyrics found")],
-        ephemeral: true
+        embeds: [CommandEmbed.error("Текст не найден.")]
       });
 
     const trimmedLyrics = lyrics.lyrics.substring(0, 1997);

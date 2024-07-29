@@ -174,9 +174,8 @@ export default class PlayCommand extends Command {
             button.update({});
           } else if (button.customId == "shuffle") {
             queue?.tracks.shuffle();
-            button.followUp({
-              embeds: [CommandEmbed.success("Перемешано успешно (вроде)")],
-              ephemeral: true
+            button.reply({
+              embeds: [CommandEmbed.success("Перемешано успешно (вроде)")]
             });
           }
         } catch {}

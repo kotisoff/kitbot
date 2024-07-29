@@ -4,18 +4,17 @@ const log = new Logger("Main");
 
 log.info("\x1b[90mImporting modules...\x1b[0m");
 
-const timer = Date.now();
-
 import fs from "fs";
 import "colors";
 
-import { ActivityType, Events, OAuth2Scopes } from "discord.js";
 import CommandScanner from "./core/Command/CommandScanner";
 import Client from "./core/CustomClient";
 import CommandRuntime from "./core/Command/CommandRuntime";
-import deployCommands from "./core/Utils/deployCommands";
 import CommandRegistry from "./core/Command/CommandRegistry";
 import Config from "./core/Config";
+import EventScanner from "./core/Event/EventScanner";
+import EventHandler from "./core/Event/EventHandler";
+import { timer } from "./core/Utils/reusedUtils";
 
 log.info("All modules loaded".gray);
 
@@ -41,25 +40,19 @@ client.login(token);
 
 // Importing commands.
 
-log.info(`Importing commands. (${Date.now() - timer}ms)`.gray);
+log.info(`Importing commands. (${timer.now}ms)`.gray);
 
 const commandScanner = new CommandScanner(config);
 const commands = commandScanner.importCommands();
 
-log.info(
-  commands.length,
-  `commands imported... (${Date.now() - timer}ms)`.gray
-);
+log.info(commands.length, `commands imported... (${timer.now}ms)`.gray);
 
 // Registering commands
 
 const commandRegistry = new CommandRegistry(client);
 commandRegistry.registerCommands(commands);
 
-log.info(
-  commandRegistry.length,
-  `commands collected... (${Date.now() - timer}ms)`.gray
-);
+log.info(commandRegistry.length, `commands collected... (${timer.now}ms)`.gray);
 
 // Init command runtime
 
@@ -69,62 +62,14 @@ commandRuntime.listenSlashCommands();
 
 log.info("Command runtime started.".gray);
 
-// Ready
+// Registering events
 
-client.once(Events.ClientReady, () => {
-  log.info(`${client.user.tag} is online.`.yellow);
+const eventScanner = new EventScanner(config);
+const events = eventScanner.importEvents();
 
-  process.title = client.user.username;
+log.info(events.length, `events imported... (${timer.now}ms)`.gray);
 
-  if (config.settings.autoDeploy) deployCommands(client);
+const eventHandler = new EventHandler(client);
+eventHandler.registerEvents(events);
 
-  commands.forEach((command) => {
-    command.onInit(client);
-  });
-
-  client.user.setStatus("idle");
-  client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
-    type: ActivityType.Watching
-  });
-
-  log.info(`Bot took ${Date.now() - timer}ms to launch.`.gray);
-  const link = client.generateInvite({
-    permissions: ["Administrator"],
-    scopes: [OAuth2Scopes.Bot]
-  });
-  log.info("Bot invite link:".gray, link.blue);
-});
-
-client.on(Events.GuildCreate, (guild) => {
-  log.info(`Joined new guild: "${guild.name}" (${guild.id})`.gray);
-  client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
-    type: ActivityType.Watching
-  });
-});
-client.on(Events.GuildDelete, (guild) => {
-  log.info(`Left from guild: "${guild.name}" (${guild.id})`.gray);
-  client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
-    type: ActivityType.Watching
-  });
-});
-
-process
-  .on("unhandledRejection", (error) => {
-    log.error("Unhandled rejection:", error);
-  })
-  .on("uncaughtException", (error) => {
-    log.error("Uncaught exception:", error);
-  })
-  .on("SIGINT", () => {
-    log.info("Shutting down...");
-
-    commandScanner.commands.forEach((command) => command.shutdown());
-
-    log.info("Bye!");
-    log.info("Process will stop in 5 seconds.".gray);
-
-    client.destroy();
-    setTimeout(() => {
-      process.exit(0);
-    }, 5000);
-  });
+log.info(eventHandler.length, `events collected... (${timer.now}ms)`.gray);

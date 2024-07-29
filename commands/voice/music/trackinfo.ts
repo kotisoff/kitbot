@@ -77,13 +77,14 @@ export default class TrackInfoCommand extends Command {
 
     const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
+        .setCustomId("lyrics")
+        .setEmoji("📜")
+        .setLabel("Текст")
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
         .setLabel(typeof stream == "string" ? "Скачать" : "Ссылка на трек")
         .setStyle(ButtonStyle.Link)
-        .setURL(typeof stream == "string" ? stream : track.url),
-      new ButtonBuilder()
-        .setCustomId("lyrics")
-        .setLabel("Текст")
-        .setStyle(ButtonStyle.Secondary)
+        .setURL(typeof stream == "string" ? stream : track.url)
     );
 
     const reply = await interaction.reply({
