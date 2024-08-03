@@ -20,12 +20,14 @@ log.info("All modules loaded".gray);
 
 if (!fs.existsSync("./config.json")) {
   log.warn("Config is not found.".gray);
-  fs.writeFileSync("../config.json", JSON.stringify(new Config()));
+  fs.writeFileSync("./config.json", JSON.stringify(new Config()));
   log.info("Created a new config!".green);
   process.exit(0);
 }
 
-const config = require("./config.json") as Config;
+const config = JSON.parse(
+  fs.readFileSync("./config.json").toString()
+) as Config;
 const { token, intents } = config.bot;
 
 if (!fs.existsSync(config.settings.commandPath))
