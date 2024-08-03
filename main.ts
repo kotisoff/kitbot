@@ -19,7 +19,7 @@ import { timer } from "./core/Utils/reusedUtils";
 log.info("All modules loaded".gray);
 
 if (!fs.existsSync("./config.json")) {
-  log.warn("Config is not found.".gray);
+  log.warn("Config not found.".gray);
   fs.writeFileSync("./config.json", JSON.stringify(new Config()));
   log.info("Created a new config!".green);
   process.exit(0);
