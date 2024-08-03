@@ -8,13 +8,11 @@ const args = process.argv.slice(2);
 
 export default class CommandScanner {
   config: Config;
-  commands: Command[];
-  logger: Logger;
+  commands: Command[] = [];
+  logger = new Logger("CommandScanner");
 
   constructor(config: Config) {
     this.config = config;
-    this.commands = [];
-    this.logger = new Logger("CommandScanner");
   }
 
   importCommands(extensionFilters = ["js"]) {

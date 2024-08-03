@@ -1,8 +1,6 @@
 import { CommandInteraction, Message, User } from "discord.js";
 
 export default class UserUtils {
-  private constructor() {}
-
   /** @returns Указанного пользователя или пользователя из сообщения */
   static async getUser(
     message: Message | CommandInteraction,

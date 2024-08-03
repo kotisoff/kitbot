@@ -8,13 +8,11 @@ const args = process.argv.slice(2);
 
 export default class EventScanner {
   config: Config;
-  events: Event[];
-  logger: Logger;
+  events: Event[] = [];
+  logger = new Logger("EventScanner");
 
   constructor(config: Config) {
     this.config = config;
-    this.events = [];
-    this.logger = new Logger("EventScanner");
   }
 
   importEvents(extensionFilters = ["js"]) {

@@ -15,7 +15,6 @@ import Channel from "./libs/Channel";
 
 export default class VoiceBridgeCommand extends Command {
   rooms: Rooms;
-  //sounds: { connected: string[]; disconnected: string[] };
 
   constructor() {
     super(new CommandOptions("voicebridge").setName("VoiceBridge"));

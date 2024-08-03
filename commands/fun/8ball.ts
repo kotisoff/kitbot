@@ -8,6 +8,7 @@ import {
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
+import CommandEmbed from "../../core/Command/CommandEmbed";
 
 const replyMessages = [
   "Думаю да.",
@@ -58,11 +59,7 @@ export default class EightBallCommand extends Command {
   ): Promise<any> {
     let user: User;
     if (message instanceof Message) {
-      const errEmbed = new EmbedBuilder()
-        .setColor(0xff0000)
-        .setDescription("You have not defined question.")
-        .setTimestamp()
-        .setFooter({ text: "Все права обмяуканы 2023-2024" });
+      const errEmbed = CommandEmbed.error("You have not defined question.");
 
       if (!args[0]) return message.reply({ embeds: [errEmbed] });
       user = message.author;
@@ -70,15 +67,13 @@ export default class EightBallCommand extends Command {
       user = message.user;
     }
 
-    const Embed = new EmbedBuilder()
+    const Embed = CommandEmbed.blankEmbed()
       .setColor(0x4287f5)
       .setDescription(
         `${user.username} спросил: ${args.join(" ")}\n\n**${
           replyMessages[Math.round(Math.random() * replyMessages.length)]
         }**`
-      )
-      .setTimestamp()
-      .setFooter({ text: "Все права обмяуканы 2023-2024" });
+      );
     message.reply({ embeds: [Embed] });
   }
 }

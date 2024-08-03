@@ -1,10 +1,6 @@
 export default class PrefixCommandBuilder {
-  names: string[];
+  names: string[] = [];
   permission: bigint | undefined;
-
-  constructor() {
-    this.names = [];
-  }
 
   addAlias(alias: string) {
     this.names.push(alias);

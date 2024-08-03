@@ -46,9 +46,9 @@ export default class MinesweeperCommand extends Command {
     const ms = new Minesweeper();
     try {
       ms.generateGame({
-        rows: parseInt(args.shift() as string) ?? 10,
-        columns: parseInt(args.shift() as string) ?? 10,
-        bombs: parseInt(args.shift() as string) ?? 20,
+        rows: Number(args.shift() as string) ?? 10,
+        columns: Number(args.shift() as string) ?? 10,
+        bombs: Number(args.shift() as string) ?? 20,
         seed: args.join(" ")
       });
     } catch (e) {

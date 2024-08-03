@@ -2,7 +2,7 @@ import { CommandInteraction, CacheType, Message } from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
-import textCompress from "./textCompress";
+import textCompress from "./util/textCompress";
 import RebootCommand from "./reboot";
 
 export default class EvalCommand extends Command {

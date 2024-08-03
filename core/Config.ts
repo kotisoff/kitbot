@@ -1,27 +1,13 @@
 export default class Config {
-  bot: {
-    token: string;
-    prefix: string;
-    devGuildId: string;
-    intents: number[];
+  bot = {
+    token: "PlaceYourTokenHere",
+    prefix: "'",
+    devGuildId: "",
+    intents: [3276799]
   };
-  settings: {
-    autoDeploy: boolean;
-    commandPath: string;
-    ignoredCommandDirs: string[];
+  settings = {
+    autoDeploy: true,
+    commandPath: "commands",
+    ignoredCommandDirs: [".lib", ".i", "libs"]
   };
-
-  constructor() {
-    this.bot = {
-      token: "PlaceYourTokenHere",
-      prefix: "'",
-      devGuildId: "",
-      intents: [3276799]
-    };
-    this.settings = {
-      autoDeploy: true,
-      commandPath: "commands",
-      ignoredCommandDirs: [".lib", ".i", "libs"]
-    };
-  }
 }
