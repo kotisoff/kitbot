@@ -98,7 +98,10 @@ export default class HelpCommand extends Command {
     client: CustomClient
   ): Promise<any> {
     // Получение команды из аргументов
-    const commandName = args[0];
+    let commandName = args[0];
+    commandName.startsWith(client.config.bot.prefix) &&
+      (commandName = commandName.substring(1));
+
     const command = commandName
       ? [...this.help.values()].find(
           (v) =>
@@ -228,12 +231,10 @@ export default class HelpCommand extends Command {
     return (
       // Описание
       `${cmd.description}\n` +
-        // Если есть, префиксы
-        cmd.aliases.prefix &&
-      `Prefix: \`${prefixAliases}\`\n` +
-        // Если есть, слеш
-        cmd.aliases.slash &&
-      `Slash: ${slashAlias}\n`
+      // Если есть, префиксы
+      (cmd.aliases.prefix ? `Prefix: \`${prefixAliases}\`\n` : "") +
+      // Если есть, слеш
+      (cmd.aliases.slash ? `Slash: ${slashAlias}\n` : "")
     );
   }
 

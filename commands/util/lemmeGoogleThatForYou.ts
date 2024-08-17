@@ -4,9 +4,9 @@ import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
 import CommandEmbed from "../../core/Command/CommandEmbed";
 
-export default class LetMeGoogleForYouCommand extends Command {
+export default class LetMeGoogleThatForYouCommand extends Command {
   constructor() {
-    super(new CommandOptions("letmegoogleforyou", { prefix: true }));
+    super(new CommandOptions("letmegooglethatforyou", { prefix: true }));
 
     this.slashCommandInfo
       .setDescription("For people, who are lazy to google.")
@@ -15,12 +15,30 @@ export default class LetMeGoogleForYouCommand extends Command {
           .setName("prompt")
           .setDescription("What do you want to search in google?")
           .setRequired(true)
+      )
+      .addBooleanOption((o) =>
+        o.setName("use_lmgtfy").setDescription("Use lmgtfy?")
       );
 
     this.prefixCommandInfo
       .addAlias("lmgfy")
       .addAlias("давайзагуглю")
-      .addAlias("letmegoogle");
+      .addAlias("letmegoogle")
+      .addAlias("letmegoogleforyou");
+  }
+
+  async runSlash(
+    interaction: CommandInteraction,
+    client: CustomClient
+  ): Promise<any> {
+    this.run(
+      interaction,
+      [
+        interaction.options.get("prompt")?.value as string,
+        interaction.options.get("use_lmgtfy")?.value?.toString() ?? ""
+      ],
+      client
+    );
   }
 
   async run(
@@ -28,6 +46,9 @@ export default class LetMeGoogleForYouCommand extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
+    const bool =
+      args.at(-1) == ("true" || "false") ? Boolean(args.pop()) : true;
+
     if (!args[0])
       return message.reply({
         embeds: [
@@ -40,10 +61,19 @@ export default class LetMeGoogleForYouCommand extends Command {
       });
     const prompt = args.join(" ");
 
+    const links = {
+      google: (prompt: string) =>
+        "https://www.google.com/search?q=" + encodeURIComponent(prompt),
+      lmgtfy: (prompt: string) =>
+        `https://natoboram.github.io/lmgtfy/search?q=${encodeURIComponent(
+          prompt
+        )}&btnK=Google+Search`
+    };
+
     message.reply(
-      `[Let me google for you](https://www.google.com/search?q=${encodeURIComponent(
-        prompt
-      )})`
+      `[Let me google that for you](<${
+        bool ? links.lmgtfy(prompt) : links.google(prompt)
+      }>)`
     );
   }
 }

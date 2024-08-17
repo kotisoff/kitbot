@@ -152,9 +152,9 @@ export default abstract class Command {
     }
   }
 
-  writeData<data = any>(data: data, dataFilename = "index.json"): data {
-    const dir = this.getDataDir();
-    const file = path.join(dir, dataFilename);
+  writeData<data = any>(data: data, filepath = "index.json"): data {
+    const file = path.join(this.getDataDir(), filepath);
+    const dir = path.dirname(file);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(file, JSON.stringify(data));
     return data;
