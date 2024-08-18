@@ -16,7 +16,7 @@
     "@distube/ytdl-core": "*",
     "@evan/opus": "^1.0.3",
     "audio-mixer": "^2.1.4",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "colors": "^1.4.0",
     "discord-player": "^6.6.10",
     "discord-player-yandexmusic": "0.1.8",
