@@ -2,7 +2,7 @@ import { CommandInteraction, CacheType, GuildMember } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
-import { useQueue, Util } from "discord-player";
+import { useMainPlayer, useQueue, Util } from "discord-player";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 
 export default class MusicControlsCommand extends Command {
@@ -20,7 +20,8 @@ export default class MusicControlsCommand extends Command {
             { name: "Пауза", value: "pause" },
             { name: "Список воспроизведения", value: "list" },
             { name: "Перемешать", value: "shuffle" },
-            { name: "Остановить", value: "stop" }
+            { name: "Остановить", value: "stop" },
+            { name: "Перезагрузить треки", value: "reloadtracks" }
           )
           .setRequired(true)
       );
@@ -98,6 +99,27 @@ export default class MusicControlsCommand extends Command {
       await interaction.reply({
         embeds: [CommandEmbed.success("Плейлист остановлен.")]
       });
+    } else if (param == "reloadtracks") {
+      const tracks: string[] = [];
+      tracks.push(queue.currentTrack?.url as string);
+      tracks.push(...queue.tracks.map((track) => track.url));
+
+      queue.delete();
+
+      const player = useMainPlayer();
+
+      setTimeout(async () => {
+        for (const url of tracks) {
+          await player
+            .play(channel, url, { requestedBy: interaction.user })
+            .catch((v) => {
+              interaction.channel?.send(
+                `Error while loading [song](<${url}>)!`
+              );
+              return v;
+            });
+        }
+      }, 5000);
     }
   }
 }

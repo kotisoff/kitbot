@@ -1,4 +1,8 @@
-import { CommandInteraction, GuildMember } from "discord.js";
+import {
+  AutocompleteInteraction,
+  CommandInteraction,
+  GuildMember
+} from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
@@ -26,8 +30,29 @@ export default class PlaylistSaveloadCommand extends Command {
           .setRequired(true)
       )
       .addStringOption((o) =>
-        o.setName("code").setDescription("Code of playlist")
+        o
+          .setName("code")
+          .setDescription("Code of playlist")
+          .setAutocomplete(true)
       );
+  }
+
+  async autocomplete(
+    interaction: AutocompleteInteraction,
+    client: CustomClient
+  ): Promise<void> {
+    const focusedValue = interaction.options.getFocused();
+
+    const usertracks = Object.entries(this.playlists)
+      .filter(([_k, v]) => v.author == interaction.user.id)
+      .map(([k, _v]) => k);
+    const filtered = usertracks.filter((choice) =>
+      choice.startsWith(focusedValue)
+    );
+
+    await interaction.respond(
+      filtered.map((choice) => ({ name: choice, value: choice }))
+    );
   }
 
   async onInit(client: CustomClient): Promise<void> {

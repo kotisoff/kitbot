@@ -26,7 +26,7 @@ if (!fs.existsSync("./config.json")) {
 }
 
 const config = JSON.parse(
-  fs.readFileSync("./config.json").toString()
+  fs.readFileSync("../config.json").toString()
 ) as Config;
 const { token, intents } = config.bot;
 
