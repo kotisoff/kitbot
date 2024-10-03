@@ -3,8 +3,18 @@ import crypto from "crypto";
 
 const debug = process.argv.slice(2).includes("--msdebug");
 
-const bombRng = ["⏹", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"];
-const bomb = "🅾";
+const bombRng = [
+  ":stop_button:",
+  ":one:",
+  ":two:",
+  ":three:",
+  ":four:",
+  ":five:",
+  ":six:",
+  ":seven:",
+  ":eight:"
+];
+const bomb = ":o2:";
 
 type Settings = {
   rows: number;

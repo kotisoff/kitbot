@@ -64,6 +64,7 @@ export default class Channel {
       selfMute: false,
       guildId: this.channel.guildId,
       channelId: this.channel.id,
+      // @ts-ignore
       adapterCreator: this.channel.guild.voiceAdapterCreator
     });
   }

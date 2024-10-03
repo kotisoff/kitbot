@@ -38,7 +38,7 @@ export default class ShellCommand extends Command {
 
     ChildProcess.exec(args.join(" ") ?? "help", (e, out, err) => {
       message.reply(
-        textCompress("Error: " + e ?? 0, "output.txt", out + "\n" + err)
+        textCompress("Error: " + e, "output.txt", out + "\n" + err)
       );
     });
   }

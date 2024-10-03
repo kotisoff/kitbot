@@ -54,6 +54,7 @@ class CommandHelp {
 
     const pathParts = relativePath.split(sep); // ["commands", "<Category>?", "command.ts"]
     if (
+      // @ts-ignore
       pathParts[1].endsWith(".js" || ".ts") &&
       lstatSync(join(pathParts[0], pathParts[1])).isFile()
     ) {
@@ -99,8 +100,10 @@ export default class HelpCommand extends Command {
   ): Promise<any> {
     // Получение команды из аргументов
     let commandName = args[0];
-    commandName.startsWith(client.config.bot.prefix) &&
-      (commandName = commandName.substring(1));
+
+    if (commandName?.startsWith(client.config.bot.prefix)) {
+      commandName = commandName.substring(1);
+    }
 
     const command = commandName
       ? [...this.help.values()].find(

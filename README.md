@@ -4,6 +4,6 @@ Made for OUR(TMKSpace) servers.
 
 ## Usage
 
-Build and run: `yarn dev`
-Build: `yarn build`
-Run: `yarn start`
+Build and run: `pnpm dev`
+Build: `pnpm build`
+Run: `pnpm start`

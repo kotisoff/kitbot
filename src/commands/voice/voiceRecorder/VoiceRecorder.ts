@@ -187,6 +187,7 @@ export default class VoiceRecorderCommand extends Command {
       guildId: channel.guildId,
       selfDeaf: false,
       selfMute: false,
+      // @ts-ignore
       adapterCreator: channel.guild.voiceAdapterCreator
     });
 

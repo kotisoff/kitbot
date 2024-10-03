@@ -57,15 +57,19 @@ export default class PlayCommand extends Command {
   }
 
   async onInit(client: CustomClient): Promise<void> {
-    const config =
+    const ymconfig =
       this.readConfig<YMConfig>() ?? this.writeConfig(new YMConfig());
 
     const player = new Player(client);
     player.extractors.register(YoutubeExtractor, {});
     player.extractors.register(SoundCloudExtractor, {});
     player.extractors.register(AttachmentExtractor, {});
-    player.extractors.register(YandexMusicExtractor, config);
-    this.logger.info("Player created.".gray);
+    player.extractors.register(YandexMusicExtractor, ymconfig);
+    this.logger.info(
+      "Player created.".gray,
+      player.extractors.size,
+      "extractor registered.".gray
+    );
   }
 
   async runSlash(
@@ -73,11 +77,6 @@ export default class PlayCommand extends Command {
     client: CustomClient
   ): Promise<any> {
     const query = interaction.options.get("query")?.value as string;
-    if (!query) {
-      return interaction.reply({
-        embeds: [CommandEmbed.error("Введите промпт.")]
-      });
-    }
 
     const shuffle =
       (interaction.options.get("shuffle")?.value as boolean) ?? false;
@@ -149,8 +148,9 @@ export default class PlayCommand extends Command {
       );
     }
 
+    const tracks = search.playlist ? search.playlist : search.tracks[0];
     player
-      .play(channel, search.playlist ? search.playlist : search.tracks[0], {
+      .play(channel, tracks, {
         nodeOptions: { metadata: interaction }
       })
       .then(async () => {

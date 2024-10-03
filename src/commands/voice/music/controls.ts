@@ -113,6 +113,7 @@ export default class MusicControlsCommand extends Command {
           await player
             .play(channel, url, { requestedBy: interaction.user })
             .catch((v) => {
+              if (!interaction.channel?.isSendable()) return v;
               interaction.channel?.send(
                 `Error while loading [song](<${url}>)!`
               );

@@ -46,8 +46,7 @@ export default class LetMeGoogleThatForYouCommand extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
-    const bool =
-      args.at(-1) == ("true" || "false") ? Boolean(args.pop()) : true;
+    const bool = args.at(-1) == "false" ? Boolean(args.pop()) : true;
 
     if (!args[0])
       return message.reply({

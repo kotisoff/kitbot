@@ -21,6 +21,12 @@ export default class Asay extends Command {
     args: string[],
     client: CustomClient
   ): Promise<any> {
+    if (!message.channel?.isSendable()) {
+      return message.reply({
+        content: "Я не могу писать здесь!",
+        ephemeral: true
+      });
+    }
     const reboot = Command.getCommandByClass(
       client,
       RebootCommand.prototype
