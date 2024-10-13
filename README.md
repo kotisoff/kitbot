@@ -1,4 +1,4 @@
-# KitBot - An Bot for Discord made on Node.js
+# KitBot - Bot for Discord written on TypeScript
 
 Made for OUR(TMKSpace) servers.
 
