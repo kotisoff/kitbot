@@ -1,5 +1,11 @@
 import { ColorResolvable, EmbedBuilder } from "discord.js";
 
+const config = {
+  get footer() {
+    return "Все права обмяуканы 2023-" + new Date().getFullYear();
+  }
+};
+
 type EmbedOptions = {
   title?: string;
   content?: string;
@@ -16,7 +22,7 @@ export default class CommandEmbed {
       .setImage(options.image ?? null)
       .setTimestamp()
       .setFooter({
-        text: "Все права обмяуканы 2023-" + new Date().getFullYear()
+        text: config.footer
       });
   }
 
