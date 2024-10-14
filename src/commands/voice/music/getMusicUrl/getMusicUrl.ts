@@ -36,8 +36,8 @@ export default class GetMusicUrlCommand extends Command {
     this.gmulib = new GMULib();
 
     const ymconfig =
-      this.readConfig<YMConfig>("ymconfig.json") ??
-      this.writeConfig(new YMConfig(), "ymconfig.json");
+      this.readConfig<YMConfig>("ymconfig") ??
+      this.writeConfig(new YMConfig(), "ymconfig");
     this.gmulib.addProviders(new GMUProviders.YMProvider(ymconfig));
   }
 
