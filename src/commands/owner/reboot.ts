@@ -1,9 +1,4 @@
-import {
-  CacheType,
-  CommandInteraction,
-  Message,
-  PermissionFlagsBits
-} from "discord.js";
+import { CacheType, CommandInteraction, Message } from "discord.js";
 import Command from "../../core/Command";
 import CommandOptions from "../../core/Command/CommandOptions";
 import CustomClient from "../../core/CustomClient";
@@ -16,7 +11,11 @@ export default class RebootCommand extends Command {
   constructor() {
     super(new CommandOptions("reboot").setType({ prefix: true }));
 
-    this.ownerIds = ["536257878429007873", "429307451825717250"];
+    this.ownerIds = [];
+  }
+
+  async onInit(client: CustomClient): Promise<void> {
+    this.ownerIds = client.config.bot.ownerId;
   }
 
   async run(

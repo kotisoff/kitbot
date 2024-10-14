@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node --no-warnings ./",
-    "dev": "npm run build && npm run start"
+    "dev": "npm run build && npm run start",
+    "update:core": "git submodule update --remote"
   },
   "dependencies": {
     "@discord-player/extractor": "^4.4.7",
