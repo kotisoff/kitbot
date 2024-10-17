@@ -4,7 +4,7 @@ const log = new Logger("Main");
 
 log.info("\x1b[90mImporting modules...\x1b[0m");
 
-import fs from "fs";
+import * as fs from "fs";
 import "colors";
 
 import CommandScanner from "./core/Command/CommandScanner";
@@ -18,20 +18,19 @@ import { timer } from "./core/Utils/reusedUtils";
 
 log.info("All modules loaded".gray);
 
-if (!fs.existsSync("../config.json")) {
+if (!fs.existsSync("./config.json")) {
   log.warn("Config not found.".gray);
-  fs.writeFileSync("../config.json", JSON.stringify(new Config()));
+  fs.writeFileSync("./config.json", JSON.stringify(new Config()));
   log.info("Created a new config!".green);
   process.exit(0);
 }
 
 const config = JSON.parse(
-  fs.readFileSync("../config.json").toString()
+  fs.readFileSync("./config.json").toString()
 ) as Config;
 const { token, intents } = config.bot;
 
-if (!fs.existsSync(config.settings.commandPath))
-  fs.mkdirSync(config.settings.commandPath);
+if (!fs.existsSync("commands")) fs.mkdirSync("commands");
 
 if (!fs.existsSync("configs")) fs.mkdirSync("configs");
 

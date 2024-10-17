@@ -1,3 +1,4 @@
-[submodule "src/core"]
-	path = src/core
+
+[submodule "core"]
+	path = core
 	url = https://github.com/kotisoff/kitbot-core
