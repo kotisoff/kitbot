@@ -1,2 +1,2 @@
 @echo off
-pnpm dev
+pnpm start

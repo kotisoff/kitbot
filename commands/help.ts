@@ -52,7 +52,7 @@ class CommandHelp {
       process.cwd().length + 1
     ) as string; // commands/<Category>/command.ts || commands/command.ts for main category.
 
-    const pathParts = relativePath.split(sep); // ["commands", "<Category>?", "command.ts"]
+    const pathParts = relativePath.split(sep); // ["commands", Category?, "command.ts"]
     if (
       // @ts-ignore
       pathParts[1].endsWith(".js" || ".ts") &&
