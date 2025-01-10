@@ -4,8 +4,8 @@ Made for OUR(TMKSpace) servers.
 
 ## Usage
 
-Run: `bun start`
+Run: `pnpm start`
 
 ## Update core
 
-Use: `bun update:core`
+Use: `pnpm update:core`
