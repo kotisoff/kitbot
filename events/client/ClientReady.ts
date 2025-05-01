@@ -26,12 +26,9 @@ export default class ClientReadyEvent extends Event {
       });
 
       client.user.setStatus("idle");
-      client.user.setActivity(
-        "за " + client.guilds.cache.size + " серверами.",
-        {
-          type: ActivityType.Watching
-        }
-      );
+      client.user.setActivity("за " + client.guilds.cache.size + " серверами.", {
+        type: ActivityType.Watching
+      });
 
       log.info(`Bot took ${timer.now}ms to launch.`.gray);
       const link = client.generateInvite({

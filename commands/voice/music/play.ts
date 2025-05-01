@@ -11,18 +11,11 @@ import {
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
-import {
-  Player,
-  Playlist,
-  Track,
-  useMainPlayer,
-  useQueue
-} from "discord-player";
-import {
-  YoutubeExtractor,
-  SoundCloudExtractor,
-  AttachmentExtractor
-} from "@discord-player/extractor";
+
+import { Player, Playlist, Track, useMainPlayer, useQueue } from "discord-player";
+import { SoundCloudExtractor, AttachmentExtractor } from "@discord-player/extractor";
+import { YoutubeiExtractor } from "discord-player-youtubei";
+
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 import { YandexMusicExtractor } from "discord-player-yandexmusic";
 import LyricsCommand from "./lyrics";
@@ -41,65 +34,40 @@ export default class PlayCommand extends Command {
 
     this.slashCommandInfo
       .setDescription("Play music")
-      .addStringOption((o) =>
-        o
-          .setName("query")
-          .setDescription("Ссылка/название песни")
-          .setRequired(true)
-      )
+      .addStringOption((o) => o.setName("query").setDescription("Ссылка/название песни").setRequired(true))
       .addBooleanOption((o) =>
-        o
-          .setName("shuffle")
-          .setDescription(
-            "Перемешать если плейлист/альбом. По умолчанию: false"
-          )
+        o.setName("shuffle").setDescription("Перемешать если плейлист/альбом. По умолчанию: false")
       );
   }
 
   async onInit(client: CustomClient): Promise<void> {
-    const ymconfig =
-      this.readConfig<YMConfig>() ?? this.writeConfig(new YMConfig());
+    const ymconfig = this.readConfig<YMConfig>() ?? this.writeConfig(new YMConfig());
 
     const player = new Player(client);
-    player.extractors.register(YoutubeExtractor, {});
+    player.extractors.register(YoutubeiExtractor, {});
     player.extractors.register(SoundCloudExtractor, {});
     player.extractors.register(AttachmentExtractor, {});
     player.extractors.register(YandexMusicExtractor, ymconfig);
-    this.logger.info(
-      "Player created.".gray,
-      player.extractors.size,
-      "extractor registered.".gray
-    );
+    this.logger.info("Player created.".gray, player.extractors.size, "extractor registered.".gray);
   }
 
-  async runSlash(
-    interaction: CommandInteraction<CacheType>,
-    client: CustomClient
-  ): Promise<any> {
+  async runSlash(interaction: CommandInteraction<CacheType>, client: CustomClient): Promise<any> {
     const query = interaction.options.get("query")?.value as string;
 
-    const shuffle =
-      (interaction.options.get("shuffle")?.value as boolean) ?? false;
+    const shuffle = (interaction.options.get("shuffle")?.value as boolean) ?? false;
 
-    const channel =
-      interaction.member instanceof GuildMember
-        ? interaction.member.voice.channel
-        : undefined;
+    const channel = interaction.member instanceof GuildMember ? interaction.member.voice.channel : undefined;
 
     if (!channel)
       return interaction.reply({
-        embeds: [
-          CommandEmbed.error("Сначала подключитесь к голосовому каналу!")
-        ]
+        embeds: [CommandEmbed.error("Сначала подключитесь к голосовому каналу!")]
       });
 
     const queue = useQueue(interaction.guildId as string);
 
     if (queue && queue.channel?.id != channel.id) {
       return interaction.reply({
-        embeds: [
-          CommandEmbed.error("Музыка уже проигрывается в другом канале.")
-        ]
+        embeds: [CommandEmbed.error("Музыка уже проигрывается в другом канале.")]
       });
     }
 
@@ -128,19 +96,11 @@ export default class PlayCommand extends Command {
     const actionRow = new ActionRowBuilder<ButtonBuilder>();
     if (search.playlist) {
       actionRow.addComponents(
-        new ButtonBuilder()
-          .setCustomId("shuffle")
-          .setLabel("Перемешать")
-          .setEmoji("🔀")
-          .setStyle(ButtonStyle.Primary)
+        new ButtonBuilder().setCustomId("shuffle").setLabel("Перемешать").setEmoji("🔀").setStyle(ButtonStyle.Primary)
       );
     } else {
       actionRow.addComponents(
-        new ButtonBuilder()
-          .setCustomId("lyrics")
-          .setLabel("Текст")
-          .setEmoji("📜")
-          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId("lyrics").setLabel("Текст").setEmoji("📜").setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
           .setLabel(typeof stream == "string" ? "Скачать" : "Ссылка на трек")
           .setStyle(ButtonStyle.Link)
@@ -166,9 +126,7 @@ export default class PlayCommand extends Command {
           });
 
           if (button.customId == "lyrics") {
-            const lyricsCommand = client.getCommandByClass<LyricsCommand>(
-              LyricsCommand.prototype
-            );
+            const lyricsCommand = client.getCommandByClass<LyricsCommand>(LyricsCommand.prototype);
             const trackName = track.title + " - " + track.author;
             lyricsCommand.run(await reply.fetch(), [trackName], client);
             button.update({});

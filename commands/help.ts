@@ -48,9 +48,7 @@ class CommandHelp {
   }
 
   registerCategory(command: Command) {
-    const relativePath = command.path?.slice(
-      process.cwd().length + 1
-    ) as string; // commands/<Category>/command.ts || commands/command.ts for main category.
+    const relativePath = command.path?.slice(process.cwd().length + 1) as string; // commands/<Category>/command.ts || commands/command.ts for main category.
 
     const pathParts = relativePath.split(sep); // ["commands", Category?, "command.ts"]
     if (
@@ -74,9 +72,7 @@ export default class HelpCommand extends Command {
 
     this.slashCommandInfo
       .setDescription("Shows help.")
-      .addStringOption((o) =>
-        o.setName("commandname").setDescription("Command name")
-      );
+      .addStringOption((o) => o.setName("commandname").setDescription("Command name"));
     this.prefixCommandInfo.addAlias("хелп");
 
     this.help = new Map();
@@ -86,8 +82,7 @@ export default class HelpCommand extends Command {
     client.prefCmd.concat(client.interCmd).forEach((command, key) => {
       const commandHelp: CommandHelp = new CommandHelp(command);
 
-      if (!this.categories.includes(commandHelp.category))
-        this.categories.push(commandHelp.category);
+      if (!this.categories.includes(commandHelp.category)) this.categories.push(commandHelp.category);
 
       this.help.set(key, commandHelp);
     });
@@ -106,17 +101,11 @@ export default class HelpCommand extends Command {
     }
 
     const command = commandName
-      ? [...this.help.values()].find(
-          (v) =>
-            v.aliases.prefix?.includes(commandName) ||
-            v.aliases.slash == commandName
-        )
+      ? [...this.help.values()].find((v) => v.aliases.prefix?.includes(commandName) || v.aliases.slash == commandName)
       : undefined;
 
     // Получение всех команд бота
-    const commands = (await client.rest.get(
-      Routes.applicationCommands(client.user.id)
-    )) as ApplicationCommand[];
+    const commands = (await client.rest.get(Routes.applicationCommands(client.user.id))) as ApplicationCommand[];
 
     // Если есть аргумент
     if (command) {
@@ -159,16 +148,10 @@ export default class HelpCommand extends Command {
       .setPlaceholder("Выберите категорию")
       .addOptions(
         new StringSelectMenuOptionBuilder().setLabel("all").setValue("all"),
-        ...this.categories.map((category) =>
-          new StringSelectMenuOptionBuilder()
-            .setLabel(category)
-            .setValue(category)
-        )
+        ...this.categories.map((category) => new StringSelectMenuOptionBuilder().setLabel(category).setValue(category))
       );
 
-    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-      categoryselect
-    );
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(categoryselect);
 
     const response = await message.reply({
       embeds: [allcommands],
@@ -194,11 +177,7 @@ export default class HelpCommand extends Command {
                   .filter(([_k, cmd]) => cmd.category == selection)
                   .map(([key, cmd]) => ({
                     name: key,
-                    value: this.generateCommandDescription(
-                      cmd,
-                      message,
-                      commands
-                    ),
+                    value: this.generateCommandDescription(cmd, message, commands),
                     inline: true
                   }))
               )
@@ -224,12 +203,7 @@ export default class HelpCommand extends Command {
       ?.map((v) => (message.client as CustomClient).config.bot.prefix + v)
       .join(", "); // Хуйня посложнее, выводит чё то типа "'help, 'хелп"
 
-    const slashAlias =
-      "</" +
-      cmd.aliases.slash +
-      ":" +
-      commands.find((v) => v.name == cmd.aliases.slash)?.id +
-      ">"; // Не очень сложная хуйня, выводит чё то типа "</help:0>".
+    const slashAlias = "</" + cmd.aliases.slash + ":" + commands.find((v) => v.name == cmd.aliases.slash)?.id + ">"; // Не очень сложная хуйня, выводит чё то типа "</help:0>".
 
     return (
       // Описание
@@ -241,24 +215,10 @@ export default class HelpCommand extends Command {
     );
   }
 
-  private getSlashORPrefix(
-    cmd: CommandHelp,
-    message: Message | CommandInteraction,
-    commands: ApplicationCommand[]
-  ) {
+  private getSlashORPrefix(cmd: CommandHelp, message: Message | CommandInteraction, commands: ApplicationCommand[]) {
     if (cmd.aliases.slash)
-      return (
-        "</" +
-        cmd.aliases.slash +
-        ":" +
-        commands.find((v) => v.name == cmd.aliases.slash)?.id +
-        ">"
-      );
-    else if (cmd.aliases.prefix)
-      return (
-        (message.client as CustomClient).config.bot.prefix +
-        cmd.aliases.prefix[0]
-      );
+      return "</" + cmd.aliases.slash + ":" + commands.find((v) => v.name == cmd.aliases.slash)?.id + ">";
+    else if (cmd.aliases.prefix) return (message.client as CustomClient).config.bot.prefix + cmd.aliases.prefix[0];
     return "";
   }
 }

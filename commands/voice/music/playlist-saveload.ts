@@ -1,8 +1,4 @@
-import {
-  AutocompleteInteraction,
-  CommandInteraction,
-  GuildMember
-} from "discord.js";
+import { AutocompleteInteraction, CommandInteraction, GuildMember } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
@@ -22,37 +18,21 @@ export default class PlaylistSaveloadCommand extends Command {
         o
           .setName("parameter")
           .setDescription("Parameter")
-          .addChoices(
-            { name: "Save", value: "save" },
-            { name: "Load", value: "load" },
-            { name: "List", value: "list" }
-          )
+          .addChoices({ name: "Save", value: "save" }, { name: "Load", value: "load" }, { name: "List", value: "list" })
           .setRequired(true)
       )
-      .addStringOption((o) =>
-        o
-          .setName("code")
-          .setDescription("Code of playlist")
-          .setAutocomplete(true)
-      );
+      .addStringOption((o) => o.setName("code").setDescription("Code of playlist").setAutocomplete(true));
   }
 
-  async autocomplete(
-    interaction: AutocompleteInteraction,
-    client: CustomClient
-  ): Promise<void> {
+  async autocomplete(interaction: AutocompleteInteraction, client: CustomClient): Promise<void> {
     const focusedValue = interaction.options.getFocused();
 
     const usertracks = Object.entries(this.playlists)
       .filter(([_k, v]) => v.author == interaction.user.id)
       .map(([k, _v]) => k);
-    const filtered = usertracks.filter((choice) =>
-      choice.startsWith(focusedValue)
-    );
+    const filtered = usertracks.filter((choice) => choice.startsWith(focusedValue));
 
-    await interaction.respond(
-      filtered.map((choice) => ({ name: choice, value: choice }))
-    );
+    await interaction.respond(filtered.map((choice) => ({ name: choice, value: choice })));
   }
 
   async onInit(client: CustomClient): Promise<void> {
@@ -64,34 +44,22 @@ export default class PlaylistSaveloadCommand extends Command {
     this.writeData(this.playlists);
   }
 
-  async runSlash(
-    interaction: CommandInteraction,
-    client: CustomClient
-  ): Promise<any> {
-    const parameter = interaction.options.get("parameter")?.value as
-      | "save"
-      | "load";
+  async runSlash(interaction: CommandInteraction, client: CustomClient): Promise<any> {
+    const parameter = interaction.options.get("parameter")?.value as "save" | "load";
     const code = interaction.options.get("code")?.value as string | undefined;
 
-    const channel =
-      interaction.member instanceof GuildMember
-        ? interaction.member.voice.channel
-        : undefined;
+    const channel = interaction.member instanceof GuildMember ? interaction.member.voice.channel : undefined;
 
     if (!channel)
       return interaction.reply({
-        embeds: [
-          CommandEmbed.error("Сначала подключитесь к голосовому каналу!")
-        ]
+        embeds: [CommandEmbed.error("Сначала подключитесь к голосовому каналу!")]
       });
 
     if (parameter == "save") {
       const queue = useQueue(interaction.guildId as string);
       if (!queue) {
         return interaction.reply({
-          embeds: [
-            CommandEmbed.error("В данный момент ничего воспроизводится.")
-          ]
+          embeds: [CommandEmbed.error("В данный момент ничего воспроизводится.")]
         });
       }
 
@@ -133,9 +101,7 @@ export default class PlaylistSaveloadCommand extends Command {
 
       if (queue && queue.channel?.id != channel.id) {
         return interaction.reply({
-          embeds: [
-            CommandEmbed.error("Музыка уже проигрывается в другом канале.")
-          ]
+          embeds: [CommandEmbed.error("Музыка уже проигрывается в другом канале.")]
         });
       }
 
@@ -164,15 +130,13 @@ export default class PlaylistSaveloadCommand extends Command {
       this.removeExpiredOnes();
       this.writeData(this.playlists);
     } else if (parameter == "list") {
-      const playlists = Object.entries(this.playlists).filter(
-        ([_k, v]) => v.author == interaction.user.id
-      );
+      const playlists = Object.entries(this.playlists).filter(([_k, v]) => v.author == interaction.user.id);
       const embed = CommandEmbed.info({ title: "Ваши плейлисты" }).addFields(
         playlists.map(([key, playlist]) => ({
           name: key,
-          value: `Количество треков: ${
-            playlist.tracks.length
-          }\nИсчезает: ${new Date(playlist.expires).toLocaleDateString()}`
+          value: `Количество треков: ${playlist.tracks.length}\nИсчезает: ${new Date(
+            playlist.expires
+          ).toLocaleDateString()}`
         }))
       );
 

@@ -2,3 +2,6 @@ node_modules
 configs
 data
 config.json
+*-base.js
+*-player-script.js
+content

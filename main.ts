@@ -37,7 +37,6 @@ if (!fs.existsSync("configs")) fs.mkdirSync("configs");
 // Bot
 
 const client = new Client({ intents }, config);
-client.login(token);
 
 // Importing commands.
 
@@ -74,3 +73,5 @@ const eventHandler = new EventHandler(client);
 eventHandler.registerEvents(events);
 
 log.info(eventHandler.length, `events collected... (${timer.now}ms)`.gray);
+
+client.login(token);

@@ -19,15 +19,10 @@ export default class TrackInfoCommand extends Command {
 
     this.setDescription("Получите данные о треке и распишитесь.");
 
-    this.slashCommandInfo.addStringOption((o) =>
-      o.setName("query").setDescription("Название трека/ссылка на него")
-    );
+    this.slashCommandInfo.addStringOption((o) => o.setName("query").setDescription("Название трека/ссылка на него"));
   }
 
-  async runSlash(
-    interaction: CommandInteraction,
-    client: CustomClient
-  ): Promise<any> {
+  async runSlash(interaction: CommandInteraction, client: CustomClient): Promise<any> {
     const query = interaction.options.get("query")?.value as string | undefined;
 
     const queue = useQueue(interaction.guildId as string);
@@ -42,21 +37,13 @@ export default class TrackInfoCommand extends Command {
 
     if (!track)
       return interaction.reply({
-        embeds: [
-          CommandEmbed.error(
-            query
-              ? "Треков не найдено"
-              : "В данный момент ничего не воспроизводится."
-          )
-        ]
+        embeds: [CommandEmbed.error(query ? "Треков не найдено" : "В данный момент ничего не воспроизводится.")]
       });
 
     const fields: RestOrArray<APIEmbedField> = [
       {
         name: "Длительность",
-        value: query
-          ? track.duration
-          : queue?.node.createProgressBar() ?? track.duration
+        value: query ? track.duration : queue?.node.createProgressBar() ?? track.duration
       }
     ];
     if (!query)
@@ -76,11 +63,7 @@ export default class TrackInfoCommand extends Command {
     const stream = await track.extractor?.stream(track);
 
     const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId("lyrics")
-        .setEmoji("📜")
-        .setLabel("Текст")
-        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId("lyrics").setEmoji("📜").setLabel("Текст").setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
         .setLabel(typeof stream == "string" ? "Скачать" : "Ссылка на трек")
         .setStyle(ButtonStyle.Link)
@@ -98,9 +81,7 @@ export default class TrackInfoCommand extends Command {
       });
 
       if (button.customId == "lyrics") {
-        const lyricsCommand = client.getCommandByClass<LyricsCommand>(
-          LyricsCommand.prototype
-        );
+        const lyricsCommand = client.getCommandByClass<LyricsCommand>(LyricsCommand.prototype);
         const trackName = track.title + " - " + track.author;
         lyricsCommand.run(await reply.fetch(), [trackName], client);
         button.update({});

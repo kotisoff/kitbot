@@ -10,15 +10,10 @@ export default class SearchSongCommand extends Command {
 
     this.setDescription("Ищите песни и воспроизводите их!");
 
-    this.slashCommandInfo.addStringOption((o) =>
-      o.setName("query").setDescription("Название песни").setRequired(true)
-    );
+    this.slashCommandInfo.addStringOption((o) => o.setName("query").setDescription("Название песни").setRequired(true));
   }
 
-  async runSlash(
-    interaction: CommandInteraction,
-    client: CustomClient
-  ): Promise<any> {
+  async runSlash(interaction: CommandInteraction, client: CustomClient): Promise<any> {
     const query = interaction.options.get("query")?.value as string;
     await interaction.deferReply();
 
@@ -26,8 +21,6 @@ export default class SearchSongCommand extends Command {
   }
 
   private isUserInVoice(interaction: CommandInteraction): boolean {
-    return interaction.member instanceof GuildMember
-      ? interaction.member.voice.channel != null
-      : false;
+    return interaction.member instanceof GuildMember ? interaction.member.voice.channel != null : false;
   }
 }

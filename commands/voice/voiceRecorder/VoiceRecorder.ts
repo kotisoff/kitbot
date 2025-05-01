@@ -1,19 +1,10 @@
-import {
-  ChannelType,
-  CommandInteraction,
-  User,
-  VoiceChannel
-} from "discord.js";
+import { ChannelType, CommandInteraction, User, VoiceChannel } from "discord.js";
 import Command from "../../../core/Command";
 import CommandOptions from "../../../core/Command/CommandOptions";
 import CustomClient from "../../../core/CustomClient";
 import fs from "fs";
 import path from "path";
-import {
-  getVoiceConnection,
-  joinVoiceChannel,
-  VoiceConnectionStatus
-} from "@discordjs/voice";
+import { getVoiceConnection, joinVoiceChannel, VoiceConnectionStatus } from "@discordjs/voice";
 import CommandEmbed from "../../../core/Command/CommandEmbed";
 import { normalizeFilepath } from "../../../core/Utils/reusedUtils";
 import { Decoder } from "@evan/opus";
@@ -59,10 +50,7 @@ export default class VoiceRecorderCommand extends Command {
         o
           .setName("option")
           .setDescription("Additional option.")
-          .setChoices(
-            { name: "Leave", value: "leave" },
-            { name: "Toggle recording of yourself", value: "toggleuser" }
-          )
+          .setChoices({ name: "Leave", value: "leave" }, { name: "Toggle recording of yourself", value: "toggleuser" })
       );
   }
 
@@ -85,9 +73,7 @@ export default class VoiceRecorderCommand extends Command {
     const userPath = this.getUserPath(channel, user);
     if (!fs.existsSync(userPath)) fs.mkdirSync(userPath, { recursive: true });
 
-    const writeStream = fs.createWriteStream(
-      path.join(userPath, `${saveAs.join("-")}.pcm`)
-    );
+    const writeStream = fs.createWriteStream(path.join(userPath, `${saveAs.join("-")}.pcm`));
 
     const streams = this.writeStreams.get(channel.id) ?? [];
     streams.push(writeStream);
@@ -97,11 +83,9 @@ export default class VoiceRecorderCommand extends Command {
   }
 
   private getUserPath(channel: VoiceChannel, user: User) {
-    const pathnames = [
-      channel.guild,
-      channel,
-      { name: user.username, id: user.id }
-    ].map((n) => `${n.id} (${normalizeFilepath(n.name)})`);
+    const pathnames = [channel.guild, channel, { name: user.username, id: user.id }].map(
+      (n) => `${n.id} (${normalizeFilepath(n.name)})`
+    );
 
     return path.join(this.getDataDir(), ...pathnames); // dist/data/%guild%/%channel%/%user%/
   }
@@ -110,11 +94,7 @@ export default class VoiceRecorderCommand extends Command {
     return this.mutedUsers.get(channel.id) ?? [];
   }
 
-  private setMuteUser(
-    channel: VoiceChannel,
-    user: User,
-    muteState: boolean = true
-  ) {
+  private setMuteUser(channel: VoiceChannel, user: User, muteState: boolean = true) {
     const mutedUsers = this.mutedUsers.get(channel.id) ?? new MapLikeArray();
     if (muteState) mutedUsers.set(user.id);
     else mutedUsers.remove(user.id);
@@ -132,15 +112,9 @@ export default class VoiceRecorderCommand extends Command {
     return mutedUsers.includes(user.id);
   }
 
-  async runSlash(
-    interaction: CommandInteraction,
-    client: CustomClient
-  ): Promise<any> {
+  async runSlash(interaction: CommandInteraction, client: CustomClient): Promise<any> {
     const channel = interaction.options.get("channel")?.channel as VoiceChannel;
-    const option = interaction.options.get("option")?.value as
-      | "leave"
-      | "toggleuser"
-      | undefined;
+    const option = interaction.options.get("option")?.value as "leave" | "toggleuser" | undefined;
 
     let connection = getVoiceConnection(channel.guildId);
     if (option && !connection)
@@ -169,18 +143,11 @@ export default class VoiceRecorderCommand extends Command {
 
       this.toggleMuteUser(channel, interaction.user);
       return interaction.reply({
-        embeds: [
-          CommandEmbed.info(
-            `Бот ${
-              this.isMutedUser(channel, interaction.user) && "не "
-            } записывает вас.`
-          )
-        ]
+        embeds: [CommandEmbed.info(`Бот ${this.isMutedUser(channel, interaction.user) && "не "} записывает вас.`)]
       });
     }
 
-    if (!channel.members.size)
-      return interaction.reply({ embeds: [CommandEmbed.info("Канал пуст.")] });
+    if (!channel.members.size) return interaction.reply({ embeds: [CommandEmbed.info("Канал пуст.")] });
 
     connection = joinVoiceChannel({
       channelId: channel.id,
@@ -214,10 +181,7 @@ export default class VoiceRecorderCommand extends Command {
     });
 
     connection.on("stateChange", (_oldstate, statenew) => {
-      if (
-        statenew.status == VoiceConnectionStatus.Destroyed ||
-        statenew.status == VoiceConnectionStatus.Disconnected
-      ) {
+      if (statenew.status == VoiceConnectionStatus.Destroyed || statenew.status == VoiceConnectionStatus.Disconnected) {
         this.writeStreams.get(channel.id)?.forEach((stream) => stream.close());
         this.writeStreams.delete(channel.id);
 
