@@ -149,20 +149,23 @@ export default class VoiceRecorderCommand extends Command {
 
     if (!channel.members.size) return interaction.reply({ embeds: [CommandEmbed.info("Канал пуст.")] });
 
-    connection = joinVoiceChannel({
-      channelId: channel.id,
-      guildId: channel.guildId,
-      selfDeaf: false,
-      selfMute: false,
-      // @ts-ignore
-      adapterCreator: channel.guild.voiceAdapterCreator
-    });
+    if (!connection) {
+      connection = joinVoiceChannel({
+        channelId: channel.id,
+        guildId: channel.guildId,
+        selfDeaf: false,
+        selfMute: false,
+        // @ts-ignore
+        adapterCreator: channel.guild.voiceAdapterCreator
+      });
+    }
 
     connection.receiver.speaking.on("start", async (uid) => {
       if (connection.receiver.subscriptions.has(uid)) return;
 
       const user = await this.getUser(channel, uid);
       if (!user) return;
+      this.logger.info("Recording user " + user.username);
 
       if (this.isMutedUser(channel, user)) return;
 
