@@ -1,2 +1,2 @@
 @echo off
-pnpm start
+pwsh -C "pnpm start"
