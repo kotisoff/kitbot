@@ -1,5 +1,3 @@
-import ModelManager from "./ModelManager";
-
 process
   .on("unhandledRejection", (error) => {
     console.error("Unhandled rejection:", error);

@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import AIMemory from "../modules/Memory";
+import AIMemory from "../modules/ai/Memory";
 import { Chat } from "@lmstudio/sdk";
 
 export class EraseAIMemoryCommand extends Command {

@@ -1,8 +1,8 @@
-import Memory from "./Memory";
 import { PredictionResult } from "@lmstudio/sdk";
 import { Message } from "discord.js";
-import tools from "./Tools";
+import Memory from "./Memory";
 import ModelManager, { AIState } from "./ModelManager";
+import tools from "./Tools";
 
 export default class AIConversation {
   static async send(message: Message) {
@@ -29,16 +29,18 @@ export default class AIConversation {
           }
         })
         .catch((e) => {
-          console.log("generation stoped by user");
+          console.log("generation stoped:", e);
+          // console.log("generation stoped by user");
         });
     } else {
       response = await ModelManager.model
         .respond(Memory.chat, {
           ...ModelManager.settings.options
         })
-        .catch((v) => {
-          console.log("generation stoped by user");
-          return v;
+        .catch((e) => {
+          console.log("generation stoped:", e);
+          // console.log("generation stoped by user");
+          return e;
         });
     }
 

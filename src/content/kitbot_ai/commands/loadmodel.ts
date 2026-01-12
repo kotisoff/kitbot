@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import ModelManager, { AIState } from "../modules/ModelManager";
+import ModelManager, { AIState } from "../modules/ai/ModelManager";
 
 export class LoadAIModelCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {

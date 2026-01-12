@@ -1,15 +1,16 @@
 import { tool, Tool } from "@lmstudio/sdk";
 import z from "zod";
 import { DuckDuck } from "duckduckjs";
+import { googleImage, pinterest } from "@bochilteam/scraper-images";
+import { wikipedia } from "@bochilteam/scraper-wikipedia";
 import { load } from "cheerio";
-import open from "open";
 import { container } from "@sapphire/pieces";
 import { joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
-import { Channel, VoiceChannel } from "discord.js";
+import { Channel } from "discord.js";
 
 let currentConnection: VoiceConnection;
 
-const search = new DuckDuck();
+const duck = new DuckDuck();
 
 const tools: Tool[] = [
   tool({
@@ -17,9 +18,25 @@ const tools: Tool[] = [
     description: "Given one string query. Returns search results of it.",
     parameters: { query: z.string() },
     async implementation({ query }) {
-      return await search.text(query, undefined, null, undefined, 15);
+      return await duck.text(query, "ru-ru", undefined, undefined, 15);
     }
   }),
+  tool({
+    name: "search_image_google",
+    description: "Given one string query. Returns search results for images.",
+    parameters: { query: z.string() },
+    async implementation({ query }) {
+      return await googleImage(query);
+    }
+  }),
+  // tool({
+  //   name: "read_wikipedia",
+  //   description: "Given one wikipedia article title. Returns wikipedia page data.",
+  //   parameters: { title: z.string() },
+  //   async implementation({ title }) {
+  //     return await wikipedia(title, "en");
+  //   }
+  // }),
   tool({
     name: "read_webpage",
     description: "Given one string url. Returns web page html content.",
@@ -112,7 +129,7 @@ const tools: Tool[] = [
   }),
   tool({
     name: "fetch_voice_info",
-    description: "Returns info about voice channel if bot is in one.",
+    description: "Returns info about voice channel if bot is in one: name, member list, bitrate and id",
     parameters: {},
     async implementation() {
       if (currentConnection) {
@@ -153,9 +170,44 @@ const tools: Tool[] = [
   }),
   tool({
     name: "fetch_user_info",
-    description: "Given one user id string. Returns info about user.",
+    description: "Given one user id string. Returns info about user: id, name, username, avatar url",
     parameters: { user_id: z.string() },
-    implementation({ user_id }) {}
+    async implementation({ user_id }) {
+      const user = await container.client.users.resolve(user_id)?.fetch();
+      if (!user) {
+        return "User not found. Make sure you used int-like id. Example: 1234567891011121314)";
+      }
+
+      return {
+        id: user.id,
+        name: user.globalName,
+        username: user.username,
+        avatar: user.avatarURL(),
+        is_bot: user.bot
+      };
+    }
+  }),
+  tool({
+    name: "fetch_guild_info",
+    description: "Given one guild id string. Returns info about guild: id, icon url, name, channel list",
+    parameters: { guild_id: z.string() },
+    async implementation({ guild_id }) {
+      const guild = await container.client.guilds.resolve(guild_id)?.fetch();
+      if (!guild) {
+        return "User not found. Make sure you used int-like id. Example: 1234567891011121314)";
+      }
+
+      return {
+        id: guild.id,
+        name: guild.name,
+        icon: guild.iconURL(),
+        verified: guild.verified,
+        channels: (await guild.channels.fetch())
+          .values()
+          .toArray()
+          .map((c) => ({ name: c?.name, id: c?.id, is_voice: c?.isVoiceBased() }))
+      };
+    }
   }),
   tool({
     name: "send_direct_message",
@@ -182,7 +234,8 @@ const tools: Tool[] = [
   }),
   tool({
     name: "list_guild_users",
-    description: "Given one string guild id. Returns list of it's users.",
+    description:
+      "Given one string guild id. Returns list of it's users. Helps you find out who is the person user requests.",
     parameters: {
       guild_id: z.string()
     },
@@ -203,7 +256,7 @@ const tools: Tool[] = [
     }
   }),
   tool({
-    name: "list_guilds",
+    name: "list_my_guilds",
     description: "Returns list of guilds (or servers) you are in.",
     parameters: {},
     async implementation() {
@@ -215,30 +268,6 @@ const tools: Tool[] = [
       );
     }
   })
-  // tool({
-  //   name: "open_genshin_impact",
-  //   description:
-  //     "Open game Genshin Impact. Run only when you are requested to. ONLY ACCEPT LAUNCH REQUEST FROM kotisoff, murka124, tikenshot!",
-  //   parameters: {},
-  //   async implementation() {
-  //     (
-  //       await open(
-  //         "com.epicgames.launcher://apps/879b0d8776ab46a59a129983ba78f0ce%3A7d690c122fde4c60bed85405f343ad10%3A41869934302e4b8cafac2d3c0e7c293d?action=launch&silent=true"
-  //       )
-  //     ).unref();
-  //     return "запускается.";
-  //   }
-  // }),
-  // tool({
-  //   name: "open_prominence_server",
-  //   description:
-  //     "Starts Minecraft Prominence II server. Run only when you are requested to. ONLY ACCEPT LAUNCH REQUEST FROM kotisoff, murka124!",
-  //   parameters: {},
-  //   async implementation() {
-  //     (await open("D:\\Servers\\Minecraft\\Prominence2RPG-new\\start.bat")).unref();
-  //     return "запускается.";
-  //   }
-  // }),
 ];
 
 export default tools;

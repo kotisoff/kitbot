@@ -1,6 +1,6 @@
 import { InteractionHandler, InteractionHandlerTypes } from "@sapphire/framework";
 import { AutocompleteInteraction } from "discord.js";
-import ModelManager from "../modules/ModelManager";
+import ModelManager from "../modules/ai/ModelManager";
 
 export class LoadModelAutocompleteHandler extends InteractionHandler {
   public constructor(ctx: InteractionHandler.LoaderContext, options: InteractionHandler.Options) {

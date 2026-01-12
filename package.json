@@ -20,6 +20,8 @@
     "copyfiles": "^2.4.1"
   },
   "dependencies": {
+    "@bochilteam/scraper-images": "^5.0.0",
+    "@bochilteam/scraper-wikipedia": "^5.0.0",
     "@discordjs/voice": "^0.19.0",
     "@lmstudio/sdk": "^1.5.0",
     "@sapphire/decorators": "^6.2.0",
@@ -32,6 +34,7 @@
     "duckduckjs": "^1.0.1",
     "open": "^11.0.0",
     "seedrandom": "^3.0.5",
+    "ts-web-scraper": "^0.1.1",
     "zod": "~3.25.76"
   }
 }

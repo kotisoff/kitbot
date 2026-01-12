@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import AIModelManager from "../modules/ModelManager";
+import AIModelManager from "../modules/ai/ModelManager";
 
 export class ConnectLMStudioCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {

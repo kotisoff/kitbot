@@ -1,5 +1,5 @@
 import { LLM, LLMActionOpts, LLMRespondOpts, LMStudioClient, LMStudioClientConstructorOpts } from "@lmstudio/sdk";
-import ContentHandler, { ContentPack } from "../../../core/ContentHandler";
+import ContentHandler, { ContentPack } from "../../../../core/ContentHandler";
 import { promisify } from "node:util";
 import { stat } from "node:fs";
 
@@ -11,8 +11,8 @@ export enum AIState {
 }
 
 const pack = ContentHandler.contentPacks.get("kitbot_ai") as ContentPack;
-// const config = { baseUrl: "ws://127.0.0.1:1234" };
-const config = pack.loadConfig("config.json", { baseUrl: "ws://127.0.0.1:1234" });
+const config = { baseUrl: "ws://127.0.0.1:1234" };
+// const config = pack.loadConfig("config.json", { baseUrl: "ws://127.0.0.1:1234" });
 
 export default class AIModelManager {
   static client: LMStudioClient = new LMStudioClient(config);

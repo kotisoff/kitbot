@@ -1,8 +1,8 @@
 import { ClientUser, Message } from "discord.js";
 import ModelManager, { AIState } from "./ModelManager";
 import { container } from "@sapphire/pieces";
-import Utils from "./Utils";
 import Conversation from "./Conversation";
+import Utils from "./Utils";
 
 const triggers = ["kitbot", "китбот", "757645999006285844"];
 

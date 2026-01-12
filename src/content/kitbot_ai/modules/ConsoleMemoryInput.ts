@@ -1,5 +1,5 @@
 import { createInterface } from "readline";
-import AIMemory from "./Memory";
+import AIMemory from "./ai/Memory";
 
 const rl = createInterface(process.stdin, process.stdout);
 rl.setPrompt("");
