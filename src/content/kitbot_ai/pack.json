@@ -1,0 +1,8 @@
+{
+  "identifier": "kitbot_ai",
+  "name": "KitBot AI",
+  "description": "AI functionality test",
+  "version": "0.1",
+  "author": "kotisoff",
+  "main": "init.js"
+}

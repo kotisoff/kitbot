@@ -1,0 +1,7 @@
+{
+  "identifier": "kitbot_minesweeper",
+  "name": "Minesweeper",
+  "description": "Game about mines and sweeper for KitBot",
+  "version": "0.1",
+  "author": "kotisoff"
+}
