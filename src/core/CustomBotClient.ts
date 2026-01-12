@@ -1,8 +1,7 @@
 import { SapphireClient } from "@sapphire/framework";
 import { getRootData } from "@sapphire/pieces";
 import { ClientOptions } from "discord.js";
-import { lstatSync, readdirSync } from "fs";
-import { join } from "path";
+import ContentHandler from "./ContentHandler";
 
 export default class CustomBotClient extends SapphireClient {
   private rootData = getRootData();
@@ -10,16 +9,13 @@ export default class CustomBotClient extends SapphireClient {
   constructor(options: ClientOptions) {
     super(options);
 
-    const contentdir = join(this.rootData.root, "content");
+    ContentHandler.loadContent(this.rootData);
 
-    const ContentPacks = readdirSync(contentdir)
-      .map((f) => join(contentdir, f))
-      .filter((f) => lstatSync(f).isDirectory());
-
-    ContentPacks.forEach((path) => {
-      this.stores.registerPath(path);
+    ContentHandler.contentPacks.forEach((pack) => {
+      this.stores.registerPath(pack.path);
+      pack.init();
     });
 
-    console.log(ContentPacks);
+    console.log("Loaded content:", ContentHandler.contentPacks.keys().toArray().join(", "));
   }
 }

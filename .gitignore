@@ -138,3 +138,5 @@ dist
 .env
 src/content/*
 !src/content/core
+configs
+data
