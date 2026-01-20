@@ -16,7 +16,7 @@ export class LoadModelAutocompleteHandler extends InteractionHandler {
 
   public override async parse(interaction: AutocompleteInteraction) {
     // Only run this interaction for the command with ID '1000802763292020737'
-    if (interaction.commandName != "loadmodel") return this.none();
+    if (interaction.commandName != "ai") return this.none();
 
     // Get the focussed (current) option
     const focusedOption = interaction.options.getFocused(true);
@@ -34,6 +34,14 @@ export class LoadModelAutocompleteHandler extends InteractionHandler {
             name: `${match.displayName} ${match.quantization ? `(${match.quantization.name})` : ""}`,
             value: match.modelKey
           }))
+        );
+      }
+      case "baseurl": {
+        const results = Object.keys(ModelManager.config.servers);
+        const searchResult = results.filter((o) => o.startsWith(focusedOption.value));
+
+        return this.some(
+          searchResult.map((m) => ({ name: m.slice(0, 1).toUpperCase() + m.slice(1), value: "saved:" + m }))
         );
       }
       default:

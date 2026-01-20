@@ -1,7 +1,5 @@
 import { LLM, LLMActionOpts, LLMRespondOpts, LMStudioClient, LMStudioClientConstructorOpts } from "@lmstudio/sdk";
 import ContentHandler, { ContentPack } from "../../../../core/ContentHandler";
-import { promisify } from "node:util";
-import { stat } from "node:fs";
 
 export enum AIState {
   "not_loaded",
@@ -11,11 +9,15 @@ export enum AIState {
 }
 
 const pack = ContentHandler.contentPacks.get("kitbot_ai") as ContentPack;
-const config = { baseUrl: "ws://127.0.0.1:1234" };
-// const config = pack.loadConfig("config.json", { baseUrl: "ws://127.0.0.1:1234" });
+// const config = { baseUrl: "ws://127.0.0.1:1234" };
 
 export default class AIModelManager {
-  static client: LMStudioClient = new LMStudioClient(config);
+  static config = pack.loadConfig("config.json", {
+    lms: { baseUrl: "ws://127.0.0.1:1234" },
+    servers: {} as { [i: string]: string }
+  });
+
+  static client: LMStudioClient = new LMStudioClient(this.config.lms);
   static model: LLM;
   static controller: AbortController = new AbortController();
 
@@ -65,7 +67,10 @@ export default class AIModelManager {
     return list;
   }
 
-  static async connectClient(options: LMStudioClientConstructorOpts = config, unload_on_connection: boolean = true) {
+  static async connectClient(
+    options: LMStudioClientConstructorOpts = this.config.lms,
+    unload_on_connection: boolean = true
+  ) {
     try {
       const client = new LMStudioClient(options);
       return client.system

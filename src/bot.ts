@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { GatewayIntentBits } from "discord.js";
 import CustomBotClient from "./core/CustomBotClient";
-import { ApplicationCommandRegistries } from "@sapphire/framework";
+import { ApplicationCommandRegistries, RegisterBehavior } from "@sapphire/framework";
 
 dotenv.config({ quiet: true });
 
@@ -31,9 +31,10 @@ const client = new CustomBotClient({
     GatewayIntentBits.GuildWebhooks,
     GatewayIntentBits.Guilds
   ],
-  defaultPrefix: "'"
+  defaultPrefix: "'",
+  loadMessageCommandListeners: true
 });
 
-client.login(process.env.DISCORD_TOKEN);
+ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite);
 
-ApplicationCommandRegistries.setDefaultGuildIds(["1053253637121523723"]);
+client.login(process.env.DISCORD_TOKEN);

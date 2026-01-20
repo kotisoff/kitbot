@@ -1,4 +1,10 @@
-import { ApplicationCommandRegistry, Awaitable, ChatInputCommand, Command } from "@sapphire/framework";
+import {
+  ApplicationCommandRegistry,
+  Awaitable,
+  ChatInputCommand,
+  Command,
+  RegisterBehavior
+} from "@sapphire/framework";
 import { ActionRowBuilder, AttachmentBuilder, ChatInputCommandInteraction } from "discord.js";
 import Minesweeper, { Settings } from "../modules/Minesweeper";
 
@@ -15,7 +21,7 @@ export class MinesweeperCommand extends Command {
         .addNumberOption((o) => o.setName("rows").setDescription("Board rows count.").setRequired(true))
         .addNumberOption((o) => o.setName("columns").setDescription("Board columns count.").setRequired(true))
         .addNumberOption((o) => o.setName("bombs").setDescription("Bombs count.").setRequired(true))
-        .addStringOption((o) => o.setName("seed").setDescription("Board seed.").setRequired(true))
+        .addStringOption((o) => o.setName("seed").setDescription("Board seed.").setRequired(false))
     );
   }
 
